@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-handwriting: 'Caveat', cursive, sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+  }
+
+  html:not(.dark), body:not(.dark) {
+    background-color: #F8FAFC !important;
+    color: #0F172A !important;
+  }
+
+  html.dark, body.dark {
+    background-color: #020617 !important;
+    color: #F8FAFC !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Authentic Ruled Caderno Lines with Margin - Precisely Aligned to 36px Base */
+.bg-caderno-ruled {
+  background-color: #FFFDF9;
+  background-image: 
+    linear-gradient(to right, transparent 54px, #F87171 54px, #F87171 56px, transparent 56px),
+    linear-gradient(to bottom, transparent 35px, #CBD5E1 35px, #CBD5E1 36px);
+  background-size: 100% 36px;
+  background-attachment: local;
+  line-height: 36px;
+}
+
+.dark .bg-caderno-ruled {
+  background-color: #0B1329;
+  background-image: 
+    linear-gradient(to right, transparent 54px, #EF4444 54px, #EF4444 56px, transparent 56px),
+    linear-gradient(to bottom, transparent 35px, #334155 35px, #334155 36px);
+  background-size: 100% 36px;
+  background-attachment: local;
+  line-height: 36px;
+}
+
+.bg-caderno-grid {
+  background-color: #FFFDF9;
+  background-image: 
+    linear-gradient(to right, rgba(203, 213, 225, 0.6) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(203, 213, 225, 0.6) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.dark .bg-caderno-grid {
+  background-color: #0B1329;
+  background-image: 
+    linear-gradient(to right, rgba(51, 65, 85, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(51, 65, 85, 0.5) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.font-handwriting {
+  font-family: var(--font-handwriting);
+}
+
+/* Futuristic Dot Matrix & Grid Patterns */
+.bg-dot-pattern {
+  background-image: radial-gradient(#CBD5E1 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.bg-dot-pattern-dense {
+  background-image: radial-gradient(#E2E8F0 1.2px, transparent 1.2px);
+  background-size: 12px 12px;
+}
+
+.bg-neural-grid {
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.4) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.4) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.dark .bg-neural-grid {
+  background-image: 
+    linear-gradient(to right, rgba(51, 65, 85, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(51, 65, 85, 0.3) 1px, transparent 1px);
+}
+
+/* High Density Glassmorphism & Surface Classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.03);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.glass-panel-ai {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 20px 40px -15px rgba(147, 51, 234, 0.12), 0 1px 3px 0 rgba(15, 23, 42, 0.02);
+}
+
+.dark .glass-panel-ai {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.dark .glass-nav {
+  background: rgba(15, 23, 42, 0.9);
+  border-bottom: 1px solid rgba(30, 41, 59, 0.8);
+}
+
+/* High density pulse animation */
+@keyframes neuralPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+.animate-neural-pulse {
+  animation: neuralPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}

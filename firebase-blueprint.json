@@ -1,0 +1,101 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with gamification stats, streak and XP.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "email": { "type": "string", "maxLength": 200 },
+        "totalXp": { "type": "number" },
+        "streak": { "type": "number" },
+        "highScore": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "totalAnswered": { "type": "number" },
+        "totalCorrect": { "type": "number" },
+        "division": { "type": "string", "maxLength": 50 },
+        "lastActiveAt": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string", "maxLength": 100 },
+        "updatedAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["userId", "displayName"]
+    },
+    "CustomQuestion": {
+      "title": "CustomQuestion",
+      "description": "Teacher/User created question for the platform.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "creatorId": { "type": "string", "maxLength": 128 },
+        "creatorName": { "type": "string", "maxLength": 100 },
+        "subject": { "type": "string", "maxLength": 100 },
+        "topic": { "type": "string", "maxLength": 100 },
+        "difficulty": { "type": "string", "maxLength": 20 },
+        "question": { "type": "string", "maxLength": 2000 },
+        "options": { "type": "array" },
+        "correctOptionId": { "type": "string", "maxLength": 10 },
+        "explanation": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["id", "creatorId", "subject", "question", "correctOptionId"]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Public leaderboard record for a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "avatar": { "type": "string", "maxLength": 500 },
+        "totalXp": { "type": "number" },
+        "streak": { "type": "number" },
+        "highScore": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "division": { "type": "string", "maxLength": 50 },
+        "badge": { "type": "string", "maxLength": 100 },
+        "updatedAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["userId", "name", "totalXp", "highScore"]
+    },
+    "SessionRecord": {
+      "title": "SessionRecord",
+      "description": "History record of a completed training session.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "gameMode": { "type": "string", "maxLength": 50 },
+        "score": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "correctQuestions": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "maxCombo": { "type": "number" },
+        "xpEarned": { "type": "number" },
+        "elapsedSeconds": { "type": "number" },
+        "date": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["id", "userId", "gameMode", "score"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile documents with public and private stats"
+    },
+    "/leaderboard/{userId}": {
+      "schema": { "$ref": "#/entities/LeaderboardEntry" },
+      "description": "Global leaderboard documents readable by all users"
+    },
+    "/custom_questions/{questionId}": {
+      "schema": { "$ref": "#/entities/CustomQuestion" },
+      "description": "Community and teacher authored questions"
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/SessionRecord" },
+      "description": "Private user training session history"
+    }
+  }
+}
