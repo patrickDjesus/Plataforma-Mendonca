@@ -2,13 +2,13 @@
   "entities": {
     "UserProfile": {
       "title": "UserProfile",
-      "description": "User profile with gamification stats, streak and XP.",
+      "description": "User profile with authentication details, level, and overall totals.",
       "type": "object",
       "properties": {
         "userId": { "type": "string", "maxLength": 128 },
         "displayName": { "type": "string", "maxLength": 100 },
-        "photoURL": { "type": "string", "maxLength": 500 },
         "email": { "type": "string", "maxLength": 200 },
+        "photoURL": { "type": "string", "maxLength": 500 },
         "totalXp": { "type": "number" },
         "streak": { "type": "number" },
         "highScore": { "type": "number" },
@@ -20,82 +20,92 @@
         "createdAt": { "type": "string", "maxLength": 100 },
         "updatedAt": { "type": "string", "maxLength": 100 }
       },
-      "required": ["userId", "displayName"]
+      "required": ["userId", "displayName", "email"]
     },
-    "CustomQuestion": {
-      "title": "CustomQuestion",
-      "description": "Teacher/User created question for the platform.",
+    "Question": {
+      "title": "Question",
+      "description": "Teacher and community authored quiz questions with options and explanations.",
       "type": "object",
       "properties": {
         "id": { "type": "string", "maxLength": 128 },
         "creatorId": { "type": "string", "maxLength": 128 },
         "creatorName": { "type": "string", "maxLength": 100 },
+        "creatorEmail": { "type": "string", "maxLength": 200 },
         "subject": { "type": "string", "maxLength": 100 },
         "topic": { "type": "string", "maxLength": 100 },
-        "difficulty": { "type": "string", "maxLength": 20 },
-        "question": { "type": "string", "maxLength": 2000 },
+        "difficulty": { "type": "string", "maxLength": 30 },
+        "statement": { "type": "string", "maxLength": 3000 },
         "options": { "type": "array" },
-        "correctOptionId": { "type": "string", "maxLength": 10 },
-        "explanation": { "type": "string", "maxLength": 2000 },
-        "createdAt": { "type": "string", "maxLength": 100 }
+        "imageUrl": { "type": "string", "maxLength": 500 },
+        "imageCaption": { "type": "string", "maxLength": 200 },
+        "codeSnippet": { "type": "string", "maxLength": 1000 },
+        "gameType": { "type": "string", "maxLength": 50 },
+        "aiHint": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "maxLength": 100 },
+        "updatedAt": { "type": "string", "maxLength": 100 }
       },
-      "required": ["id", "creatorId", "subject", "question", "correctOptionId"]
+      "required": ["id", "creatorId", "subject", "topic", "statement", "options"]
     },
-    "LeaderboardEntry": {
-      "title": "LeaderboardEntry",
-      "description": "Public leaderboard record for a user.",
+    "PerformanceStats": {
+      "title": "PerformanceStats",
+      "description": "Real-time user performance metrics, accuracy, subject stats, and recent answers log.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "totalAnswered": { "type": "number" },
+        "totalCorrect": { "type": "number" },
+        "totalWrong": { "type": "number" },
+        "totalXpEarned": { "type": "number" },
+        "bestStreakCombo": { "type": "number" },
+        "totalSecondsPlayed": { "type": "number" },
+        "subjectStats": { "type": "object" },
+        "recentQuestionsLog": { "type": "array" },
+        "sessionsHistory": { "type": "array" },
+        "updatedAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["userId", "totalAnswered", "totalCorrect", "totalWrong"]
+    },
+    "LeaderboardUser": {
+      "title": "LeaderboardUser",
+      "description": "Dynamic global ranking and competitive stats per user.",
       "type": "object",
       "properties": {
         "userId": { "type": "string", "maxLength": 128 },
         "name": { "type": "string", "maxLength": 100 },
-        "avatar": { "type": "string", "maxLength": 500 },
-        "totalXp": { "type": "number" },
-        "streak": { "type": "number" },
-        "highScore": { "type": "number" },
+        "handle": { "type": "string", "maxLength": 100 },
+        "avatarEmoji": { "type": "string", "maxLength": 20 },
+        "avatarBg": { "type": "string", "maxLength": 100 },
+        "schoolOrGoal": { "type": "string", "maxLength": 150 },
+        "score": { "type": "number" },
+        "weeklyXp": { "type": "number" },
+        "streakDays": { "type": "number" },
         "accuracy": { "type": "number" },
-        "division": { "type": "string", "maxLength": 50 },
-        "badge": { "type": "string", "maxLength": 100 },
+        "totalQuestions": { "type": "number" },
+        "league": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "maxLength": 30 },
+        "favoriteSubject": { "type": "string", "maxLength": 100 },
+        "enduranceRecordSecs": { "type": "number" },
         "updatedAt": { "type": "string", "maxLength": 100 }
       },
-      "required": ["userId", "name", "totalXp", "highScore"]
-    },
-    "SessionRecord": {
-      "title": "SessionRecord",
-      "description": "History record of a completed training session.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string", "maxLength": 128 },
-        "userId": { "type": "string", "maxLength": 128 },
-        "gameMode": { "type": "string", "maxLength": 50 },
-        "score": { "type": "number" },
-        "totalQuestions": { "type": "number" },
-        "correctQuestions": { "type": "number" },
-        "accuracy": { "type": "number" },
-        "maxCombo": { "type": "number" },
-        "xpEarned": { "type": "number" },
-        "elapsedSeconds": { "type": "number" },
-        "date": { "type": "string", "maxLength": 100 },
-        "createdAt": { "type": "string", "maxLength": 100 }
-      },
-      "required": ["id", "userId", "gameMode", "score"]
+      "required": ["userId", "name", "score", "weeklyXp"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
-      "description": "User profile documents with public and private stats"
+      "description": "User profile with general info and total stats"
+    },
+    "/questions/{questionId}": {
+      "schema": { "$ref": "#/entities/Question" },
+      "description": "Teacher and community authored quiz questions"
+    },
+    "/performance/{userId}": {
+      "schema": { "$ref": "#/entities/PerformanceStats" },
+      "description": "Real-time user performance metrics, accuracy, subject stats, and recent answers log"
     },
     "/leaderboard/{userId}": {
-      "schema": { "$ref": "#/entities/LeaderboardEntry" },
-      "description": "Global leaderboard documents readable by all users"
-    },
-    "/custom_questions/{questionId}": {
-      "schema": { "$ref": "#/entities/CustomQuestion" },
-      "description": "Community and teacher authored questions"
-    },
-    "/users/{userId}/sessions/{sessionId}": {
-      "schema": { "$ref": "#/entities/SessionRecord" },
-      "description": "Private user training session history"
+      "schema": { "$ref": "#/entities/LeaderboardUser" },
+      "description": "Dynamic global ranking and competitive stats per user"
     }
   }
 }

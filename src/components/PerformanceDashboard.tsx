@@ -96,146 +96,80 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
     const quiStats = analytics.subjectStats['Química & Tabela Periódica'];
     const bioStats = analytics.subjectStats['Biologia & Genética'];
 
-    const currentMatAcc = matStats && matStats.answered > 0 ? Math.round((matStats.correct / matStats.answered) * 100) : 82;
-    const currentFisAcc = fisStats && fisStats.answered > 0 ? Math.round((fisStats.correct / fisStats.answered) * 100) : 68;
-    const currentQuiAcc = quiStats && quiStats.answered > 0 ? Math.round((quiStats.correct / quiStats.answered) * 100) : 80;
-    const currentBioAcc = bioStats && bioStats.answered > 0 ? Math.round((bioStats.correct / bioStats.answered) * 100) : 75;
+    const currentMatAcc = matStats && matStats.answered > 0 ? Math.round((matStats.correct / matStats.answered) * 100) : 0;
+    const currentFisAcc = fisStats && fisStats.answered > 0 ? Math.round((fisStats.correct / fisStats.answered) * 100) : 0;
+    const currentQuiAcc = quiStats && quiStats.answered > 0 ? Math.round((quiStats.correct / quiStats.answered) * 100) : 0;
+    const currentBioAcc = bioStats && bioStats.answered > 0 ? Math.round((bioStats.correct / bioStats.answered) * 100) : 0;
 
-    // Timeline base calibrada de aprendizado (progressão ao longo das últimas semanas/sessões)
-    const baseTimeline: TimeSeriesDataPoint[] = [
-      {
-        sessionLabel: 'Sessão 1 (Diagnóstico Inicial)',
-        shortLabel: 'S1',
-        date: '17 Ago',
-        overallAccuracy: 52,
-        matematica: 55,
-        fisica: 40,
-        quimica: 60,
-        biologia: 50,
-        learningVelocity: 2.4,
-        avgResponseSeconds: 24.5,
-        xpEarned: 420
-      },
-      {
-        sessionLabel: 'Sessão 2 (Treino Aritmético)',
-        shortLabel: 'S2',
-        date: '18 Ago',
-        overallAccuracy: 61,
-        matematica: 64,
-        fisica: 48,
-        quimica: 68,
-        biologia: 62,
-        learningVelocity: 3.1,
-        avgResponseSeconds: 20.0,
-        xpEarned: 680
-      },
-      {
-        sessionLabel: 'Sessão 3 (Fórmulas ENEM)',
-        shortLabel: 'S3',
-        date: '19 Ago',
-        overallAccuracy: 68,
-        matematica: 70,
-        fisica: 55,
-        quimica: 74,
-        biologia: 68,
-        learningVelocity: 3.9,
-        avgResponseSeconds: 16.8,
-        xpEarned: 890
-      },
-      {
-        sessionLabel: 'Sessão 4 (Tabela Periódica)',
-        shortLabel: 'S4',
-        date: '20 Ago',
-        overallAccuracy: 74,
-        matematica: 76,
-        fisica: 60,
-        quimica: 78,
-        biologia: 72,
-        learningVelocity: 4.8,
-        avgResponseSeconds: 13.5,
-        xpEarned: 1200
-      },
-      {
-        sessionLabel: 'Sessão 5 (Endurance Intermediário)',
-        shortLabel: 'S5',
-        date: '21 Ago',
-        overallAccuracy: 79,
-        matematica: 80,
-        fisica: 65,
-        quimica: 82,
-        biologia: 74,
-        learningVelocity: 5.4,
-        avgResponseSeconds: 11.2,
-        xpEarned: 1450
-      },
-      {
-        sessionLabel: 'Sessão 6 (Simulado Rápido)',
-        shortLabel: 'S6',
-        date: '22 Ago',
-        overallAccuracy: 84,
-        matematica: Math.max(82, currentMatAcc - 2),
-        fisica: Math.max(66, currentFisAcc - 2),
-        quimica: Math.max(80, currentQuiAcc - 1),
-        biologia: Math.max(76, currentBioAcc),
-        learningVelocity: 6.1,
-        avgResponseSeconds: 9.8,
-        xpEarned: 1780
-      },
-      {
-        sessionLabel: 'Sessão Atual (Ao Vivo)',
-        shortLabel: 'Hoje',
-        date: 'Hoje',
-        overallAccuracy: accuracyPercentage > 0 ? accuracyPercentage : 86,
-        matematica: currentMatAcc,
-        fisica: currentFisAcc,
-        quimica: currentQuiAcc,
-        biologia: currentBioAcc,
-        learningVelocity: totalAnswered > 0 && analytics.totalSecondsPlayed > 0 
-          ? Math.max(1.5, Number(((totalCorrect / Math.max(1, analytics.totalSecondsPlayed)) * 60).toFixed(1)))
-          : 6.8,
-        avgResponseSeconds: avgTimePerQuestion > 0 ? avgTimePerQuestion : 8.5,
-        xpEarned: analytics.totalXpEarned || 2100
-      }
-    ];
-
-    // Se existirem sessões adicionais em sessionsHistory, incorpora dados reais
+    // Se existirem sessões reais em sessionsHistory, incorpora dados reais
     if (analytics.sessionsHistory && analytics.sessionsHistory.length > 0) {
-      const recentSess = analytics.sessionsHistory.slice(0, 3).reverse();
-      const dynamicPoints: TimeSeriesDataPoint[] = recentSess.map((sess, idx) => {
+      const recentSess = analytics.sessionsHistory.slice(0, 7).reverse();
+      return recentSess.map((sess, idx) => {
         const vel = sess.elapsedSeconds > 0 
           ? Number(((sess.correctQuestions / sess.elapsedSeconds) * 60).toFixed(1))
-          : 4.5;
+          : 0;
         const avgSec = sess.totalQuestions > 0 
           ? Math.round(sess.elapsedSeconds / sess.totalQuestions)
-          : 12;
+          : 0;
 
         return {
-          sessionLabel: `Treino #${idx + 1} (${sess.gameMode})`,
+          sessionLabel: `Treino #${idx + 1} (${sess?.gameMode || 'Treino'})`,
           shortLabel: `T${idx + 1}`,
-          date: sess.date.split(' ')[0] || 'Hoje',
-          overallAccuracy: sess.accuracy,
+          date: (sess?.date && typeof sess.date === 'string') ? (sess.date.split(' ')[0] || 'Hoje') : 'Hoje',
+          overallAccuracy: sess?.accuracy ?? 0,
           matematica: currentMatAcc,
           fisica: currentFisAcc,
           quimica: currentQuiAcc,
           biologia: currentBioAcc,
           learningVelocity: vel,
           avgResponseSeconds: avgSec,
-          xpEarned: sess.xpEarned
+          xpEarned: sess?.xpEarned || 0
         };
       });
-
-      return [...baseTimeline.slice(0, Math.max(3, 7 - dynamicPoints.length)), ...dynamicPoints];
     }
 
-    return baseTimeline;
+    // Ponto inicial limpo da jornada
+    return [
+      {
+        sessionLabel: 'Início da Jornada',
+        shortLabel: 'Hoje',
+        date: 'Hoje',
+        overallAccuracy: accuracyPercentage,
+        matematica: currentMatAcc,
+        fisica: currentFisAcc,
+        quimica: currentQuiAcc,
+        biologia: currentBioAcc,
+        learningVelocity: totalAnswered > 0 && analytics.totalSecondsPlayed > 0 
+          ? Number(((totalCorrect / Math.max(1, analytics.totalSecondsPlayed)) * 60).toFixed(1))
+          : 0,
+        avgResponseSeconds: avgTimePerQuestion,
+        xpEarned: analytics.totalXpEarned || 0
+      }
+    ];
   }, [analytics, accuracyPercentage, totalAnswered, totalCorrect, avgTimePerQuestion]);
 
   // Estatísticas Derivadas da Curva de Velocidade
-  const initialPoint = timeSeriesData[0];
-  const currentPoint = timeSeriesData[timeSeriesData.length - 1];
+  const initialPoint = timeSeriesData[0] || {
+    sessionLabel: 'Início',
+    shortLabel: 'Hoje',
+    date: 'Hoje',
+    overallAccuracy: 0,
+    matematica: 0,
+    fisica: 0,
+    quimica: 0,
+    biologia: 0,
+    learningVelocity: 0,
+    avgResponseSeconds: 0,
+    xpEarned: 0
+  };
+  const currentPoint = timeSeriesData[timeSeriesData.length - 1] || initialPoint;
   const accuracyGain = currentPoint.overallAccuracy - initialPoint.overallAccuracy;
-  const velocityGain = Number((((currentPoint.learningVelocity - initialPoint.learningVelocity) / initialPoint.learningVelocity) * 100).toFixed(0));
-  const speedupRatio = Number((initialPoint.avgResponseSeconds / Math.max(1, currentPoint.avgResponseSeconds)).toFixed(1));
+  const velocityGain = initialPoint.learningVelocity > 0 
+    ? Number((((currentPoint.learningVelocity - initialPoint.learningVelocity) / initialPoint.learningVelocity) * 100).toFixed(0))
+    : 0;
+  const speedupRatio = initialPoint.avgResponseSeconds > 0 && currentPoint.avgResponseSeconds > 0
+    ? Number((initialPoint.avgResponseSeconds / currentPoint.avgResponseSeconds).toFixed(1))
+    : 1.0;
 
   // Geração Dinâmica de Sugestões de Estudo com base nas taxas de erro
   const studySuggestions = useMemo<TopicStudySuggestion[]>(() => {

@@ -14,7 +14,8 @@ import {
   Moon,
   Bell,
   Search,
-  Command
+  Command,
+  Database
 } from 'lucide-react';
 import { LogoMendonca } from './LogoMendonca';
 
@@ -31,6 +32,7 @@ interface NavbarProps {
   unreadNotificationsCount: number;
   hasRedAlert?: boolean;
   hasYellowAlert?: boolean;
+  onOpenAdminCleanup?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -46,6 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   unreadNotificationsCount,
   hasRedAlert = false,
   hasYellowAlert = false,
+  onOpenAdminCleanup,
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
@@ -241,6 +244,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                           </span>
                         )}
                       </button>
+
+                      {onOpenAdminCleanup && (
+                        <button
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            onOpenAdminCleanup();
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors text-left cursor-pointer"
+                        >
+                          <Database className="w-3.5 h-3.5" />
+                          <span>Limpeza Firestore / Reset</span>
+                        </button>
+                      )}
 
                       {onLogout && (
                         <button

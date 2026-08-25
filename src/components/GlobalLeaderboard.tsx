@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Trophy, 
@@ -25,6 +25,7 @@ import {
 import { ScreenId } from '../types/design';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
+import { subscribeToLeaderboard } from '../services/firebase';
 
 export interface LeaderboardUser {
 
@@ -71,217 +72,84 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
   const [period, setPeriod] = useState<'weekly' | 'allTime' | 'endurance'>('weekly');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionToast, setActionToast] = useState<string | null>(null);
+  const [firestoreEntries, setFirestoreEntries] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToLeaderboard((entries) => {
+      if (entries && entries.length > 0) {
+        setFirestoreEntries(entries);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const showToast = (msg: string) => {
     setActionToast(msg);
     setTimeout(() => setActionToast(null), 3000);
   };
 
-  // Base de competidores realistas e integrados
+  // Base de competidores reais e integrados via Firestore + Usuário Ativo
   const mockCompetitors: LeaderboardUser[] = useMemo(() => {
-    const effectiveXp = userProfile?.totalXp || userTotalXp || 3200;
-    const calculatedUserScore = Math.max((userProfile?.highScore || userHighScore) * 2, effectiveXp);
-    const calculatedUserStreak = userProfile?.streak || userStreak || 14;
-    const calculatedUserAcc = userProfile?.accuracy || (userAccuracy > 0 ? userAccuracy : 84);
+    const effectiveXp = userProfile?.totalXp || userTotalXp || 0;
+    const calculatedUserScore = Math.max((userProfile?.highScore || userHighScore || 0) * 2, effectiveXp);
+    const calculatedUserStreak = userProfile?.streak || userStreak || 1;
+    const calculatedUserAcc = userProfile?.accuracy ?? (userAccuracy > 0 ? userAccuracy : 0);
     const displayName = userProfile?.displayName || currentUser?.displayName || 'Você (Estudante Synapse)';
 
-
-    const baseList: LeaderboardUser[] = [
-      {
-        id: 'user-1',
-        rank: 1,
-        name: 'Camila Vasconcelos',
-        handle: '@camilavasc',
-        avatarBg: 'from-amber-400 to-orange-500',
-        avatarEmoji: '⚡',
-        schoolOrGoal: 'Medicina • USP Pinheiros',
-        score: 14850,
-        weeklyXp: 4920,
-        streakDays: 42,
-        accuracy: 94,
-        totalQuestions: 620,
-        league: 'Diamante',
-        isFriend: true,
-        status: 'online',
-        favoriteSubject: 'Física & Eletrodinâmica',
-        enduranceRecordSecs: 345
-      },
-      {
-        id: 'user-2',
-        rank: 2,
-        name: 'Lucas Brandão',
-        handle: '@lucas_brandao',
-        avatarBg: 'from-cyan-400 to-blue-600',
-        avatarEmoji: '🚀',
-        schoolOrGoal: 'Engenharia Aeronáutica • ITA',
-        score: 13200,
-        weeklyXp: 4410,
-        streakDays: 35,
-        accuracy: 91,
-        totalQuestions: 540,
-        league: 'Diamante',
-        isFriend: true,
-        status: 'jogando',
-        favoriteSubject: 'Cálculo & Geometria',
-        enduranceRecordSecs: 310
-      },
-      {
-        id: 'user-3',
-        rank: 3,
-        name: 'Beatriz Nogueira',
-        handle: '@biapsi',
-        avatarBg: 'from-purple-400 to-pink-600',
-        avatarEmoji: '🧠',
-        schoolOrGoal: 'Psicologia & Neurociência • UFRJ',
-        score: 11950,
-        weeklyXp: 3890,
-        streakDays: 29,
-        accuracy: 88,
-        totalQuestions: 480,
-        league: 'Diamante',
+    // Mapear entradas reais do Firestore
+    const list: LeaderboardUser[] = firestoreEntries.map((fe, index) => {
+      const isMe = fe.userId === currentUser?.uid;
+      const score = isMe ? calculatedUserScore : (fe.score || fe.totalXp || 0);
+      const leagueName: 'Diamante' | 'Platina' | 'Ouro' | 'Prata' = 
+        score > 8000 ? 'Diamante' : score > 4000 ? 'Platina' : score > 1500 ? 'Ouro' : 'Prata';
+      return {
+        id: fe.userId || `fs-${index}`,
+        rank: index + 1,
+        name: isMe ? `${displayName} (Você)` : (fe.displayName || fe.name || 'Estudante Mendonça'),
+        handle: fe.handle || `@${(fe.displayName || fe.name || 'aluno').toLowerCase().replace(/\s+/g, '')}`,
+        avatarBg: isMe ? 'from-emerald-400 to-teal-600' : (fe.avatarBg || 'from-indigo-400 to-purple-600'),
+        avatarEmoji: isMe ? '🔥' : (fe.avatarEmoji || '⭐'),
+        schoolOrGoal: fe.schoolOrGoal || fe.goal || 'Preparação ENEM & Vestibulares',
+        score: score,
+        weeklyXp: isMe ? Math.round(score * 0.45) : (fe.weeklyXp || Math.round(score * 0.4)),
+        streakDays: isMe ? calculatedUserStreak : (fe.streak || fe.streakDays || 1),
+        accuracy: isMe ? calculatedUserAcc : (fe.accuracy ?? 0),
+        totalQuestions: fe.totalAnswered || fe.totalQuestions || 0,
+        league: leagueName,
+        isCurrentUser: isMe,
         isFriend: false,
-        status: 'offline',
-        favoriteSubject: 'Química Orgânica',
-        enduranceRecordSecs: 260
-      },
-      {
-        id: 'user-current',
-        rank: 4,
-        name: displayName,
+        status: fe.status || 'online',
+        favoriteSubject: fe.favoriteSubject || 'Treino Geral',
+        enduranceRecordSecs: fe.enduranceRecordSecs || 120
+      };
+    });
+
+    // Se o usuário atual não estiver no Firestore ainda, adiciona-o como competidor ativo
+    if (!list.some(u => u.isCurrentUser || u.id === currentUser?.uid)) {
+      list.push({
+        id: currentUser?.uid || 'user-current',
+        rank: list.length + 1,
+        name: `${displayName} (Você)`,
         handle: `@${displayName.toLowerCase().replace(/\s+/g, '')}`,
         avatarBg: 'from-emerald-400 to-teal-600',
         avatarEmoji: '🔥',
-        schoolOrGoal: 'ENEM 2026 • Nota 900+',
-
+        schoolOrGoal: userProfile?.targetCourse || 'ENEM 2026 • Nota 900+',
         score: calculatedUserScore,
         weeklyXp: Math.round(calculatedUserScore * 0.45),
         streakDays: calculatedUserStreak,
         accuracy: calculatedUserAcc,
-        totalQuestions: 145,
-        league: 'Diamante',
+        totalQuestions: userProfile?.totalAnswered || 0,
+        league: calculatedUserScore > 8000 ? 'Diamante' : calculatedUserScore > 4000 ? 'Platina' : 'Ouro',
         isCurrentUser: true,
-        status: 'online',
-        favoriteSubject: 'Treino Neural de Alta Frequência',
-        enduranceRecordSecs: 215
-      },
-      {
-        id: 'user-5',
-        rank: 5,
-        name: 'Gabriel Menezes',
-        handle: '@gabriel_men',
-        avatarBg: 'from-indigo-400 to-purple-600',
-        avatarEmoji: '🎯',
-        schoolOrGoal: 'Direito • UFMG',
-        score: 9800,
-        weeklyXp: 3150,
-        streakDays: 21,
-        accuracy: 84,
-        totalQuestions: 390,
-        league: 'Platina',
-        isFriend: true,
-        status: 'offline',
-        favoriteSubject: 'História & Humanidades',
-        enduranceRecordSecs: 195
-      },
-      {
-        id: 'user-6',
-        rank: 6,
-        name: 'Sofia Alcantara',
-        handle: '@sofia_bio',
-        avatarBg: 'from-rose-400 to-red-600',
-        avatarEmoji: '🧬',
-        schoolOrGoal: 'Biomedicina • UNICAMP',
-        score: 8750,
-        weeklyXp: 2980,
-        streakDays: 18,
-        accuracy: 82,
-        totalQuestions: 340,
-        league: 'Platina',
         isFriend: false,
         status: 'online',
-        favoriteSubject: 'Genética Molecular',
-        enduranceRecordSecs: 180
-      },
-      {
-        id: 'user-7',
-        rank: 7,
-        name: 'Thiago Farias',
-        handle: '@thiagofarias',
-        avatarBg: 'from-yellow-400 to-amber-600',
-        avatarEmoji: '⚡',
-        schoolOrGoal: 'Ciência da Computação • USP',
-        score: 7900,
-        weeklyXp: 2600,
-        streakDays: 16,
-        accuracy: 79,
-        totalQuestions: 310,
-        league: 'Platina',
-        isFriend: true,
-        status: 'offline',
-        favoriteSubject: 'Lógica & Aritmética',
-        enduranceRecordSecs: 165
-      },
-      {
-        id: 'user-8',
-        rank: 8,
-        name: 'Mariana Duarte',
-        handle: '@mariduarte',
-        avatarBg: 'from-teal-400 to-emerald-600',
-        avatarEmoji: '📚',
-        schoolOrGoal: 'Medicina • UFPE',
-        score: 6800,
-        weeklyXp: 2200,
-        streakDays: 14,
-        accuracy: 77,
-        totalQuestions: 270,
-        league: 'Ouro',
-        isFriend: false,
-        status: 'jogando',
-        favoriteSubject: 'Fisiologia Humana',
-        enduranceRecordSecs: 145
-      },
-      {
-        id: 'user-9',
-        rank: 9,
-        name: 'Rafael Guimarães',
-        handle: '@rafa_guima',
-        avatarBg: 'from-sky-400 to-indigo-600',
-        avatarEmoji: '💡',
-        schoolOrGoal: 'Economia • FGV',
-        score: 5900,
-        weeklyXp: 1850,
-        streakDays: 12,
-        accuracy: 75,
-        totalQuestions: 230,
-        league: 'Ouro',
-        isFriend: true,
-        status: 'offline',
-        favoriteSubject: 'Matemática Financeira',
-        enduranceRecordSecs: 130
-      },
-      {
-        id: 'user-10',
-        rank: 10,
-        name: 'Letícia Couto',
-        handle: '@leticia_couto',
-        avatarBg: 'from-fuchsia-400 to-purple-600',
-        avatarEmoji: '🔬',
-        schoolOrGoal: 'Farmácia • UFRGS',
-        score: 5200,
-        weeklyXp: 1650,
-        streakDays: 10,
-        accuracy: 73,
-        totalQuestions: 210,
-        league: 'Ouro',
-        isFriend: false,
-        status: 'online',
-        favoriteSubject: 'Química Geral',
-        enduranceRecordSecs: 110
-      }
-    ];
+        favoriteSubject: userProfile?.favoriteDiscipline || 'Física & Eletrodinâmica',
+        enduranceRecordSecs: 240
+      });
+    }
 
     // Ordenação dinâmica pelo critério selecionado
-    const sorted = [...baseList].sort((a, b) => {
+    const sorted = [...list].sort((a, b) => {
       if (period === 'weekly') {
         return b.weeklyXp - a.weeklyXp;
       } else if (period === 'endurance') {
@@ -296,7 +164,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
       ...u,
       rank: idx + 1
     }));
-  }, [userHighScore, userTotalXp, userStreak, userAccuracy, period]);
+  }, [firestoreEntries, currentUser, userProfile, userHighScore, userTotalXp, userStreak, userAccuracy, period]);
 
   // Lista filtrada por busca e escopo
   const filteredUsers = useMemo(() => {
@@ -557,7 +425,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 text-[11px]">Precisão:</span>
-                  <span className="font-bold text-emerald-500">{top3[1].accuracy}%</span>
+                  <span className="font-bold text-emerald-500">{top3[1]?.accuracy ?? 0}%</span>
                 </div>
               </div>
 
@@ -629,7 +497,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-600 dark:text-slate-400 text-[11px] font-bold">Taxa de Precisão:</span>
-                  <span className="font-black text-emerald-600 dark:text-emerald-400">{top3[0].accuracy}%</span>
+                  <span className="font-black text-emerald-600 dark:text-emerald-400">{top3[0]?.accuracy ?? 0}%</span>
                 </div>
               </div>
 
@@ -699,7 +567,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 text-[11px]">Precisão:</span>
-                  <span className="font-bold text-emerald-500">{top3[2].accuracy}%</span>
+                  <span className="font-bold text-emerald-500">{top3[2]?.accuracy ?? 0}%</span>
                 </div>
               </div>
 
@@ -838,7 +706,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                     <div className="text-left sm:text-right">
                       <span className="text-[10px] text-slate-400 block">Precisão:</span>
                       <span className="text-xs font-bold text-emerald-500 font-mono">
-                        {user.accuracy}%
+                        {user?.accuracy ?? 0}%
                       </span>
                     </div>
 

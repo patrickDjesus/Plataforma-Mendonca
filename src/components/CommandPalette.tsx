@@ -17,6 +17,8 @@ import {
   Command,
   X,
   Keyboard,
+  Database,
+  Trash2,
 } from 'lucide-react';
 import { ScreenId } from '../types/design';
 
@@ -38,6 +40,7 @@ interface CommandPaletteProps {
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
   onOpenNotifications: () => void;
+  onOpenAdminCleanup?: () => void;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -48,6 +51,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   theme,
   onToggleTheme,
   onOpenNotifications,
+  onOpenAdminCleanup,
 }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -138,6 +142,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         onClose();
         onOpenNotifications();
+      },
+    },
+    {
+      id: 'action-cleanup-firestore',
+      title: 'Script de Limpeza do Firestore (Admin / Reset)',
+      subtitle: 'Remover dados de teste (questões, placares) e reiniciar streaks/progresso',
+      category: 'Ações Rápidas',
+      icon: <Database className="w-4 h-4 text-rose-500" />,
+      shortcut: 'R',
+      action: () => {
+        onClose();
+        if (onOpenAdminCleanup) {
+          onOpenAdminCleanup();
+        }
       },
     },
 

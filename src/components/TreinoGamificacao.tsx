@@ -53,7 +53,18 @@ import { QUIZ_QUESTIONS } from '../data/mockData';
 import { QuizQuestion, ScreenId, PerformanceAnalytics, PerformanceSessionHistory } from '../types/design';
 import { PerformanceDashboard } from './PerformanceDashboard';
 import { GlobalLeaderboard } from './GlobalLeaderboard';
+import { PostTrainingSummaryModal, PostTrainingSummaryData } from './PostTrainingSummaryModal';
 import { useAuth } from '../context/AuthContext';
+import { 
+  subscribeToQuestions, 
+  createQuestion, 
+  updateQuestion, 
+  deleteQuestion, 
+  subscribeToUserPerformance, 
+  recordQuestionAnswer, 
+  recordSessionCompleted, 
+  resetUserPerformance 
+} from '../services/firebase';
 
 import { 
   generateRandomMathQuestion, 
@@ -126,101 +137,15 @@ export const getEnduranceLevel = (seconds: number): {
 };
 
 const DEFAULT_ANALYTICS: PerformanceAnalytics = {
-  totalAnswered: 24,
-  totalCorrect: 18,
-  totalWrong: 6,
-  totalXpEarned: 3120,
-  bestStreakCombo: 7,
-  totalSecondsPlayed: 410,
-  subjectStats: {
-    'Matemática & Cálculo': {
-      answered: 8,
-      correct: 7,
-      wrong: 1,
-      topics: {
-        'Cálculo Mental & Aritmética': { answered: 5, correct: 5, wrong: 0 },
-        'Equações Quadráticas & Bhaskara': { answered: 3, correct: 2, wrong: 1 }
-      }
-    },
-    'Física • Fórmulas ENEM': {
-      answered: 7,
-      correct: 4,
-      wrong: 3,
-      topics: {
-        '1ª Lei de Ohm (Eletrodinâmica)': { answered: 4, correct: 1, wrong: 3 },
-        'Energia Cinética (Mecânica)': { answered: 3, correct: 3, wrong: 0 }
-      }
-    },
-    'Química & Tabela Periódica': {
-      answered: 5,
-      correct: 4,
-      wrong: 1,
-      topics: {
-        'Gases Nobres & Halogênios': { answered: 3, correct: 2, wrong: 1 },
-        'Metais Alcalinos': { answered: 2, correct: 2, wrong: 0 }
-      }
-    },
-    'Biologia & Genética': {
-      answered: 4,
-      correct: 3,
-      wrong: 1,
-      topics: {
-        'Estrutura Celular & Mitocôndrias': { answered: 4, correct: 3, wrong: 1 }
-      }
-    }
-  },
-  recentQuestionsLog: [
-    {
-      id: 'log-seed-1',
-      date: 'Hoje às 10:48',
-      isCorrect: false,
-      selectedOptionId: 'A',
-      question: {
-        id: 991,
-        subject: 'Física • Fórmulas ENEM',
-        topic: '1ª Lei de Ohm (Eletrodinâmica)',
-        difficulty: 'Médio',
-        statement: 'Um resistor ôhmico de R = 25 Ω está submetido a uma corrente elétrica I = 4 A. Pela 1ª Lei de Ohm (V = R · I), qual é a diferença de potencial aplicada?',
-        options: [
-          { id: 'A', text: '50 V', isCorrect: false, explanation: 'Incorreto. Multiplique a resistência de 25 pela corrente 4.' },
-          { id: 'B', text: '100 V', isCorrect: true, explanation: 'Correto! V = R · I = 25 · 4 = 100 Volts.' }
-        ],
-        aiHint: 'Lembre-se do macete "Quem Vê R-I" (V = R × I).'
-      }
-    },
-    {
-      id: 'log-seed-2',
-      date: 'Hoje às 10:45',
-      isCorrect: true,
-      selectedOptionId: 'B',
-      question: {
-        id: 992,
-        subject: 'Matemática & Cálculo',
-        topic: 'Cálculo Mental & Aritmética',
-        difficulty: 'Médio',
-        statement: 'Calcule mentalmente: 16 × 7 = ?',
-        options: [
-          { id: 'A', text: '102', isCorrect: false, explanation: 'Incorreto.' },
-          { id: 'B', text: '112', isCorrect: true, explanation: '16 × 7 = (10 × 7) + (6 × 7) = 70 + 42 = 112.' }
-        ],
-        aiHint: 'Decomponha 16 em 10 + 6 e multiplique cada parte por 7.'
-      }
-    }
-  ],
-  sessionsHistory: [
-    {
-      id: 'sess-seed-1',
-      date: 'Hoje às 10:40',
-      gameMode: 'Modo Endurance Progressivo',
-      score: 1850,
-      xpEarned: 1420,
-      accuracy: 82,
-      totalQuestions: 11,
-      correctQuestions: 9,
-      maxCombo: 7,
-      elapsedSeconds: 155
-    }
-  ]
+  totalAnswered: 0,
+  totalCorrect: 0,
+  totalWrong: 0,
+  totalXpEarned: 0,
+  bestStreakCombo: 1,
+  totalSecondsPlayed: 0,
+  subjectStats: {},
+  recentQuestionsLog: [],
+  sessionsHistory: []
 };
 
 // Sons sintetizados via Web Audio API (sem dependências externas)
@@ -299,10 +224,10 @@ const SUBJECT_OPTIONS = [
 
 export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({ 
   onNavigate,
-  streakCount = 14,
+  streakCount = 1,
   onStreakChange
 }) => {
-  const { userProfile, saveGamificationProgress } = useAuth();
+  const { userProfile, currentUser, saveGamificationProgress } = useAuth();
   // Aba ativa: 'game' (Centro de Treino), 'dashboard' (Dashboard de Desempenho), 'leaderboard' (Ranking Global) ou 'teacher' (Estúdio do Professor)
   const [activeTab, setActiveTab] = useState<'game' | 'dashboard' | 'leaderboard' | 'teacher'>('game');
 
@@ -318,9 +243,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   const [highScore, setHighScore] = useState<number>(() => {
     try {
       const saved = localStorage.getItem(HIGH_SCORE_STORAGE_KEY);
-      return saved ? parseInt(saved, 10) : 1250;
+      return saved ? parseInt(saved, 10) : 0;
     } catch {
-      return 1250;
+      return 0;
     }
   });
 
@@ -343,6 +268,27 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     }
   }, [analytics]);
 
+  // Sincronizar questões autorais e comunitárias em tempo real do Firestore
+  useEffect(() => {
+    const unsubscribe = subscribeToQuestions((firestoreQuestions) => {
+      if (firestoreQuestions && firestoreQuestions.length > 0) {
+        setCustomQuestions(firestoreQuestions);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Sincronizar estatísticas de desempenho em tempo real do Firestore para o usuário autenticado
+  useEffect(() => {
+    if (!currentUser) return;
+    const unsubscribe = subscribeToUserPerformance(currentUser.uid, (firestoreAnalytics) => {
+      if (firestoreAnalytics) {
+        setAnalytics(firestoreAnalytics);
+      }
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
+
   // Resetar Analytics
   const handleResetAnalytics = () => {
     const fresh: PerformanceAnalytics = {
@@ -357,6 +303,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       sessionsHistory: []
     };
     setAnalytics(fresh);
+    if (currentUser) {
+      resetUserPerformance(currentUser.uid).catch(console.warn);
+    }
     try {
       localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(fresh));
     } catch {}
@@ -435,8 +384,12 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   const [streakMultiplier, setStreakMultiplier] = useState(1);
   const [lives, setLives] = useState(3);
   const [lastLostLife, setLastLostLife] = useState<number | null>(null);
-  const [answeredHistory, setAnsweredHistory] = useState<{ isCorrect: boolean; question: QuizQuestion }[]>([]);
+  const [answeredHistory, setAnsweredHistory] = useState<{ isCorrect: boolean; question: QuizQuestion; selectedOptionId?: string }[]>([]);
   const [maxCombo, setMaxCombo] = useState(1);
+
+  // Modal de Resumo com Gráfico Donut Recharts
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const [summaryModalData, setSummaryModalData] = useState<PostTrainingSummaryData | null>(null);
 
   // Efeito de partículas explodindo do card de modalidade selecionado
   const [burstParticles, setBurstParticles] = useState<{
@@ -766,6 +719,17 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(updated));
         } catch {}
 
+        if (currentUser) {
+          recordQuestionAnswer(currentUser.uid, prev, {
+            question: currentQuestion,
+            isCorrect: true,
+            selectedOptionId,
+            xpEarned: finalXP,
+            seconds: elapsedSeconds,
+            streakMultiplier: nextStreak
+          }).catch(console.warn);
+        }
+
         return updated;
       });
     } else {
@@ -824,6 +788,17 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(updated));
         } catch {}
 
+        if (currentUser) {
+          recordQuestionAnswer(currentUser.uid, prev, {
+            question: currentQuestion,
+            isCorrect: false,
+            selectedOptionId,
+            xpEarned: 0,
+            seconds: elapsedSeconds,
+            streakMultiplier: 1
+          }).catch(console.warn);
+        }
+
         return updated;
       });
 
@@ -876,6 +851,37 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
               answeredCount: currentTotal,
               correctCount: currentCorrect
             });
+
+            if (currentUser) {
+              recordSessionCompleted(currentUser.uid, newSession, prev).catch(console.warn);
+            }
+
+            // Ativar Modal de Resumo com Gráfico Donut Recharts
+            const finalSummary: PostTrainingSummaryData = {
+              score,
+              xpEarned,
+              totalQuestions: currentTotal,
+              correctQuestions: currentCorrect,
+              wrongQuestions: currentTotal - currentCorrect,
+              accuracy: currentAccuracy,
+              elapsedSeconds,
+              maxCombo,
+              gameModeLabel: modeLabel,
+              answeredLog: [
+                ...answeredHistory.map(h => ({
+                  question: h.question,
+                  selectedOptionId: h.selectedOptionId || 'A',
+                  isCorrect: h.isCorrect
+                })),
+                {
+                  question: currentQuestion,
+                  selectedOptionId: selectedOptionId || 'A',
+                  isCorrect: false
+                }
+              ]
+            };
+            setSummaryModalData(finalSummary);
+            setIsSummaryModalOpen(true);
 
             return updatedSessionAnalytics;
           });
@@ -1166,25 +1172,30 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     };
 
     if (editingQuestionId) {
+      updateQuestion(String(editingQuestionId), newQuestion).catch(console.warn);
       setCustomQuestions(prev => prev.map(q => q.id === editingQuestionId ? newQuestion : q));
-      setSuccessToast('Questão atualizada com sucesso no seu banco!');
+      setSuccessToast('Questão atualizada com sucesso no banco de dados!');
     } else {
+      createQuestion(newQuestion, {
+        uid: currentUser?.uid || 'professor-anon',
+        displayName: userProfile?.displayName || 'Professor Mendonça',
+        email: currentUser?.email || ''
+      }).catch(console.warn);
       setCustomQuestions(prev => [newQuestion, ...prev]);
-      setSuccessToast('Nova questão adicionada ao seu banco!');
+      setSuccessToast('Nova questão gravada com sucesso no Firebase Firestore!');
     }
 
     clearForm();
     setTimeout(() => setSuccessToast(null), 3500);
   };
 
-  const handleDeleteQuestion = (id: number) => {
-    if (confirm('Deseja realmente excluir esta questão do seu banco?')) {
-      playSound('click');
-      setCustomQuestions(prev => prev.filter(q => q.id !== id));
-      if (editingQuestionId === id) clearForm();
-      setSuccessToast('Questão removida.');
-      setTimeout(() => setSuccessToast(null), 3000);
-    }
+  const handleDeleteQuestion = async (id: number | string) => {
+    playSound('click');
+    setCustomQuestions(prev => prev.filter(q => q.id !== id));
+    await deleteQuestion(String(id)).catch(console.warn);
+    if (editingQuestionId === id) clearForm();
+    setSuccessToast('Questão removida do Firebase com sucesso.');
+    setTimeout(() => setSuccessToast(null), 3000);
   };
 
   const filteredQuestions = useMemo(() => {
@@ -2128,6 +2139,15 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
               {/* Botões de Ação */}
               <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsSummaryModalOpen(true)}
+                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-md shadow-blue-500/25 transition-all cursor-pointer ring-2 ring-blue-300 dark:ring-blue-800"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Resumo do Treino (Gráfico Donut)</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => handleStartSurvival()}
@@ -3120,6 +3140,30 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           </div>
         </motion.div>
       )}
+
+      {/* Modal de Resumo de Desempenho Pós-Treino com Donut Chart Recharts */}
+      <PostTrainingSummaryModal
+        isOpen={isSummaryModalOpen}
+        onClose={() => setIsSummaryModalOpen(false)}
+        onPlayAgain={() => {
+          setIsSummaryModalOpen(false);
+          handleStartSurvival();
+        }}
+        onViewDashboard={() => {
+          setIsSummaryModalOpen(false);
+          setActiveTab('dashboard');
+        }}
+        onViewLeaderboard={() => {
+          setIsSummaryModalOpen(false);
+          onNavigate('ranking');
+        }}
+        onOpenCaderno={() => {
+          setIsSummaryModalOpen(false);
+          onNavigate('caderno');
+        }}
+        data={summaryModalData || undefined}
+        summaryData={summaryModalData || undefined}
+      />
     </div>
   );
 };

@@ -363,7 +363,9 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
       case 'Brain': return <Brain className="w-5 h-5" />;
       case 'PenTool': return <PenTool className="w-5 h-5" />;
       case 'Languages': return <Languages className="w-5 h-5" />;
-      default: return <GraduationCap className="w-5 h-5" />;
+      case 'PenLine': return <PenLine className="w-5 h-5" />;
+      case 'GraduationCap': return <GraduationCap className="w-5 h-5" />;
+      default: return <BookOpen className="w-5 h-5" />;
     }
   };
 
@@ -409,30 +411,24 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               </div>
             </div>
 
-            {/* Abas de Categorias com Indicador de Transição Suave */}
+            {/* Abas de Categorias com Seleção Robusta */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold">
               {[
                 { id: 'all', label: 'Todas as Matérias' },
                 { id: 'enem', label: 'ENEM & Vestibulares' },
-                { id: 'faculdade', label: 'Ensino Superior / Faculdade' },
-                { id: 'pessoal', label: 'Anotações Pessoais' },
+                { id: 'faculdade', label: 'Faculdade (Unisul)' },
+                { id: 'pessoal', label: 'Pessoal & Diário' },
               ].map((cat) => (
                 <button
                   key={cat.id}
+                  type="button"
                   onClick={() => setSelectedCategory(cat.id as any)}
-                  className={`relative px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-colors cursor-pointer ${
                     selectedCategory === cat.id
-                      ? 'text-white font-bold'
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
-                  {selectedCategory === cat.id && (
-                    <motion.div
-                      layoutId="activeCategoryPill"
-                      className="absolute inset-0 bg-blue-600 rounded-xl -z-10 shadow-xs"
-                      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                    />
-                  )}
                   {cat.label}
                 </button>
               ))}
@@ -726,8 +722,33 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
             />
           </div>
 
-          {/* Grid de Documentos */}
-          {galleryViewMode === 'grid' ? (
+          {/* Grid ou Lista de Documentos, ou Empty State */}
+          {filteredDocs.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 rounded-[28px] p-12 border border-dashed border-slate-300 dark:border-slate-800 text-center flex flex-col items-center justify-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <BookOpen className="w-8 h-8" />
+              </div>
+              <div className="max-w-md space-y-1">
+                <h3 className="font-display font-extrabold text-base text-slate-900 dark:text-white">
+                  Nenhum caderno salvo em {selectedDiscipline.name}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {searchQuery 
+                    ? `Nenhum documento encontrado com "${searchQuery}".` 
+                    : 'Crie seu primeiro resumo, anotação de aula ou material de estudo estruturado.'}
+                </p>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setIsCreateDocOpen(true)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all cursor-pointer mt-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Criar Primeiro Documento</span>
+              </motion.button>
+            </div>
+          ) : galleryViewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredDocs.map((doc) => (
                 <motion.div

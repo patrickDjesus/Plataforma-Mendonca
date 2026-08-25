@@ -427,6 +427,34 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
         </svg>
       </div>
 
+      {/* Empty State quando não há nós neurais */}
+      {nodes.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 p-6">
+          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 rounded-[32px] p-8 max-w-md text-center shadow-2xl pointer-events-auto space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 mx-auto flex items-center justify-center shadow-inner">
+              <Brain className="w-8 h-8" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-display font-extrabold text-lg text-slate-900 dark:text-white">
+                Grafo de Conhecimento Neural Zerado
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Nenhum conceito foi mapeado ainda. Comece a estruturar sua rede sináptica adicionando termos-chave, fórmulas e tópicos interconectados.
+              </p>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setIsAddConceptOpen(true)}
+              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs shadow-lg shadow-purple-500/25 inline-flex items-center gap-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Adicionar Primeiro Termo Neural</span>
+            </motion.button>
+          </div>
+        </div>
+      )}
+
       {/* Modal para Adicionar Novo Termo / Nó */}
       <AddConceptModal
         isOpen={isAddConceptOpen}

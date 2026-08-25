@@ -9,6 +9,7 @@ import { AuthScreen } from './components/AuthScreen';
 import { LoadingTransition } from './components/LoadingTransition';
 import { NotificationsDrawer } from './components/NotificationsDrawer';
 import { CommandPalette } from './components/CommandPalette';
+import { AdminCleanupModal } from './components/AdminCleanupModal';
 import { INITIAL_NOTIFICATIONS } from './data/initialNotifications';
 import { StudyNotification } from './types/notification';
 import { AnimatePresence, motion } from 'motion/react';
@@ -19,12 +20,12 @@ export const App: React.FC = () => {
   const { currentUser, userProfile, logoutUser } = useAuth();
   const [authState, setAuthState] = useState<'unauthenticated' | 'loading' | 'authenticated'>('unauthenticated');
   const [user, setUser] = useState({
-    name: 'Lucas Mendes',
-    email: 'lucas.mendes@mendonca.edu.br',
-    avatar: 'LM',
+    name: 'Estudante',
+    email: 'estudante@mendonca.edu.br',
+    avatar: 'EM',
   });
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
-  const [streakCount, setStreakCount] = useState<number>(14);
+  const [streakCount, setStreakCount] = useState<number>(1);
 
   // Sincroniza com Firebase Auth
   useEffect(() => {
@@ -42,9 +43,7 @@ export const App: React.FC = () => {
         email: currentUser.email || 'estudante@mendonca.edu.br',
         avatar: initials || 'EM'
       });
-      if (userProfile?.streak) {
-        setStreakCount(userProfile.streak);
-      }
+      setStreakCount(userProfile?.streak || 1);
       setAuthState('authenticated');
     } else {
       setAuthState('unauthenticated');
@@ -69,6 +68,7 @@ export const App: React.FC = () => {
   const [notifications, setNotifications] = useState<StudyNotification[]>(INITIAL_NOTIFICATIONS);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isAdminCleanupOpen, setIsAdminCleanupOpen] = useState(false);
 
   // Sync dark class on documentElement and body
   useEffect(() => {
@@ -258,6 +258,7 @@ export const App: React.FC = () => {
               unreadNotificationsCount={unreadCount}
               hasRedAlert={hasRedAlert}
               hasYellowAlert={hasYellowAlert}
+              onOpenAdminCleanup={() => setIsAdminCleanupOpen(true)}
             />
 
             {/* PAINEL LATERAL TRANSLÚCIDO DE NOTIFICAÇÕES COM 3 NÍVEIS DE ALERTA */}
@@ -279,6 +280,16 @@ export const App: React.FC = () => {
               theme={theme}
               onToggleTheme={toggleTheme}
               onOpenNotifications={() => setIsNotificationsOpen(true)}
+              onOpenAdminCleanup={() => setIsAdminCleanupOpen(true)}
+            />
+
+            {/* MODAL DE LIMPEZA E RESET DE DADOS DE TESTE DO FIRESTORE */}
+            <AdminCleanupModal
+              isOpen={isAdminCleanupOpen}
+              onClose={() => setIsAdminCleanupOpen(false)}
+              onSuccess={() => {
+                setStreakCount(1);
+              }}
             />
 
             {/* ÁREA PRINCIPAL COM TRANSIÇÕES SUAVES ENTRE TELAS */}
