@@ -1,5 +1,4 @@
 export type ScreenId = 'home' | 'caderno' | 'mapa' | 'treino';
-export type ViewMode = 'prototype' | 'specification';
 
 export interface ConceptNode {
   id: string;
@@ -54,26 +53,6 @@ export interface QuizQuestion {
     mnemonic?: string;
     discipline: string;
   };
-}
-
-export interface RecentMaterial {
-  id: string;
-  title: string;
-  module: string;
-  category: string;
-  progress: number;
-  lastAccess: string;
-  readTime: string;
-  iconName: string;
-  colorScheme: 'cyan' | 'purple' | 'blue';
-}
-
-export interface DesignToken {
-  name: string;
-  hex: string;
-  role: string;
-  usage: string;
-  contrastRatio: string;
 }
 
 export interface TopicStudySuggestion {

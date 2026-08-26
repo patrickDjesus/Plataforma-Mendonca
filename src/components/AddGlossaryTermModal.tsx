@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, BookOpen, Plus, Lightbulb, Tag, Check } from 'lucide-react';
+import { X, BookOpen, Plus, Lightbulb } from 'lucide-react';
 import { GlossaryDefinition } from '../data/disciplinesData';
 
 interface AddGlossaryTermModalProps {

@@ -278,7 +278,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
           spread: 60,
           origin: { y: 0.6 }
         });
-      } catch {}
+      } catch { /* ignored */ }
     }
   };
 

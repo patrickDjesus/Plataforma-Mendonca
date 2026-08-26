@@ -25,7 +25,7 @@ import {
 import { ScreenId } from '../types/design';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
-import { subscribeToLeaderboard } from '../services/firebase';
+import { subscribeToLeaderboard } from '../services/supabase';
 
 export interface LeaderboardUser {
 
@@ -72,12 +72,12 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
   const [period, setPeriod] = useState<'weekly' | 'allTime' | 'endurance'>('weekly');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionToast, setActionToast] = useState<string | null>(null);
-  const [firestoreEntries, setFirestoreEntries] = useState<any[]>([]);
+  const [supabaseEntries, setSupabaseEntries] = useState<any[]>([]);
 
   useEffect(() => {
     const unsubscribe = subscribeToLeaderboard((entries) => {
       if (entries && entries.length > 0) {
-        setFirestoreEntries(entries);
+        setSupabaseEntries(entries);
       }
     });
     return () => unsubscribe();
@@ -88,7 +88,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
     setTimeout(() => setActionToast(null), 3000);
   };
 
-  // Base de competidores reais e integrados via Firestore + Usuário Ativo
+    // Base de competidores reais e integrados via Supabase + Usuario Ativo
   const mockCompetitors: LeaderboardUser[] = useMemo(() => {
     const effectiveXp = userProfile?.totalXp || userTotalXp || 0;
     const calculatedUserScore = Math.max((userProfile?.highScore || userHighScore || 0) * 2, effectiveXp);
@@ -96,8 +96,8 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
     const calculatedUserAcc = userProfile?.accuracy ?? (userAccuracy > 0 ? userAccuracy : 0);
     const displayName = userProfile?.displayName || currentUser?.displayName || 'Você (Estudante Synapse)';
 
-    // Mapear entradas reais do Firestore
-    const list: LeaderboardUser[] = firestoreEntries.map((fe, index) => {
+    // Mapear entradas reais do Supabase
+    const list: LeaderboardUser[] = supabaseEntries.map((fe, index) => {
       const isMe = fe.userId === currentUser?.uid;
       const score = isMe ? calculatedUserScore : (fe.score || fe.totalXp || 0);
       const leagueName: 'Diamante' | 'Platina' | 'Ouro' | 'Prata' = 
@@ -124,7 +124,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
       };
     });
 
-    // Se o usuário atual não estiver no Firestore ainda, adiciona-o como competidor ativo
+    // Se o usuario atual nao estiver no Supabase ainda, adiciona-o como competidor ativo
     if (!list.some(u => u.isCurrentUser || u.id === currentUser?.uid)) {
       list.push({
         id: currentUser?.uid || 'user-current',
@@ -164,7 +164,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
       ...u,
       rank: idx + 1
     }));
-  }, [firestoreEntries, currentUser, userProfile, userHighScore, userTotalXp, userStreak, userAccuracy, period]);
+  }, [supabaseEntries, currentUser, userProfile, userHighScore, userTotalXp, userStreak, userAccuracy, period]);
 
   // Lista filtrada por busca e escopo
   const filteredUsers = useMemo(() => {
@@ -195,7 +195,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
         origin: { y: 0.8 },
         colors: ['#F59E0B', '#EF4444', '#8B5CF6', '#10B981']
       });
-    } catch {}
+    } catch { /* ignored */ }
     showToast(`🔥 Você enviou fogo de incentivo para ${user.name}!`);
   };
 

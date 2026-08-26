@@ -3,13 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, 
   Brain, 
-  Sparkles, 
   Plus, 
   Share2, 
   Tag, 
   Check, 
-  Layers,
-  Zap,
   Activity
 } from 'lucide-react';
 import { ConceptNode } from '../types/design';

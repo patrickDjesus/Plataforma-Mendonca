@@ -112,6 +112,9 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
           exit={{ x: -100, opacity: 0, scale: 0.95 }}
           transition={{ type: 'spring', damping: 25, stiffness: 320 }}
           className="pointer-events-auto relative w-full sm:w-[420px] max-h-[85vh] h-[560px] bg-white dark:bg-slate-900 rounded-[32px] border border-purple-200 dark:border-purple-900/60 shadow-2xl flex flex-col overflow-hidden z-50 mb-2 sm:mb-0"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Chat de IA Lumina Tutor"
         >
           {/* Header */}
           <div className="p-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white flex items-center justify-between shrink-0">
@@ -133,6 +136,7 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
             <button
               onClick={onClose}
               className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Fechar chat de IA"
             >
               <X className="w-5 h-5" />
             </button>
@@ -226,6 +230,7 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
               type="submit"
               disabled={!input.trim()}
               className="w-9 h-9 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shadow-md disabled:opacity-40 transition-colors cursor-pointer shrink-0"
+              aria-label="Enviar mensagem"
             >
               <Send className="w-4 h-4" />
             </button>

@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { ScreenId } from './types/design';
 import { Navbar } from './components/Navbar';
 import { HomeDashboard } from './components/HomeDashboard';
-import { CadernoWorkspace } from './components/CadernoWorkspace';
-import { MapaConceitos } from './components/MapaConceitos';
-import { TreinoGamificacao } from './components/TreinoGamificacao';
 import { AuthScreen } from './components/AuthScreen';
 import { LoadingTransition } from './components/LoadingTransition';
 import { NotificationsDrawer } from './components/NotificationsDrawer';
 import { CommandPalette } from './components/CommandPalette';
-import { AdminCleanupModal } from './components/AdminCleanupModal';
 import { INITIAL_NOTIFICATIONS } from './data/initialNotifications';
 import { StudyNotification } from './types/notification';
 import { AnimatePresence, motion } from 'motion/react';
 import { Moon, Sun } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 
+const CadernoWorkspace = lazy(() => import('./components/CadernoWorkspace').then(m => ({ default: m.CadernoWorkspace })));
+const MapaConceitos = lazy(() => import('./components/MapaConceitos').then(m => ({ default: m.MapaConceitos })));
+const TreinoGamificacao = lazy(() => import('./components/TreinoGamificacao').then(m => ({ default: m.TreinoGamificacao })));
+
 export const App: React.FC = () => {
   const { currentUser, userProfile, logoutUser } = useAuth();
-  const [authState, setAuthState] = useState<'unauthenticated' | 'loading' | 'authenticated'>('unauthenticated');
+  const [authState, setAuthState] = useState<'unauthenticated' | 'loading' | 'authenticated'>('loading');
   const [user, setUser] = useState({
     name: 'Estudante',
     email: 'estudante@mendonca.edu.br',
@@ -33,6 +33,7 @@ export const App: React.FC = () => {
       const displayName = currentUser.displayName || userProfile?.displayName || 'Estudante';
       const initials = displayName
         .split(' ')
+        .filter(Boolean)
         .slice(0, 2)
         .map(n => n[0])
         .join('')
@@ -43,7 +44,7 @@ export const App: React.FC = () => {
         email: currentUser.email || 'estudante@mendonca.edu.br',
         avatar: initials || 'EM'
       });
-      setStreakCount(userProfile?.streak || 1);
+      setStreakCount(userProfile?.streak ?? 1);
       setAuthState('authenticated');
     } else {
       setAuthState('unauthenticated');
@@ -63,12 +64,30 @@ export const App: React.FC = () => {
 
   const [isThemeTransitioning, setIsThemeTransitioning] = useState(false);
   const [transitionTarget, setTransitionTarget] = useState<'light' | 'dark'>('light');
+  const themeTimerRef = useRef<{ theme: ReturnType<typeof setTimeout>; overlay: ReturnType<typeof setTimeout> } | null>(null);
 
   // Notifications & Command Palette State
-  const [notifications, setNotifications] = useState<StudyNotification[]>(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<StudyNotification[]>(() => {
+    try {
+      const saved = localStorage.getItem('mendonca_notifications');
+      if (saved) {
+        return JSON.parse(saved) as StudyNotification[];
+      }
+    } catch {
+      // localStorage indisponivel (ex: Safari private mode)
+    }
+    return INITIAL_NOTIFICATIONS;
+  });
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-  const [isAdminCleanupOpen, setIsAdminCleanupOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('mendonca_notifications', JSON.stringify(notifications));
+    } catch {
+      // localStorage cheio ou indisponivel
+    }
+  }, [notifications]);
 
   // Sync dark class on documentElement and body
   useEffect(() => {
@@ -154,16 +173,31 @@ export const App: React.FC = () => {
     setTransitionTarget(nextTheme);
     setIsThemeTransitioning(true);
 
-    // Apply the actual theme classes halfway through when screen is fully covered
-    setTimeout(() => {
+    // Limpar timers anteriores
+    if (themeTimerRef.current) {
+      clearTimeout(themeTimerRef.current.theme);
+      clearTimeout(themeTimerRef.current.overlay);
+    }
+
+    const themeTimer = setTimeout(() => {
       setTheme(nextTheme);
     }, 750);
 
-    // End transition overlay with longer elegant duration
-    setTimeout(() => {
+    const overlayTimer = setTimeout(() => {
       setIsThemeTransitioning(false);
     }, 1800);
+
+    themeTimerRef.current = { theme: themeTimer, overlay: overlayTimer };
   };
+
+  useEffect(() => {
+    return () => {
+      if (themeTimerRef.current) {
+        clearTimeout(themeTimerRef.current.theme);
+        clearTimeout(themeTimerRef.current.overlay);
+      }
+    };
+  }, []);
 
   const handleLoginSuccess = (userData: { name: string; email: string; avatar: string }) => {
     setUser(userData);
@@ -178,8 +212,8 @@ export const App: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logoutUser();
-    } catch {
-      // Ignora erro
+    } catch (error) {
+      console.warn('Erro ao fazer logout:', error);
     }
     setAuthState('unauthenticated');
   };
@@ -258,7 +292,6 @@ export const App: React.FC = () => {
               unreadNotificationsCount={unreadCount}
               hasRedAlert={hasRedAlert}
               hasYellowAlert={hasYellowAlert}
-              onOpenAdminCleanup={() => setIsAdminCleanupOpen(true)}
             />
 
             {/* PAINEL LATERAL TRANSLÚCIDO DE NOTIFICAÇÕES COM 3 NÍVEIS DE ALERTA */}
@@ -280,16 +313,6 @@ export const App: React.FC = () => {
               theme={theme}
               onToggleTheme={toggleTheme}
               onOpenNotifications={() => setIsNotificationsOpen(true)}
-              onOpenAdminCleanup={() => setIsAdminCleanupOpen(true)}
-            />
-
-            {/* MODAL DE LIMPEZA E RESET DE DADOS DE TESTE DO FIRESTORE */}
-            <AdminCleanupModal
-              isOpen={isAdminCleanupOpen}
-              onClose={() => setIsAdminCleanupOpen(false)}
-              onSuccess={() => {
-                setStreakCount(1);
-              }}
             />
 
             {/* ÁREA PRINCIPAL COM TRANSIÇÕES SUAVES ENTRE TELAS */}
@@ -315,23 +338,29 @@ export const App: React.FC = () => {
 
                   {currentScreen === 'caderno' && (
                     <div className="flex-1 overflow-hidden h-full">
-                      <CadernoWorkspace onNavigate={setCurrentScreen} />
+                      <Suspense fallback={<LoadingTransition userName={user.name} onFinish={() => {}} />}>
+                        <CadernoWorkspace onNavigate={setCurrentScreen} />
+                      </Suspense>
                     </div>
                   )}
 
                   {currentScreen === 'mapa' && (
                     <div className="flex-1 overflow-hidden h-full">
-                      <MapaConceitos onNavigate={setCurrentScreen} />
+                      <Suspense fallback={<LoadingTransition userName={user.name} onFinish={() => {}} />}>
+                        <MapaConceitos onNavigate={setCurrentScreen} />
+                      </Suspense>
                     </div>
                   )}
 
                   {currentScreen === 'treino' && (
                     <div className="flex-1 overflow-hidden h-full">
-                      <TreinoGamificacao
-                        onNavigate={setCurrentScreen}
-                        streakCount={streakCount}
-                        onStreakChange={setStreakCount}
-                      />
+                      <Suspense fallback={<LoadingTransition userName={user.name} onFinish={() => {}} />}>
+                        <TreinoGamificacao
+                          onNavigate={setCurrentScreen}
+                          streakCount={streakCount}
+                          onStreakChange={setStreakCount}
+                        />
+                      </Suspense>
                     </div>
                   )}
                 </motion.div>

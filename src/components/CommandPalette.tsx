@@ -17,7 +17,6 @@ import {
   Command,
   X,
   Keyboard,
-  Database,
   Trash2,
 } from 'lucide-react';
 import { ScreenId } from '../types/design';
@@ -40,7 +39,6 @@ interface CommandPaletteProps {
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
   onOpenNotifications: () => void;
-  onOpenAdminCleanup?: () => void;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -51,7 +49,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   theme,
   onToggleTheme,
   onOpenNotifications,
-  onOpenAdminCleanup,
 }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -62,9 +59,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (isOpen) {
       setQuery('');
       setSelectedIndex(0);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         inputRef.current?.focus();
       }, 50);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -144,21 +142,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         onOpenNotifications();
       },
     },
-    {
-      id: 'action-cleanup-firestore',
-      title: 'Script de Limpeza do Firestore (Admin / Reset)',
-      subtitle: 'Remover dados de teste (questões, placares) e reiniciar streaks/progresso',
-      category: 'Ações Rápidas',
-      icon: <Database className="w-4 h-4 text-rose-500" />,
-      shortcut: 'R',
-      action: () => {
-        onClose();
-        if (onOpenAdminCleanup) {
-          onOpenAdminCleanup();
-        }
-      },
-    },
-
     // Disciplinas Frequentes
     {
       id: 'disc-calc',
@@ -269,6 +252,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
             className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden z-10 flex flex-col max-h-[75vh]"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Paleta de comandos"
           >
             {/* Input Search Header */}
             <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -286,6 +272,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 <button
                   onClick={() => setQuery('')}
                   className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+                  aria-label="Limpar busca"
                 >
                   <X className="w-4 h-4" />
                 </button>

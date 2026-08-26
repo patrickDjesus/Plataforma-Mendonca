@@ -73,7 +73,7 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
     if (todayQuestionsAnswered >= newQ) {
       try {
         confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
-      } catch {}
+      } catch { /* ignored */ }
     }
   };
 

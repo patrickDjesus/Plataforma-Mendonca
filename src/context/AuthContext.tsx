@@ -1,15 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  User, 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signInAnonymously,
-  updateProfile 
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db, signInWithGoogle, logout as firebaseLogout, saveLeaderboardEntry } from '../services/firebase';
-import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase, signInWithGoogle, signInWithEmail as supabaseSignInWithEmail, signUpWithEmail as supabaseSignUpWithEmail, logout as supabaseLogout, getUserProfile, saveUserProfile, saveLeaderboardEntry } from '../services/supabase';
 
 export interface UserProfileData {
   userId: string;
@@ -52,23 +43,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Carregar ou criar perfil no Firestore ao autenticar
+  // Sincronizar perfil do usuario no Supabase
   const syncUserProfile = async (user: User, fallbackMeta?: { displayName?: string; email?: string }) => {
-    const userId = user.uid || 'guest-user';
+    const userId = user.id;
     const now = new Date().toISOString();
-    const resolvedDisplayName = fallbackMeta?.displayName || user.displayName || fallbackMeta?.email?.split('@')[0] || user.email?.split('@')[0] || 'Estudante';
+    const resolvedDisplayName = fallbackMeta?.displayName || user.user_metadata?.display_name || user.user_metadata?.full_name || fallbackMeta?.email?.split('@')[0] || user.email?.split('@')[0] || 'Estudante';
     const resolvedEmail = fallbackMeta?.email || user.email || 'estudante@mendonca.edu.br';
+    const photoURL = user.user_metadata?.avatar_url || '';
 
     try {
-      const userRef = doc(db, 'users', userId);
-      const snapshot = await getDoc(userRef);
+      const existing = await getUserProfile(userId);
 
-      if (snapshot.exists()) {
-        const data = snapshot.data() as UserProfileData;
+      if (existing) {
         const merged: UserProfileData = {
-          ...data,
-          displayName: data.displayName || resolvedDisplayName,
-          email: data.email || resolvedEmail,
+          ...existing,
+          displayName: existing.displayName || resolvedDisplayName,
+          email: existing.email || resolvedEmail,
         };
         setUserProfile(merged);
       } else {
@@ -76,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           userId,
           displayName: resolvedDisplayName,
           email: resolvedEmail,
-          photoURL: user.photoURL || '',
+          photoURL,
           totalXp: 0,
           streak: 1,
           highScore: 0,
@@ -88,9 +78,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           createdAt: now,
           updatedAt: now,
         };
-        await setDoc(userRef, newProfile);
-        
-        // Também cria registro no Leaderboard público
+
+        await saveUserProfile(userId, {
+          displayName: newProfile.displayName,
+          email: newProfile.email,
+          photoURL: newProfile.photoURL,
+          totalXp: 0,
+          streak: 1,
+          highScore: 0,
+          accuracy: 0,
+          totalAnswered: 0,
+          totalCorrect: 0,
+          division: 'Iniciante',
+          lastActiveAt: now,
+          createdAt: now,
+          updatedAt: now,
+        });
+
         await saveLeaderboardEntry(userId, {
           name: newProfile.displayName,
           handle: `@${newProfile.displayName.toLowerCase().replace(/\s+/g, '')}`,
@@ -103,18 +107,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           status: 'online',
           avatarEmoji: '⚡',
           avatarBg: 'from-blue-500 to-indigo-600',
-          favoriteSubject: 'Treino Geral'
+          favoriteSubject: 'Treino Geral',
         });
 
         setUserProfile(newProfile);
       }
     } catch (err) {
-      console.warn('Sincronização de perfil mantida localmente:', err);
+      console.warn('Sincronizacao de perfil mantida localmente:', err);
       setUserProfile({
         userId,
         displayName: resolvedDisplayName,
         email: resolvedEmail,
-        photoURL: user.photoURL || '',
+        photoURL,
         totalXp: 0,
         streak: 1,
         highScore: 0,
@@ -129,8 +133,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Listener de autenticacao Supabase
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const user = session?.user || null;
       setCurrentUser(user);
       if (user) {
         await syncUserProfile(user);
@@ -140,100 +146,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Verifica sessao existente
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user || null;
+      setCurrentUser(user);
+      if (user) {
+        syncUserProfile(user);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const loginWithGoogle = async () => {
     try {
-      const user = await signInWithGoogle();
-      if (user) await syncUserProfile(user);
+      await signInWithGoogle();
+      // OAuth redireciona - onAuthStateChange cuida do resto
     } catch (error) {
-      handleFirestoreError(error, OperationType.GET, 'users');
+      console.warn('Erro login Google:', error);
     }
   };
 
   const loginWithEmail = async (email: string, pass: string) => {
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, pass);
-      if (cred.user) await syncUserProfile(cred.user, { email });
+      const user = await supabaseSignInWithEmail(email, pass);
+      if (user) await syncUserProfile(user as any, { email });
     } catch (error: any) {
-      // Se Email/Password não estiver ativado no Firebase Console ou bloqueado, utiliza fallback de sessão segura
-      if (error?.code === 'auth/operation-not-allowed' || error?.code === 'auth/configuration-not-found') {
-        try {
-          const anon = await signInAnonymously(auth);
-          if (anon.user) {
-            await syncUserProfile(anon.user, { email, displayName: email.split('@')[0] });
-            return;
-          }
-        } catch {
-          // Fallback de perfil local se o anonymous também não responder
-          setUserProfile({
-            userId: 'local-' + Date.now(),
-            displayName: email.split('@')[0] || 'Estudante',
-            email: email,
-            totalXp: 0,
-            streak: 1,
-            highScore: 0,
-            accuracy: 0,
-            totalAnswered: 0,
-            totalCorrect: 0,
-            division: 'Iniciante',
-            lastActiveAt: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
-          return;
-        }
-      }
-      console.warn('Aviso de autenticação por e-mail:', error?.message || error);
+      console.warn('Aviso de autenticacao por e-mail:', error?.message || error);
       throw error;
     }
   };
 
   const registerWithEmail = async (name: string, email: string, pass: string) => {
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, pass);
-      if (cred.user) {
-        try {
-          await updateProfile(cred.user, { displayName: name });
-        } catch {
-          // ignora falha de updateProfile se offline
-        }
-        await syncUserProfile(cred.user, { displayName: name, email });
-      }
+      const user = await supabaseSignUpWithEmail(email, pass, name);
+      if (user) await syncUserProfile(user as any, { displayName: name, email });
     } catch (error: any) {
-      // Se Email/Password não estiver ativado no Firebase Console ou bloqueado, utiliza fallback de sessão segura
-      if (error?.code === 'auth/operation-not-allowed' || error?.code === 'auth/configuration-not-found') {
-        try {
-          const anon = await signInAnonymously(auth);
-          if (anon.user) {
-            try {
-              await updateProfile(anon.user, { displayName: name });
-            } catch {
-              // ignora falha de updateProfile se offline
-            }
-            await syncUserProfile(anon.user, { displayName: name, email });
-            return;
-          }
-        } catch {
-          setUserProfile({
-            userId: 'local-' + Date.now(),
-            displayName: name || email.split('@')[0] || 'Estudante',
-            email: email,
-            totalXp: 0,
-            streak: 1,
-            highScore: 0,
-            accuracy: 0,
-            totalAnswered: 0,
-            totalCorrect: 0,
-            division: 'Iniciante',
-            lastActiveAt: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
-          return;
-        }
-      }
       console.warn('Aviso de cadastro por e-mail:', error?.message || error);
       throw error;
     }
@@ -241,9 +190,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logoutUser = async () => {
     try {
-      await firebaseLogout();
-    } catch {
-      // ignora erro ao deslogar
+      await supabaseLogout();
+    } catch (error) {
+      console.warn('Erro ao deslogar, limpando estado local:', error);
     }
     setUserProfile(null);
     setCurrentUser(null);
@@ -282,14 +231,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         accuracy: newAccuracy,
         streak: newStreak,
         division: newDivision,
-        updatedAt: now
+        updatedAt: now,
       };
 
       setUserProfile(updatedProfile);
 
-      // Persistir no Firestore
-      await setDoc(doc(db, 'users', currentUser.uid), updatedProfile, { merge: true });
-      await saveLeaderboardEntry(currentUser.uid, {
+      await saveUserProfile(currentUser.id, {
+        totalXp: newTotalXp,
+        highScore: newHighScore,
+        totalAnswered: newTotalAnswered,
+        totalCorrect: newTotalCorrect,
+        accuracy: newAccuracy,
+        streak: newStreak,
+        division: newDivision,
+        updatedAt: now,
+      });
+
+      await saveLeaderboardEntry(currentUser.id, {
         name: updatedProfile.displayName,
         score: newHighScore,
         weeklyXp: newTotalXp,
@@ -297,10 +255,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         accuracy: newAccuracy,
         totalQuestions: newTotalAnswered,
         league: newDivision,
-        status: 'online'
+        status: 'online',
       });
     } catch (error) {
-      console.warn('Erro ao salvar progresso no Firestore:', error);
+      console.warn('Erro ao salvar progresso no Supabase:', error);
     }
   };
 
@@ -314,7 +272,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithEmail,
         registerWithEmail,
         logoutUser,
-        saveGamificationProgress
+        saveGamificationProgress,
       }}
     >
       {children}

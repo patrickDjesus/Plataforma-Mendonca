@@ -1,4 +1,4 @@
-import unisulBanner from '../assets/images/unisul_faculdade_banner_1787674967595.jpg';
+import unisulBanner from '../assets/images/unisul_faculdade_banner.jpg';
 
 export interface DocSection {
   id: string;

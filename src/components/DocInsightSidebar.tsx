@@ -219,6 +219,7 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
           onClick={onClose}
           className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           title="Fechar Insights"
+          aria-label="Fechar painel de insights"
         >
           <X className="w-4 h-4" />
         </button>

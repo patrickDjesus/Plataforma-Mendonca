@@ -152,7 +152,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
     {
       id: '1',
       sender: 'ai',
-      text: `Olá ${firstName}! Bem-vindo(a) à Plataforma Mendonça. Seus dados de desempenho estão sincronizados no Firestore. Como posso te apoiar hoje nos seus estudos?`,
+      text: `Olá ${firstName}! Bem-vindo(a) à Plataforma Mendonça. Seus dados de desempenho estão sincronizados no Supabase. Como posso te apoiar hoje nos seus estudos?`,
       time: 'Agora'
     }
   ]);
@@ -404,7 +404,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
             onStartTraining={() => onNavigate('treino')}
             onOpenCaderno={() => onNavigate('caderno')}
             todayQuestionsAnswered={userProfile?.totalAnswered || 0}
-            todayMinutesStudied={Math.round(((userProfile?.totalAnswered || 0) * 90) / 60)}
+            todayMinutesStudied={0}
             todayXpEarned={userProfile?.totalXp || 0}
           />
 
@@ -544,7 +544,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                 <Flame className="w-4 h-4 text-orange-500 fill-orange-500" />
                 <span className="text-sm font-bold text-slate-800 dark:text-slate-100 font-display">Ofensiva Semanal</span>
               </div>
-              <span className="text-xs text-slate-400 dark:text-slate-400 font-semibold uppercase tracking-wider">Nível 4</span>
+              <span className="text-xs text-slate-400 dark:text-slate-400 font-semibold uppercase tracking-wider">Nível {Math.min(7, Math.floor((streakCount || 1) / 2) + 1)}</span>
             </div>
 
             <div className="flex justify-between items-center gap-1.5">

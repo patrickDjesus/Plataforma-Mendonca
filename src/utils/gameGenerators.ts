@@ -266,12 +266,12 @@ export const ENEM_FORMULAS_BANK: FormulaQuestionTemplate[] = [
 // Gerador de Matemática Procedural
 export function generateRandomMathQuestion(difficulty: GameDifficulty): QuizQuestion {
   const id = Date.now() + Math.floor(Math.random() * 10000);
-  let statement = '';
-  let mathExpression = '';
-  let correctAnswer = '';
-  let wrongAnswers: string[] = [];
-  let explanation = '';
-  let aiHint = '';
+  let statement: string;
+  let mathExpression: string;
+  let correctAnswer: string;
+  let wrongAnswers: string[];
+  let explanation: string;
+  let aiHint: string;
   let codeSnippet: string | undefined;
 
   const randInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -436,12 +436,12 @@ export function generateRandomPeriodicTableQuestion(difficulty: GameDifficulty):
   const el = PERIODIC_ELEMENTS[Math.floor(Math.random() * PERIODIC_ELEMENTS.length)];
   const questionType = Math.floor(Math.random() * 5); // 0: Símbolo -> Nome, 1: Nome -> Símbolo, 2: Família, 3: Número Atômico / Massa, 4: Estado Físico
 
-  let statement = '';
-  let correctAnswer = '';
-  let wrongAnswers: string[] = [];
-  let explanation = '';
-  let aiHint = '';
-  let hiddenProp: 'symbol' | 'name' | 'family' | 'atomicInfo' | 'state' = 'none' as any;
+  let statement: string;
+  let correctAnswer: string;
+  let wrongAnswers: string[];
+  let explanation: string;
+  let aiHint: string;
+  let hiddenProp: 'symbol' | 'name' | 'family' | 'atomicInfo' | 'state';
 
   const getOtherElements = (count: number) => {
     return PERIODIC_ELEMENTS.filter(e => e.symbol !== el.symbol)

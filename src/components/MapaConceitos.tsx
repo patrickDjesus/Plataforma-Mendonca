@@ -122,7 +122,7 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
             className="bg-transparent text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none w-40 sm:w-56"
           />
           {searchFilter && (
-            <button onClick={() => setSearchFilter('')} className="text-xs text-slate-400 hover:text-slate-700">
+            <button onClick={() => setSearchFilter('')} className="text-xs text-slate-400 hover:text-slate-700" aria-label="Limpar busca">
               ✕
             </button>
           )}
@@ -175,6 +175,7 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
             onClick={() => setZoomLevel((z) => Math.min(1.8, z + 0.15))}
             className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             title="Aproximar Zoom"
+            aria-label="Aumentar zoom"
           >
             <ZoomIn className="w-4 h-4" />
           </button>
@@ -182,6 +183,7 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
             onClick={() => setZoomLevel((z) => Math.max(0.6, z - 0.15))}
             className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             title="Afastar Zoom"
+            aria-label="Diminuir zoom"
           >
             <ZoomOut className="w-4 h-4" />
           </button>
@@ -190,6 +192,7 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
             onClick={() => { setZoomLevel(1); setPanOffset({ x: 0, y: 0 }); }}
             className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-[10px] font-bold text-center cursor-pointer"
             title="Resetar Vista"
+            aria-label="Resetar zoom"
           >
             100%
           </button>
@@ -256,6 +259,7 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
               onClick={() => onNavigate('caderno')}
               className="py-2.5 px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors cursor-pointer"
               title="Abrir anotações sobre este conceito"
+              aria-label="Abrir no caderno"
             >
               <ArrowUpRight className="w-4 h-4" />
             </button>

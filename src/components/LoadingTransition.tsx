@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Sparkles, Check, ShieldCheck, Zap } from 'lucide-react';
 import { GeometricTrianglesCanvas } from './GeometricTrianglesCanvas';
-import logoImg from '../assets/images/logo_mendonca_transparent.png';
+import logoImg from '../assets/images/logo_mendonca.jpg';
 
 interface LoadingTransitionProps {
   userName: string;
@@ -81,12 +81,12 @@ export const LoadingTransition: React.FC<LoadingTransitionProps> = ({ userName, 
           <motion.div
             initial={{ scale: 0.85 }}
             animate={{ scale: 1 }}
-            className="relative w-18 h-18 flex items-center justify-center z-10 drop-shadow-md"
+            className="relative w-20 h-20 rounded-full overflow-hidden flex items-center justify-center z-10 drop-shadow-md"
           >
             <img
               src={logoImg}
               alt="Plataforma Mendonça"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
           </motion.div>
 

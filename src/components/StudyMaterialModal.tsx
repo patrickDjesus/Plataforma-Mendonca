@@ -53,7 +53,7 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
     if (selectedQuizOption === material.flashReviewQuestion.correctIndex) {
       try {
         confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 } });
-      } catch {}
+      } catch { /* ignored */ }
     }
   };
 

@@ -2,27 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Trash2, 
-  RotateCcw, 
   CheckCircle2, 
   AlertTriangle, 
   X, 
   Database, 
-  Sparkles, 
   RefreshCw, 
-  Flame, 
-  Trophy, 
-  HelpCircle, 
-  BrainCircuit,
   ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { 
   cleanupAllTestData, 
   getCollectionCounts, 
-  clearLocalTestStorage,
   CollectionCounts, 
   CleanupReport 
-} from '../utils/cleanupFirestore';
+} from '../utils/cleanupSupabase';
 import confetti from 'canvas-confetti';
 
 interface AdminCleanupModalProps {
@@ -101,7 +94,7 @@ export const AdminCleanupModal: React.FC<AdminCleanupModalProps> = ({
       if (report.success) {
         try {
           confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
-        } catch {}
+        } catch { /* ignored */ }
       }
 
       if (onSuccess) {
@@ -147,7 +140,7 @@ export const AdminCleanupModal: React.FC<AdminCleanupModalProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold font-display text-slate-900 dark:text-white">
-                    Script de Limpeza do Firestore
+                    Script de Limpeza do Supabase
                   </h2>
                   <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
                     Admin / Reset
@@ -175,7 +168,7 @@ export const AdminCleanupModal: React.FC<AdminCleanupModalProps> = ({
             <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                  Coleções do Firestore Atuais:
+                  Tabelas do Supabase Atuais:
                 </span>
                 <button
                   onClick={loadCounts}

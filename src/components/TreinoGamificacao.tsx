@@ -51,10 +51,14 @@ import {
 } from 'lucide-react';
 import { QUIZ_QUESTIONS } from '../data/mockData';
 import { QuizQuestion, ScreenId, PerformanceAnalytics, PerformanceSessionHistory } from '../types/design';
+import { GameLobby } from './treino/GameLobby';
 import { PerformanceDashboard } from './PerformanceDashboard';
 import { GlobalLeaderboard } from './GlobalLeaderboard';
+import { QuestionCard } from './treino/QuestionCard';
 import { PostTrainingSummaryModal, PostTrainingSummaryData } from './PostTrainingSummaryModal';
 import { useAuth } from '../context/AuthContext';
+import { GameHUD } from './treino/GameHUD';
+import { GameOver } from './treino/GameOver';
 import { 
   subscribeToQuestions, 
   createQuestion, 
@@ -64,7 +68,7 @@ import {
   recordQuestionAnswer, 
   recordSessionCompleted, 
   resetUserPerformance 
-} from '../services/firebase';
+} from '../services/supabase';
 
 import { 
   generateRandomMathQuestion, 
@@ -76,151 +80,15 @@ import {
   ChemicalElement,
   PERIODIC_ELEMENTS 
 } from '../utils/gameGenerators';
+import { playSound, getAudioContext } from '../utils/sounds';
+import { getEnduranceLevel } from '../utils/endurance';
+import { CUSTOM_QUESTIONS_STORAGE_KEY, HIGH_SCORE_STORAGE_KEY, ANALYTICS_STORAGE_KEY, DEFAULT_ANALYTICS, SUBJECT_OPTIONS } from '../constants/game';
 
 interface TreinoGamificacaoProps {
   onNavigate: (screen: ScreenId) => void;
   streakCount?: number;
   onStreakChange?: (count: number) => void;
 }
-
-// Chaves do localStorage
-const CUSTOM_QUESTIONS_STORAGE_KEY = 'synapse_custom_teacher_questions_v3';
-const HIGH_SCORE_STORAGE_KEY = 'synapse_survival_high_score_v3';
-const ANALYTICS_STORAGE_KEY = 'synapse_performance_analytics_v3';
-
-// Níveis dinâmicos do Modo Endurance com base no tempo progressivo
-export const getEnduranceLevel = (seconds: number): {
-  level: number;
-  label: string;
-  diff: GameDifficulty;
-  multiplierBonus: number;
-  color: string;
-  badgeBg: string;
-} => {
-  if (seconds < 35) {
-    return {
-      level: 1,
-      label: 'Fase 1: Aquecimento',
-      diff: 'Fácil',
-      multiplierBonus: 1.0,
-      color: 'text-emerald-400 border-emerald-500/40',
-      badgeBg: 'bg-emerald-500/10'
-    };
-  } else if (seconds < 80) {
-    return {
-      level: 2,
-      label: 'Fase 2: Aceleração',
-      diff: 'Médio',
-      multiplierBonus: 1.5,
-      color: 'text-amber-400 border-amber-500/40',
-      badgeBg: 'bg-amber-500/15'
-    };
-  } else if (seconds < 140) {
-    return {
-      level: 3,
-      label: 'Fase 3: Sobrecarga',
-      diff: 'Difícil',
-      multiplierBonus: 2.0,
-      color: 'text-orange-400 border-orange-500/40',
-      badgeBg: 'bg-orange-500/20'
-    };
-  } else {
-    return {
-      level: 4,
-      label: 'Fase 4: Hipervelocidade ⚡',
-      diff: 'Hardcore',
-      multiplierBonus: 3.0,
-      color: 'text-rose-400 border-rose-500/40',
-      badgeBg: 'bg-rose-500/25'
-    };
-  }
-};
-
-const DEFAULT_ANALYTICS: PerformanceAnalytics = {
-  totalAnswered: 0,
-  totalCorrect: 0,
-  totalWrong: 0,
-  totalXpEarned: 0,
-  bestStreakCombo: 1,
-  totalSecondsPlayed: 0,
-  subjectStats: {},
-  recentQuestionsLog: [],
-  sessionsHistory: []
-};
-
-// Sons sintetizados via Web Audio API (sem dependências externas)
-const playSound = (type: 'correct' | 'wrong' | 'combo' | 'hint' | 'gameover' | 'click') => {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    const now = ctx.currentTime;
-    if (type === 'correct') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(523.25, now); // C5
-      osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.15); // G5
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-      osc.start(now);
-      osc.stop(now + 0.25);
-    } else if (type === 'wrong') {
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(220, now);
-      osc.frequency.exponentialRampToValueAtTime(130, now + 0.22);
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-      osc.start(now);
-      osc.stop(now + 0.25);
-    } else if (type === 'combo') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(440, now);
-      osc.frequency.exponentialRampToValueAtTime(880, now + 0.2);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-      osc.start(now);
-      osc.stop(now + 0.3);
-    } else if (type === 'hint') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(659.25, now); // E5
-      gain.gain.setValueAtTime(0.08, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-      osc.start(now);
-      osc.stop(now + 0.2);
-    } else if (type === 'gameover') {
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(300, now);
-      osc.frequency.exponentialRampToValueAtTime(100, now + 0.5);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
-      osc.start(now);
-      osc.stop(now + 0.55);
-    } else if (type === 'click') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, now);
-      gain.gain.setValueAtTime(0.04, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-      osc.start(now);
-      osc.stop(now + 0.05);
-    }
-  } catch (e) {
-    // Audio Context pode estar bloqueado antes do primeiro clique do usuário
-  }
-};
-
-const SUBJECT_OPTIONS = [
-  'Matemática & Cálculo',
-  'Física Clássica & Moderna',
-  'Química Geral & Orgânica',
-  'Biologia & Genética',
-  'História & Humanidades',
-  'Linguagens & Literatura',
-  'Ciência da Computação & IA'
-];
 
 export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({ 
   onNavigate,
@@ -268,17 +136,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     }
   }, [analytics]);
 
-  // Sincronizar questões autorais e comunitárias em tempo real do Firestore
-  useEffect(() => {
-    const unsubscribe = subscribeToQuestions((firestoreQuestions) => {
-      if (firestoreQuestions && firestoreQuestions.length > 0) {
-        setCustomQuestions(firestoreQuestions);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Sincronizar estatísticas de desempenho em tempo real do Firestore para o usuário autenticado
+  // Sincronizar estatisticas de desempenho em tempo real do Supabase para o usuario autenticado
   useEffect(() => {
     if (!currentUser) return;
     const unsubscribe = subscribeToUserPerformance(currentUser.uid, (firestoreAnalytics) => {
@@ -308,9 +166,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     }
     try {
       localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(fresh));
-    } catch {}
-    setSuccessToast('Estatísticas de desempenho redefinidas com sucesso!');
-    setTimeout(() => setSuccessToast(null), 3000);
+    } catch (error) {
+      console.warn('Erro ao salvar no localStorage:', error);
+    }
+    showToast('Estatísticas de desempenho redefinidas com sucesso!');
   };
 
   // Questões personalizadas do professor
@@ -367,6 +226,16 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       console.error('Erro ao salvar custom questions:', e);
     }
   }, [customQuestions]);
+
+  // Sincronizar questoes autorais e comunitarias em tempo real do Supabase
+  useEffect(() => {
+    const unsubscribe = subscribeToQuestions((firestoreQuestions) => {
+      if (firestoreQuestions && firestoreQuestions.length > 0) {
+        setCustomQuestions(firestoreQuestions);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // =========================================================================
   // ESTADO DO JOGO EM TEMPO REAL (SURVIVAL ENDLESS)
@@ -445,7 +314,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       items: generated
     });
 
-    setTimeout(() => {
+    if (burstTimerRef.current) clearTimeout(burstTimerRef.current);
+    burstTimerRef.current = setTimeout(() => {
       setBurstParticles(null);
     }, 1100);
   };
@@ -453,6 +323,15 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   // Timer Cronômetro Contínuo
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gameoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (burstTimerRef.current) clearTimeout(burstTimerRef.current);
+      if (gameoverTimerRef.current) clearTimeout(gameoverTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (gameStatus === 'playing') {
@@ -476,11 +355,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
   // Gerador de Próxima Pergunta Infinita (com suporte ao modo Endurance)
   const generateNextQuestion = (mode: GameCategory | 'teacher_custom', diff: GameDifficulty, currentElapsed = elapsedSeconds): QuizQuestion => {
-    let effectiveDiff = diff;
+    const effectiveDiff = mode === 'endurance' ? getEnduranceLevel(currentElapsed).diff : diff;
 
     if (mode === 'endurance') {
-      const lvl = getEnduranceLevel(currentElapsed);
-      effectiveDiff = lvl.diff;
 
       // No Endurance, alterna dinamicamente com dificuldade crescente
       const dice = Math.random();
@@ -602,7 +479,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           setHighScore(newScore);
           try {
             localStorage.setItem(HIGH_SCORE_STORAGE_KEY, newScore.toString());
-          } catch {}
+          } catch (error) {
+            console.warn('Erro ao salvar no localStorage:', error);
+          }
         }
         return newScore;
       });
@@ -647,7 +526,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
               colors: ['#FBBF24', '#38BDF8', '#4ADE80', '#A78BFA']
             });
           }, 200);
-        } catch {}
+        } catch { /* ignored */ }
       } else if (nextStreak >= 5) {
         // Milestone de 5x Combo
         playSound('combo');
@@ -658,7 +537,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             origin: { y: 0.65 },
             colors: ['#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#10B981']
           });
-        } catch {}
+        } catch { /* ignored */ }
       } else if (nextStreak >= 3) {
         // Milestone de 3x Combo
         try {
@@ -668,7 +547,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             origin: { y: 0.75 },
             colors: ['#06B6D4', '#8B5CF6', '#10B981']
           });
-        } catch {}
+        } catch { /* ignored */ }
       }
 
       setAnsweredHistory(prev => [...prev, { isCorrect: true, question: currentQuestion }]);
@@ -717,7 +596,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
         try {
           localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(updated));
-        } catch {}
+        } catch (error) {
+          console.warn('Erro ao salvar no localStorage:', error);
+        }
 
         if (currentUser) {
           recordQuestionAnswer(currentUser.uid, prev, {
@@ -786,7 +667,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
         try {
           localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(updated));
-        } catch {}
+        } catch (error) {
+          console.warn('Erro ao salvar no localStorage:', error);
+        }
 
         if (currentUser) {
           recordQuestionAnswer(currentUser.uid, prev, {
@@ -804,7 +687,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
       if (newLives === 0) {
         // Game Over!
-        setTimeout(() => {
+        if (gameoverTimerRef.current) clearTimeout(gameoverTimerRef.current);
+        gameoverTimerRef.current = setTimeout(() => {
           playSound('gameover');
           setGameStatus('gameover');
 
@@ -841,9 +725,11 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
             try {
               localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(updatedSessionAnalytics));
-            } catch {}
+            } catch (error) {
+              console.warn('Erro ao salvar no localStorage:', error);
+            }
 
-            // Persistir no Firestore
+            // Persistir no Supabase
             saveGamificationProgress({
               xpEarned,
               score,
@@ -985,6 +871,19 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   const [formAiHint, setFormAiHint] = useState('');
   const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = (msg: string, ms = 3000) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setSuccessToast(msg);
+    toastTimerRef.current = setTimeout(() => setSuccessToast(null), ms);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
   const [showSavedQuestionsList, setShowSavedQuestionsList] = useState(false);
   const [teacherSearch, setTeacherSearch] = useState('');
   const [teacherSubjectFilter, setTeacherSubjectFilter] = useState('all');
@@ -1020,8 +919,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     setFormExplanation('Correto! Com resistência equivalente Req = 20 Ω e corrente I = 2 A: P = Req · I² = 20 · (2)² = 20 · 4 = 80 Watts.');
     setFormAiHint('Lembre-se da fórmula de potência dissipada por efeito Joule: P = R · I² ou P = V · I.');
     setWizardStep(1);
-    setSuccessToast('Exemplo de Física carregado no formulário!');
-    setTimeout(() => setSuccessToast(null), 3000);
+    showToast('Exemplo de Física carregado no formulário!');
   };
 
   const loadExampleBiology = () => {
@@ -1046,8 +944,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     setFormExplanation('Correto! As mitocôndrias são as usinas energéticas da célula eucarionte, gerando ATP através do ciclo de Krebs e da cadeia respiratória.');
     setFormAiHint('Observe as cristas mitocondriais e recorde a Teoria da Endossimbiose (organela com DNA próprio circular).');
     setWizardStep(1);
-    setSuccessToast('Exemplo de Biologia carregado no formulário!');
-    setTimeout(() => setSuccessToast(null), 3000);
+    showToast('Exemplo de Biologia carregado no formulário!');
   };
 
   const loadExampleChemistry = () => {
@@ -1072,8 +969,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     setFormExplanation('Correto! O lado dos reagentes possui 4 mols gasosos e os produtos 2 mols. O aumento de pressão desloca o equilíbrio no sentido de menor volume gasoso (síntese de NH₃).');
     setFormAiHint('Lembre-se: aumentar a pressão total favorece o sentido com menor número de mols gasosos.');
     setWizardStep(1);
-    setSuccessToast('Exemplo de Química carregado no formulário!');
-    setTimeout(() => setSuccessToast(null), 3000);
+    showToast('Exemplo de Química carregado no formulário!');
   };
 
   const clearForm = () => {
@@ -1131,8 +1027,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
     // Rolar para o topo do formulário
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setSuccessToast(`Carregada para edição: "${q.topic}"`);
-    setTimeout(() => setSuccessToast(null), 3000);
+    showToast(`Carregada para edição: "${q.topic}"`);
   };
 
   const handleSaveQuestion = (e: React.FormEvent) => {
@@ -1182,11 +1077,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
         email: currentUser?.email || ''
       }).catch(console.warn);
       setCustomQuestions(prev => [newQuestion, ...prev]);
-      setSuccessToast('Nova questão gravada com sucesso no Firebase Firestore!');
     }
 
     clearForm();
-    setTimeout(() => setSuccessToast(null), 3500);
+    showToast('Nova questao gravada com sucesso no Supabase!', 3500);
   };
 
   const handleDeleteQuestion = async (id: number | string) => {
@@ -1194,8 +1088,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     setCustomQuestions(prev => prev.filter(q => q.id !== id));
     await deleteQuestion(String(id)).catch(console.warn);
     if (editingQuestionId === id) clearForm();
-    setSuccessToast('Questão removida do Firebase com sucesso.');
-    setTimeout(() => setSuccessToast(null), 3000);
+    showToast('Questão removida do Firebase com sucesso.');
   };
 
   const filteredQuestions = useMemo(() => {
@@ -1351,272 +1244,18 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           
           {/* 1.1 TELA LOBBY / MENU DE INÍCIO */}
           {gameStatus === 'lobby' && (
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
-            >
-              {/* Hero Banner Lobby */}
-              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 p-6 sm:p-9 text-white shadow-xl">
-                <div className="relative z-10 max-w-2xl space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-bold">
-                      <Zap className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                      <span>Modo Survival & Endurance • 3 Vidas</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        playSound('click');
-                        setActiveTab('dashboard');
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      <BarChart3 className="w-3.5 h-3.5" />
-                      <span>Análise & Curvas ({analytics.totalWrong} erros)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        playSound('click');
-                        setActiveTab('leaderboard');
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      <Trophy className="w-3.5 h-3.5" />
-                      <span>Ranking Global & Amigos</span>
-                    </button>
-                  </div>
-
-                  <h2 className="text-2xl sm:text-3xl font-extrabold font-display tracking-tight text-white">
-                    Treino Neural de Alta Frequência
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                    Escolha a modalidade de treino abaixo e inicie o desafio. O timer começa imediatamente e as perguntas continuam sem interrupção até você esgotar suas 3 vidas!
-                  </p>
-                </div>
-
-                {/* Efeito de grade sutil */}
-                <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-              </div>
-
-              {/* Seletor de Modos de Jogo */}
-              <div className="space-y-2.5">
-                <label className="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
-                  1. Escolha a Modalidade de Treino:
-                </label>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
-                  {[
-                    {
-                      id: 'endurance',
-                      title: 'Modo Endurance Progressivo',
-                      badge: '⚡ Dificuldade Dinâmica',
-                      desc: 'O tempo corre e a dificuldade sobe continuamente (Fácil ➔ Médio ➔ Difícil ➔ Hardcore). Combos de até 10x!',
-                      icon: Flame,
-                      color: 'from-amber-500 via-rose-500 to-purple-600',
-                      borderActive: 'border-amber-500 ring-2 ring-amber-400/40 bg-gradient-to-b from-amber-50/80 to-purple-50/40 dark:from-amber-950/40 dark:to-purple-950/20 shadow-md shadow-amber-500/10'
-                    },
-                    {
-                      id: 'math_arcade',
-                      title: 'Cálculo Mental Arcade',
-                      badge: 'Aritmética & Álgebra',
-                      desc: 'Display digital neon para respostas rápidas de cálculo, raízes e equações.',
-                      icon: Calculator,
-                      color: 'from-blue-600 to-cyan-600',
-                      borderActive: 'border-cyan-500 ring-2 ring-cyan-400/40 bg-gradient-to-b from-cyan-50/80 to-blue-50/40 dark:from-cyan-950/40 dark:to-blue-950/20 shadow-md shadow-cyan-500/10'
-                    },
-                    {
-                      id: 'periodic_table',
-                      title: 'Tabela Periódica',
-                      badge: 'Química Visual',
-                      desc: 'Adivinhe símbolos, números atômicos e famílias em cards químicos interativos.',
-                      icon: Atom,
-                      color: 'from-purple-600 to-pink-600',
-                      borderActive: 'border-purple-500 ring-2 ring-purple-400/40 bg-gradient-to-b from-purple-50/80 to-pink-50/40 dark:from-purple-950/40 dark:to-pink-950/20 shadow-md shadow-purple-500/10'
-                    },
-                    {
-                      id: 'enem_formulas',
-                      title: 'Fórmulas & Macetes',
-                      badge: 'Física & Ciências',
-                      desc: 'Macetes mnemônicos do ENEM (Quem Vê R-I, Que Macete, Torricelli).',
-                      icon: FlaskConical,
-                      color: 'from-amber-600 to-orange-600',
-                      borderActive: 'border-amber-500 ring-2 ring-amber-400/40 bg-gradient-to-b from-amber-50/80 to-orange-50/40 dark:from-amber-950/40 dark:to-orange-950/20 shadow-md shadow-amber-500/10'
-                    },
-                    {
-                      id: 'teacher_custom',
-                      title: 'Minhas Questões',
-                      badge: `${customQuestions.length} no banco`,
-                      desc: 'Simulado focado nas questões autorais que você cadastrou no estúdio.',
-                      icon: GraduationCap,
-                      color: 'from-emerald-600 to-teal-600',
-                      borderActive: 'border-emerald-500 ring-2 ring-emerald-400/40 bg-gradient-to-b from-emerald-50/80 to-teal-50/40 dark:from-emerald-950/40 dark:to-teal-950/20 shadow-md shadow-emerald-500/10'
-                    }
-                  ].map((mode) => {
-                    const Icon = mode.icon;
-                    const isSelected = gameMode === mode.id;
-                    return (
-                      <div key={mode.id} className="relative">
-                        <motion.button
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          type="button"
-                          onClick={() => {
-                            playSound('click');
-                            setGameMode(mode.id as any);
-                            triggerModeBurst(mode.id);
-                          }}
-                          className={`w-full min-h-[175px] p-4 sm:p-5 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
-                            isSelected
-                              ? `${mode.borderActive}`
-                              : 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-xs'
-                          }`}
-                        >
-                          <div className="w-full space-y-2.5">
-                            <div className="flex items-center justify-between">
-                              <div className={`p-2.5 rounded-xl bg-gradient-to-br ${mode.color} text-white shadow-xs`}>
-                                <Icon className="w-5 h-5" />
-                              </div>
-                              <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/60 shrink-0">
-                                {mode.badge}
-                              </span>
-                            </div>
-
-                            <div>
-                              <h4 className="text-sm font-extrabold text-slate-900 dark:text-white font-display">
-                                {mode.title}
-                              </h4>
-                              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2">
-                                {mode.desc}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-bold">
-                            {isSelected ? (
-                              <span className="flex items-center gap-1 text-cyan-600 dark:text-cyan-400 font-extrabold">
-                                <Check className="w-3.5 h-3.5" />
-                                <span>Selecionado</span>
-                              </span>
-                            ) : (
-                              <span className="text-slate-400 dark:text-slate-500 group-hover:text-slate-600 flex items-center gap-1">
-                                <span>Clique para treinar</span>
-                                <ChevronRight className="w-3 h-3" />
-                              </span>
-                            )}
-                          </div>
-                        </motion.button>
-
-                        {/* Partículas Temáticas Explodindo ao Clicar */}
-                        <AnimatePresence>
-                          {burstParticles && burstParticles.modeId === mode.id && (
-                            <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center overflow-visible">
-                              {burstParticles.items.map((p, idx) => (
-                                <motion.div
-                                  key={`${burstParticles.id}-${idx}`}
-                                  initial={{ opacity: 1, scale: 0.2, x: 0, y: 0, rotate: 0 }}
-                                  animate={{
-                                    opacity: [1, 1, 0],
-                                    scale: [0.3, p.s * 1.25, 0.4],
-                                    x: p.tx,
-                                    y: p.ty,
-                                    rotate: p.r
-                                  }}
-                                  exit={{ opacity: 0 }}
-                                  transition={{
-                                    duration: 0.85,
-                                    ease: [0.16, 1, 0.3, 1]
-                                  }}
-                                  className="absolute font-black font-mono select-none drop-shadow-md text-xs sm:text-sm px-1.5 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-xs border border-white/20 whitespace-nowrap"
-                                  style={{
-                                    color: p.color,
-                                    boxShadow: `0 0 14px ${p.color}66`
-                                  }}
-                                >
-                                  {p.char}
-                                </motion.div>
-                              ))}
-                            </div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Seletor de Dificuldade (ou aviso se estiver no modo Endurance) */}
-              <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider block mb-0.5">
-                    {gameMode === 'endurance' ? '2. Progressão Dinâmica Ativa:' : '2. Nível de Desafio & Ritmo:'}
-                  </span>
-                  <p className="text-[11px] text-slate-500">
-                    {gameMode === 'endurance'
-                      ? 'No Modo Endurance, a dificuldade sobe automaticamente com o tempo (Fácil ➔ Médio ➔ Difícil ➔ Hardcore).'
-                      : 'Maior dificuldade concede multiplicadores extras de XP e pontuação.'}
-                  </p>
-                </div>
-
-                {gameMode === 'endurance' ? (
-                  <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold animate-pulse">
-                    <Flame className="w-4 h-4 text-amber-500" />
-                    <span>Dificuldade Automática em Tempo Real</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    {(['Fácil', 'Médio', 'Difícil', 'Hardcore'] as const).map((d) => (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => {
-                          playSound('click');
-                          setDifficulty(d);
-                        }}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                          difficulty === d
-                            ? d === 'Fácil' ? 'bg-emerald-500 text-white shadow-xs scale-105' :
-                              d === 'Médio' ? 'bg-amber-500 text-white shadow-xs scale-105' :
-                              d === 'Difícil' ? 'bg-rose-500 text-white shadow-xs scale-105' :
-                              'bg-purple-600 text-white shadow-xs scale-105 animate-pulse'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                        }`}
-                      >
-                        {d}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* BOTÃO PRINCIPAL DE INICIAR TREINO */}
-              <div className="pt-2 flex flex-col items-center justify-center gap-2 text-center">
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  type="button"
-                  onClick={() => handleStartSurvival()}
-                  className={`w-full sm:w-auto min-w-[320px] flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-white font-extrabold text-sm shadow-xl transition-all cursor-pointer ${
-                    gameMode === 'endurance'
-                      ? 'bg-gradient-to-r from-amber-500 via-rose-600 to-purple-600 hover:from-amber-400 hover:to-purple-500 shadow-amber-500/25'
-                      : 'bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 shadow-cyan-500/25'
-                  }`}
-                >
-                  <Play className="w-5 h-5 fill-white" />
-                  <span>
-                    {gameMode === 'endurance' ? '⚡ INICIAR MODO ENDURANCE INFINITO' : '⚡ INICIAR TREINO SURVIVAL'}
-                  </span>
-                </motion.button>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  {gameMode === 'endurance'
-                    ? 'O cronômetro dispara e a dificuldade sobe progressivamente com combos de pontuação até 10x!'
-                    : 'O cronômetro dispara ao clicar. Responda o máximo de perguntas até perder suas 3 vidas!'}
-                </p>
-              </div>
-            </motion.div>
+            <GameLobby
+              analytics={analytics}
+              customQuestionsCount={customQuestions.length}
+              gameMode={gameMode}
+              onGameModeChange={setGameMode}
+              difficulty={difficulty}
+              onDifficultyChange={setDifficulty}
+              burstParticles={burstParticles}
+              onTriggerModeBurst={triggerModeBurst}
+              onStartSurvival={handleStartSurvival}
+              onNavigateTab={setActiveTab}
+            />
           )}
 
           {/* 1.2 TELA DE JOGO ATIVO (SURVIVAL & ENDLESS) */}
@@ -1624,572 +1263,50 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             <div className="space-y-5">
               
               {/* HUD Superior Fixo de Jogo */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-3">
-                {/* Timer Cronômetro & Pergunta */}
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-mono text-xs font-bold border border-slate-200 dark:border-slate-700">
-                    <Clock className="w-3.5 h-3.5 text-cyan-500 animate-spin" style={{ animationDuration: '4s' }} />
-                    <span>{formatTime(elapsedSeconds)}</span>
-                  </div>
+              <GameHUD
+                formatTime={formatTime}
+                elapsedSeconds={elapsedSeconds}
+                questionNumber={questionNumber}
+                gameMode={gameMode}
+                lives={lives}
+                lastLostLife={lastLostLife}
+                streakMultiplier={streakMultiplier}
+                score={score}
+                onExitToLobby={handleExitToLobby}
+              />
 
-                  <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400">
-                    Questão #{questionNumber}
-                  </span>
-
-                  {/* Badge de Fase do Modo Endurance */}
-                  {gameMode === 'endurance' && (
-                    <div className={`px-2.5 py-1 rounded-xl text-[11px] font-black border flex items-center gap-1.5 animate-pulse ${getEnduranceLevel(elapsedSeconds).color} ${getEnduranceLevel(elapsedSeconds).badgeBg}`}>
-                      <Flame className="w-3.5 h-3.5" />
-                      <span>{getEnduranceLevel(elapsedSeconds).label}</span>
-                      <span className="text-[10px] opacity-85 font-mono">({getEnduranceLevel(elapsedSeconds).multiplierBonus}x bônus)</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Vidas, Combo, Pontuação */}
-                <div className="flex items-center gap-2.5 ml-auto">
-                  {/* Vidas com Animação Framer Motion de Quebra / Desaparecimento */}
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 relative">
-                    {[1, 2, 3].map(h => {
-                      const isAlive = h <= lives;
-                      const wasJustLost = lastLostLife === h && !isAlive;
-
-                      return (
-                        <div key={h} className="relative w-5 h-5 flex items-center justify-center">
-                          {isAlive ? (
-                            <motion.div
-                              key={`alive-${h}`}
-                              initial={{ scale: 0.8 }}
-                              animate={{ 
-                                scale: [1, 1.15, 1],
-                                transition: { repeat: Infinity, repeatDelay: 2.2 + h * 0.4, duration: 0.6 }
-                              }}
-                              className="relative"
-                            >
-                              <Heart className="w-4 h-4 text-rose-500 fill-rose-500 drop-shadow-xs" />
-                            </motion.div>
-                          ) : wasJustLost ? (
-                            // Efeito dramático de quebra do coração ao perder a vida
-                            <motion.div
-                              key={`lost-${h}`}
-                              initial={{ scale: 1.4, rotate: 0 }}
-                              animate={{ 
-                                scale: [1.4, 1.2, 0.9, 0.85],
-                                rotate: [0, -12, 12, 0],
-                                filter: ['brightness(1.5)', 'brightness(1)', 'grayscale(1)']
-                              }}
-                              transition={{ duration: 0.75, ease: 'easeOut' }}
-                              className="relative flex items-center justify-center"
-                            >
-                              {/* Coração Quebrado */}
-                              <HeartCrack className="w-4 h-4 text-rose-600 dark:text-rose-400 fill-rose-500/30" />
-
-                              {/* Fragmentos/faíscas flutuando e desaparecendo */}
-                              <motion.span
-                                initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-                                animate={{ opacity: 0, x: -10, y: -12, scale: 0.2 }}
-                                transition={{ duration: 0.65, ease: 'easeOut' }}
-                                className="absolute w-1.5 h-1.5 rounded-full bg-rose-500"
-                              />
-                              <motion.span
-                                initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-                                animate={{ opacity: 0, x: 10, y: -10, scale: 0.2 }}
-                                transition={{ duration: 0.65, ease: 'easeOut' }}
-                                className="absolute w-1.5 h-1.5 rounded-full bg-rose-400"
-                              />
-                              <motion.span
-                                initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-                                animate={{ opacity: 0, x: 2, y: 12, scale: 0.2 }}
-                                transition={{ duration: 0.7, ease: 'easeOut' }}
-                                className="absolute w-1 h-1 rounded-full bg-rose-600"
-                              />
-                              <motion.span
-                                initial={{ opacity: 0.9, scale: 0.5 }}
-                                animate={{ opacity: 0, scale: 2 }}
-                                transition={{ duration: 0.5 }}
-                                className="absolute w-4 h-4 rounded-full border border-rose-500/80 pointer-events-none"
-                              />
-                            </motion.div>
-                          ) : (
-                            // Vida já perdida
-                            <motion.div
-                              key={`empty-${h}`}
-                              initial={{ opacity: 0.4 }}
-                              animate={{ opacity: 0.3 }}
-                              className="relative"
-                            >
-                              <Heart className="w-4 h-4 text-slate-300 dark:text-slate-700" />
-                            </motion.div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Combo */}
-                  <div className={`flex items-center gap-1 px-3 py-1.5 rounded-xl border text-xs font-black transition-all ${
-                    streakMultiplier > 1
-                      ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800 text-amber-600 dark:text-amber-400 scale-105 shadow-2xs'
-                      : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'
-                  }`}>
-                    <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                    <span>{streakMultiplier}x Combo</span>
-                  </div>
-
-                  {/* Pontos */}
-                  <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-cyan-50 dark:bg-cyan-950/50 border border-cyan-200/80 dark:border-cyan-900/60 text-cyan-700 dark:text-cyan-300 text-xs font-black font-mono">
-                    <Trophy className="w-3.5 h-3.5 text-cyan-500" />
-                    <span>{score} pts</span>
-                  </div>
-
-                  {/* Pausar / Sair */}
-                  <button
-                    type="button"
-                    onClick={handleExitToLobby}
-                    className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                    title="Pausar / Voltar ao Menu"
-                  >
-                    <Pause className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* CARD DE QUESTÃO CUSTOMIZADO POR MODALIDADE */}
-              <motion.div
-                key={currentQuestion.id}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
-                className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-md space-y-6"
-              >
-                {/* 🧪 A) INTERFACE ESPECÍFICA: QUÍMICA & TABELA PERIÓDICA */}
-                {currentQuestion.gameType === 'chemistry' && currentQuestion.chemicalElement && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800">
-                        {currentQuestion.subject}
-                      </span>
-                      <span className="text-slate-400 font-medium">Elemento Químico</span>
-                    </div>
-
-                    <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
-                      {currentQuestion.statement}
-                    </p>
-
-                    {/* Card Realista de Elemento da Tabela Periódica */}
-                    <div className="flex justify-center py-2">
-                      <div 
-                        className="w-48 h-52 rounded-2xl p-3.5 flex flex-col justify-between shadow-lg border-2 transition-transform hover:scale-102 relative overflow-hidden bg-slate-950"
-                        style={{ borderColor: currentQuestion.chemicalElement.color }}
-                      >
-                        {/* Brilho de fundo */}
-                        <div 
-                          className="absolute -right-8 -top-8 w-28 h-28 rounded-full opacity-20 blur-xl pointer-events-none"
-                          style={{ backgroundColor: currentQuestion.chemicalElement.color }}
-                        />
-
-                        {/* Topo: Z e Massa (Oculta se a questão perguntar sobre dados atômicos) */}
-                        <div className="flex items-center justify-between text-xs font-mono font-bold">
-                          {currentQuestion.chemicalElement.hiddenProperty === 'atomicInfo' ? (
-                            <>
-                              <span className="px-1.5 py-0.5 rounded bg-slate-900 border border-dashed border-amber-400/60 text-amber-300">Z = ??</span>
-                              <span className="px-1.5 py-0.5 rounded bg-slate-900 border border-dashed border-amber-400/60 text-amber-300">A ≈ ?? u</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-slate-400">Z = {currentQuestion.chemicalElement.atomicNumber}</span>
-                              <span className="text-slate-400">{Math.round(currentQuestion.chemicalElement.atomicMass)} u</span>
-                            </>
-                          )}
-                        </div>
-
-                        {/* Centro: Símbolo Gigante (Oculta com "?" se a pergunta pedir o símbolo) */}
-                        <div className="text-center my-auto">
-                          {currentQuestion.chemicalElement.hiddenProperty === 'symbol' ? (
-                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-900/90 border-2 border-dashed border-cyan-400 shadow-inner">
-                              <span className="text-4xl font-black text-cyan-300 animate-pulse">?</span>
-                            </div>
-                          ) : (
-                            <span 
-                              className="text-5xl font-black font-display tracking-tight drop-shadow-md block"
-                              style={{ color: currentQuestion.chemicalElement.color }}
-                            >
-                              {currentQuestion.chemicalElement.symbol}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Rodapé do Card: Nome e Família/Estado */}
-                        <div className="text-center space-y-1">
-                          {currentQuestion.chemicalElement.hiddenProperty === 'name' ? (
-                            <span className="text-[11px] font-bold text-slate-400 italic block">
-                              [ Elemento Oculto ]
-                            </span>
-                          ) : (
-                            <span className="text-[11px] font-bold text-slate-200 block truncate">
-                              {currentQuestion.chemicalElement.name}
-                            </span>
-                          )}
-
-                          {currentQuestion.chemicalElement.hiddenProperty === 'family' ? (
-                            <span className="text-[9px] px-2 py-0.5 rounded bg-slate-800 text-purple-300 inline-block font-semibold border border-dashed border-purple-500/50">
-                              Família: [ ? ]
-                            </span>
-                          ) : currentQuestion.chemicalElement.hiddenProperty === 'state' ? (
-                            <span className="text-[9px] px-2 py-0.5 rounded bg-slate-800 text-emerald-300 inline-block font-semibold border border-dashed border-emerald-500/50">
-                              Estado: [ ? ]
-                            </span>
-                          ) : (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 inline-block font-semibold">
-                              {currentQuestion.chemicalElement.family}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 🧮 B) INTERFACE ESPECÍFICA: CÁLCULO MENTAL ARCADE */}
-                {currentQuestion.gameType === 'math' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="px-2.5 py-1 rounded-lg bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 font-bold border border-cyan-200 dark:border-cyan-800">
-                        {currentQuestion.subject}
-                      </span>
-                      <span className="text-slate-400 font-medium">{currentQuestion.topic}</span>
-                    </div>
-
-                    <p className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
-                      {currentQuestion.statement}
-                    </p>
-
-                    {/* Display Neon de Aritmética */}
-                    <div className="bg-slate-950 rounded-2xl p-6 border border-cyan-500/30 text-center shadow-inner relative overflow-hidden">
-                      <div className="text-3xl sm:text-4xl font-mono font-black text-cyan-400 tracking-wider drop-shadow-md">
-                        {currentQuestion.mathExpression || currentQuestion.statement}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 🔬 C) INTERFACE ESPECÍFICA: FÓRMULAS ENEM & MACETES */}
-                {currentQuestion.gameType === 'formula' && currentQuestion.formulaInfo && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800">
-                        {currentQuestion.subject}
-                      </span>
-                      <span className="text-slate-400 font-medium">{currentQuestion.topic}</span>
-                    </div>
-
-                    {/* Badge de Macete Mnemônico */}
-                    {currentQuestion.formulaInfo.mnemonic && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-bold">
-                        <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-                        <span>Macete: {currentQuestion.formulaInfo.mnemonic}</span>
-                      </div>
-                    )}
-
-                    <p className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100 leading-relaxed">
-                      {currentQuestion.statement}
-                    </p>
-                  </div>
-                )}
-
-                {/* 📝 D) INTERFACE PADRÃO / SIMULADO / SALA DO PROFESSOR */}
-                {(!currentQuestion.gameType || currentQuestion.gameType === 'standard') && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800">
-                        {currentQuestion.subject}
-                      </span>
-                      <span className="text-slate-400 font-medium">{currentQuestion.topic}</span>
-                    </div>
-
-                    <h3 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white leading-relaxed font-display">
-                      {currentQuestion.statement}
-                    </h3>
-
-                    {/* Imagem Ilustrativa com Zoom */}
-                    {currentQuestion.imageUrl && (
-                      <div className="relative group/img max-w-lg mx-auto rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 shadow-sm flex flex-col items-center">
-                        <img
-                          src={currentQuestion.imageUrl}
-                          alt={currentQuestion.imageCaption || 'Imagem da questão'}
-                          className="max-h-64 w-auto object-contain rounded-2xl cursor-zoom-in"
-                          onClick={() => setZoomImageUrl(currentQuestion.imageUrl || null)}
-                          onError={(e) => {
-                            (e.currentTarget as HTMLElement).style.display = 'none';
-                          }}
-                        />
-
-                        <button
-                          type="button"
-                          onClick={() => setZoomImageUrl(currentQuestion.imageUrl || null)}
-                          className="absolute top-2 right-2 p-1.5 bg-slate-900/80 hover:bg-slate-900 text-white rounded-xl backdrop-blur-sm opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer text-xs flex items-center gap-1"
-                        >
-                          <Maximize2 className="w-3.5 h-3.5" />
-                          <span>Ampliar</span>
-                        </button>
-
-                        {currentQuestion.imageCaption && (
-                          <p className="p-2 text-xs text-slate-500 dark:text-slate-400 italic text-center border-t border-slate-200/50 dark:border-slate-800/50 w-full bg-slate-100/50 dark:bg-slate-900/50">
-                            {currentQuestion.imageCaption}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {currentQuestion.codeSnippet && (
-                      <div className="bg-slate-950 rounded-2xl p-3.5 font-mono text-xs text-cyan-300 border border-slate-800 overflow-x-auto shadow-inner">
-                        <pre>{currentQuestion.codeSnippet}</pre>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* GRID DE ALTERNATIVAS */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                  {currentQuestion.options.map((option, idx) => {
-                    const isSelected = selectedOptionId === option.id;
-                    const keyNumber = idx + 1;
-                    let optionStyle = 'bg-slate-50/80 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-slate-300 hover:bg-slate-100/70';
-
-                    if (isAnswerConfirmed) {
-                      if (option.isCorrect) {
-                        optionStyle = 'bg-emerald-50 dark:bg-emerald-950/80 border-emerald-500 text-emerald-950 dark:text-emerald-100 ring-2 ring-emerald-400/30';
-                      } else if (isSelected && !option.isCorrect) {
-                        optionStyle = 'bg-rose-50 dark:bg-rose-950/80 border-rose-500 text-rose-950 dark:text-rose-100 ring-2 ring-rose-400/30';
-                      }
-                    } else if (isSelected) {
-                      optionStyle = 'bg-cyan-50/90 dark:bg-cyan-950/70 border-cyan-600 text-cyan-950 dark:text-cyan-100 ring-2 ring-cyan-500/25';
-                    }
-
-                    return (
-                      <button
-                        key={option.id}
-                        onClick={() => handleSelectOption(option.id)}
-                        disabled={isAnswerConfirmed}
-                        className={`text-left p-3.5 rounded-2xl border transition-all duration-200 flex items-start gap-3 cursor-pointer group relative ${optionStyle}`}
-                      >
-                        <div
-                          className={`w-7 h-7 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 transition-colors ${
-                            isAnswerConfirmed && option.isCorrect
-                              ? 'bg-emerald-500 text-white'
-                              : isAnswerConfirmed && isSelected && !option.isCorrect
-                              ? 'bg-rose-500 text-white'
-                              : isSelected
-                              ? 'bg-cyan-600 text-white'
-                              : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 group-hover:border-cyan-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-300'
-                          }`}
-                        >
-                          {option.id}
-                        </div>
-
-                        <div className="flex-1 pt-0.5">
-                          <p className="text-xs sm:text-sm leading-relaxed font-medium">{option.text}</p>
-                          {isAnswerConfirmed && (
-                            <p className={`text-xs mt-1.5 font-semibold ${option.isCorrect ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-400'}`}>
-                              {option.explanation}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Atalho de Teclado Badge */}
-                        <div className="hidden sm:flex items-center justify-center px-1.5 py-0.5 rounded-md bg-slate-200/60 dark:bg-slate-800 text-[10px] font-mono text-slate-500 dark:text-slate-400 opacity-60 group-hover:opacity-100 transition-opacity shrink-0">
-                          {keyNumber}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Dica Pedagógica Synapse (ao errar ou ao pedir) */}
-                <AnimatePresence>
-                  {showAiHint && currentQuestion.aiHint && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0, y: 10 }}
-                      animate={{ opacity: 1, height: 'auto', y: 0 }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="bg-purple-50/90 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 rounded-2xl p-4 flex items-start gap-3 text-xs text-purple-950 dark:text-purple-200"
-                    >
-                      <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                      <div className="flex-1 space-y-1">
-                        <p className="font-bold font-display text-purple-900 dark:text-purple-100 flex items-center gap-1.5">
-                          <span>Dica Sináptica:</span>
-                          {hasWrongAttempt && (
-                            <span className="text-[10px] bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200 px-2 py-0.5 rounded-md font-bold">
-                              Você perdeu 1 vida! Veja o raciocínio abaixo:
-                            </span>
-                          )}
-                        </p>
-                        <p className="leading-relaxed font-medium">{currentQuestion.aiHint}</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Barra Inferior de Ações de Resposta */}
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowAiHint(!showAiHint);
-                        if (!showAiHint) playSound('hint');
-                      }}
-                      className="flex items-center gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 transition-colors cursor-pointer"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>{showAiHint ? 'Ocultar Dica' : 'Pedir Dica Sináptica'}</span>
-                    </button>
-
-                    <span className="hidden md:inline-flex text-[11px] text-slate-400 dark:text-slate-500 font-mono">
-                      Atalhos: [1-4] Selecionar • [Enter] Confirmar
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 ml-auto">
-                    {!isAnswerConfirmed ? (
-                      <button
-                        type="button"
-                        onClick={handleConfirmAnswer}
-                        disabled={!selectedOptionId}
-                        className={`flex items-center gap-1.5 px-6 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer ${
-                          selectedOptionId
-                            ? 'bg-cyan-600 hover:bg-cyan-700 text-white shadow-cyan-500/25 scale-102'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
-                        }`}
-                      >
-                        <span>Confirmar Resposta</span>
-                        {selectedOptionId && (
-                          <kbd className="px-1.5 py-0.5 rounded bg-cyan-700 text-[10px] font-mono text-cyan-100">↵ Enter</kbd>
-                        )}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleNextInfiniteQuestion}
-                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/25 transition-all cursor-pointer scale-102"
-                      >
-                        <span>Próxima Pergunta</span>
-                        <kbd className="px-1.5 py-0.5 rounded bg-white/20 text-[10px] font-mono text-white">↵</kbd>
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
+              <QuestionCard
+                currentQuestion={currentQuestion}
+                selectedOptionId={selectedOptionId}
+                isAnswerConfirmed={isAnswerConfirmed}
+                showAiHint={showAiHint}
+                hasWrongAttempt={hasWrongAttempt}
+                onSelectOption={handleSelectOption}
+                onConfirmAnswer={handleConfirmAnswer}
+                onNextQuestion={handleNextInfiniteQuestion}
+                onSetZoomImageUrl={setZoomImageUrl}
+                onToggleHint={() => setShowAiHint(!showAiHint)}
+                onPlaySound={playSound}
+              />
             </div>
           )}
 
           {/* 1.3 TELA DE FIM DE JOGO (SURVIVAL CONCLUÍDO / GAME OVER) */}
           {gameStatus === 'gameover' && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white dark:bg-slate-900 rounded-3xl p-8 sm:p-12 border border-slate-200/80 dark:border-slate-800 shadow-xl text-center space-y-7"
-            >
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-bold text-xs">
-                  <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
-                  <span>Treino Survival Encerrado!</span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold font-display text-slate-900 dark:text-white tracking-tight">
-                  {score > highScore ? '🎉 Novo Recorde Pessoal Alcançado!' : 'Excelente Desempenho!'}
-                </h2>
-                <p className="text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">
-                  Você sobreviveu por <strong className="text-slate-800 dark:text-slate-100">{formatTime(elapsedSeconds)}</strong> e respondeu {answeredHistory.length} perguntas.
-                </p>
-              </div>
-
-              {/* Estatísticas Finais */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left max-w-3xl mx-auto">
-                <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1">
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase">Pontuação</span>
-                  <span className="text-2xl font-black text-cyan-600 dark:text-cyan-400 font-mono block">{score}</span>
-                  <span className="text-[11px] text-slate-500">pts totais</span>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1">
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase">XP Neural</span>
-                  <span className="text-2xl font-black text-purple-600 dark:text-purple-400 font-mono block">+{xpEarned}</span>
-                  <span className="text-[11px] text-slate-500">ganho</span>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1">
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase">Precisão</span>
-                  <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono block">
-                    {answeredHistory.length > 0
-                      ? `${Math.round((answeredHistory.filter(h => h.isCorrect).length / answeredHistory.length) * 100)}%`
-                      : '0%'}
-                  </span>
-                  <span className="text-[11px] text-slate-500">
-                    {answeredHistory.filter(h => h.isCorrect).length} de {answeredHistory.length}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1">
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase">Maior Combo</span>
-                  <span className="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono block">{maxCombo}x</span>
-                  <span className="text-[11px] text-slate-500">multiplicador</span>
-                </div>
-              </div>
-
-              {/* Botões de Ação */}
-              <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsSummaryModalOpen(true)}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-md shadow-blue-500/25 transition-all cursor-pointer ring-2 ring-blue-300 dark:ring-blue-800"
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  <span>Resumo do Treino (Gráfico Donut)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleStartSurvival()}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Jogar Novamente</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    playSound('click');
-                    setActiveTab('dashboard');
-                  }}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  <span>Ver Diagnóstico & Curvas</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    playSound('click');
-                    setActiveTab('leaderboard');
-                  }}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer"
-                >
-                  <Trophy className="w-4 h-4" />
-                  <span>Ver Ranking Global</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleExitToLobby}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
-                >
-                  <span>Voltar ao Menu de Treino</span>
-                </button>
-              </div>
-            </motion.div>
+            <GameOver
+              score={score}
+              highScore={highScore}
+              xpEarned={xpEarned}
+              maxCombo={maxCombo}
+              elapsedSeconds={elapsedSeconds}
+              answeredHistory={answeredHistory}
+              formatTime={formatTime}
+              onShowSummary={() => setIsSummaryModalOpen(true)}
+              onPlayAgain={() => handleStartSurvival()}
+              onViewDashboard={() => { playSound('click'); setActiveTab('dashboard'); }}
+              onViewLeaderboard={() => { playSound('click'); setActiveTab('leaderboard'); }}
+              onExitToLobby={handleExitToLobby}
+            />
           )}
         </div>
       )}
@@ -2327,8 +1444,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       type="button"
                       onClick={() => {
                         if (s.step === 4 && (!formStatement.trim() || !formOptions.A.trim())) {
-                          setSuccessToast('Preencha o enunciado e alternativas antes do preview.');
-                          setTimeout(() => setSuccessToast(null), 3000);
+                          showToast('Preencha o enunciado e alternativas antes do preview.');
                           return;
                         }
                         setWizardStep(s.step);
@@ -2473,8 +1589,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       type="button"
                       onClick={() => {
                         if (!formStatement.trim()) {
-                          setSuccessToast('Por favor, digite o enunciado da questão.');
-                          setTimeout(() => setSuccessToast(null), 3000);
+                          showToast('Por favor, digite o enunciado da questão.');
                           return;
                         }
                         playSound('click');
@@ -2726,8 +1841,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       type="button"
                       onClick={() => {
                         if (!formOptions.A.trim() || !formOptions.B.trim()) {
-                          setSuccessToast('Preencha ao menos as alternativas A e B.');
-                          setTimeout(() => setSuccessToast(null), 3000);
+                          showToast('Preencha ao menos as alternativas A e B.');
                           return;
                         }
                         playSound('click');

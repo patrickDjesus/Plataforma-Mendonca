@@ -96,6 +96,9 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 280 }}
             className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-slate-200/80 dark:border-slate-800 shadow-2xl z-50 flex flex-col overflow-hidden text-slate-900 dark:text-slate-100"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Painel de notificações"
           >
             {/* Header do Painel */}
             <div className="p-5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
@@ -122,6 +125,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
                 <button
                   onClick={onClose}
                   className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Fechar notificações"
                 >
                   <X className="w-4 h-4" />
                 </button>

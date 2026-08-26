@@ -88,7 +88,7 @@ export const PostTrainingSummaryModal: React.FC<PostTrainingSummaryModalProps> =
           spread: 70,
           origin: { y: 0.6 }
         });
-      } catch {}
+      } catch { /* ignored */ }
     }
   }, [isOpen, effectiveData?.accuracy]);
 

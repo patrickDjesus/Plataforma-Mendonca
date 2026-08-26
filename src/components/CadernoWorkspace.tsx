@@ -646,6 +646,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                 onClick={() => setSelectedDisciplineId(null)}
                 className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
                 title="Voltar às Matérias"
+                aria-label="Voltar às matérias"
               >
                 <ArrowLeft className="w-5 h-5" />
               </motion.button>
@@ -681,6 +682,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                       : 'text-slate-400 hover:text-slate-700'
                   }`}
                   title="Visualização em Grade"
+                  aria-label="Visualização em grade"
                 >
                   <LayoutGrid className="w-4 h-4" />
                 </button>
@@ -692,6 +694,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                       : 'text-slate-400 hover:text-slate-700'
                   }`}
                   title="Visualização em Lista"
+                  aria-label="Visualização em lista"
                 >
                   <List className="w-4 h-4" />
                 </button>
@@ -867,6 +870,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                 onClick={() => setSelectedDocId(null)}
                 className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
                 title="Voltar aos Documentos"
+                aria-label="Voltar aos documentos"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
@@ -926,6 +930,8 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                   }}
                   className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                   title="Mais Opções da Página"
+                  aria-label="Mais opções"
+                  aria-expanded={isMoreMenuOpen}
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
