@@ -267,7 +267,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                       whileTap={{ scale: 0.99 }}
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white font-bold py-3.5 px-6 rounded-2xl text-xs shadow-md shadow-blue-600/20 dark:shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-70"
+                      className="w-full bg-blue-400 dark:bg-blue-400 hover:bg-blue-600 dark:hover:bg-blue-600 text-white font-bold py-3.5 px-6 rounded-2xl text-xs shadow-md shadow-blue-600/20 dark:shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-70"
                     >
                       <span>{authMode === 'login' ? 'Acessar Plataforma Mendonça' : 'Criar Conta e Iniciar'}</span>
                       <ArrowRight className="w-4 h-4" />
