@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 import { supabase, signInWithGoogle, signInWithEmail as supabaseSignInWithEmail, signUpWithEmail as supabaseSignUpWithEmail, logout as supabaseLogout, getUserProfile, saveUserProfile, saveLeaderboardEntry } from '../services/supabase';
 
 export interface UserProfileData {

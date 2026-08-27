@@ -53,6 +53,7 @@ import {
   BookmarkPlus,
   Compass,
   MousePointer2,
+  Smile,
   X
 } from 'lucide-react';
 import { FormattedContentWithGlossary } from './GlossaryTooltip';
@@ -61,6 +62,7 @@ import { AddGlossaryTermModal } from './AddGlossaryTermModal';
 import { DocInsightSidebar } from './DocInsightSidebar';
 import { DocAiChatDrawer } from './DocAiChatDrawer';
 import { NotionDocEditor } from './NotionDocEditor';
+import { EmojiQuickPicker } from './EmojiQuickPicker';
 
 interface CadernoWorkspaceProps {
   onNavigate?: (screen: ScreenId) => void;
@@ -141,6 +143,8 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
   // Modals & Drawers State
   const [isCreateDocOpen, setIsCreateDocOpen] = useState(false);
   const [isAddGlossaryOpen, setIsAddGlossaryOpen] = useState(false);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [initialGlossaryTerm, setInitialGlossaryTerm] = useState('');
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [showInsightSidebar, setShowInsightSidebar] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
@@ -380,6 +384,33 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
       );
     }
     setTimeout(() => setSaveStatus('saved'), 400);
+  };
+
+  const handleInsertEmojiIntoDoc = (emoji: string) => {
+    if (!selectedDoc) return;
+    const currentSections = selectedDoc.sections || [];
+    if (currentSections.length === 0) {
+      handleUpdateSections([
+        {
+          id: `sec-${Date.now()}`,
+          type: 'paragraph',
+          content: emoji,
+          contentHtml: emoji
+        }
+      ]);
+    } else {
+      const lastIndex = currentSections.length - 1;
+      const lastSection = currentSections[lastIndex];
+      const updated = [...currentSections];
+      const newContent = `${lastSection.content || ''} ${emoji}`.trim();
+      const newHtml = `${lastSection.contentHtml || lastSection.content || ''}&nbsp;${emoji}`.trim();
+      updated[lastIndex] = {
+        ...lastSection,
+        content: newContent,
+        contentHtml: newHtml
+      };
+      handleUpdateSections(updated);
+    }
   };
 
   const handleDeleteCurrentDoc = () => {
@@ -855,7 +886,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
       )}
 
       {/* ========================================================================= */}
-      {/* NÍVEL 2: LISTA DE DOCUMENTOS DA MATÉRIA COM MODELOS INTELIGENTES */}
+      {/* NÍVEL 2: LISTA DE DOCUMENTOS DA MATÉRIA */}
       {/* ========================================================================= */}
       {selectedDiscipline && !selectedDocId && (
         <div className="flex-1 overflow-y-auto pb-16 pr-1 space-y-6">
@@ -1296,8 +1327,42 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               )}
             </div>
 
-            {/* Lado Direito: Ações Discretas (Quiz + Menu Dropdown ...) */}
+            {/* Lado Direito: Ações Discretas (Emojis Rápidos + Quiz + Menu Dropdown ...) */}
             <div className="flex items-center gap-2 relative">
+              {/* Botão de Painel Rápido de Emojis */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setIsEmojiPickerOpen(!isEmojiPickerOpen);
+                    setIsMoreMenuOpen(false);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    isEmojiPickerOpen
+                      ? 'bg-amber-500 text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400'
+                  }`}
+                  title="Inserir Emojis Temáticos Rápidos"
+                >
+                  <Smile className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="hidden sm:inline">Emojis</span>
+                </button>
+
+                {/* Popover de Emojis Rápidos */}
+                {isEmojiPickerOpen && (
+                  <div 
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute right-0 top-10 z-50 w-72 sm:w-80 animate-in fade-in zoom-in-95 duration-100"
+                  >
+                    <EmojiQuickPicker
+                      onSelectEmoji={(emoji) => {
+                        handleInsertEmojiIntoDoc(emoji);
+                      }}
+                      onClose={() => setIsEmojiPickerOpen(false)}
+                    />
+                  </div>
+                )}
+              </div>
+
               {/* Botão Discreto de Auto-Teste / Quiz AI */}
               <button
                 onClick={() => setShowInsightSidebar(!showInsightSidebar)}
@@ -1487,7 +1552,10 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                   disciplineColor={selectedDiscipline.color}
                   paperMode={docPaperMode}
                   onUpdateSections={handleUpdateSections}
-                  onOpenAddGlossary={() => setIsAddGlossaryOpen(true)}
+                  onOpenAddGlossary={(term) => {
+                    setInitialGlossaryTerm(term || '');
+                    setIsAddGlossaryOpen(true);
+                  }}
                 />
               </div>
 
@@ -1552,7 +1620,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
         </div>
       )}
 
-      {/* Modal de Criação de Documento com Cartões de Modelos Inteligentes */}
+      {/* Modal de Criação de Documento (Padrão em Branco) */}
       {selectedDiscipline && (
         <CreateDocModal
           isOpen={isCreateDocOpen}
@@ -1566,7 +1634,11 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
       {selectedDoc && (
         <AddGlossaryTermModal
           isOpen={isAddGlossaryOpen}
-          onClose={() => setIsAddGlossaryOpen(false)}
+          initialTerm={initialGlossaryTerm}
+          onClose={() => {
+            setIsAddGlossaryOpen(false);
+            setInitialGlossaryTerm('');
+          }}
           onAddTerm={handleAddGlossaryTerm}
         />
       )}

@@ -17,19 +17,9 @@ import { PerformanceAnalytics } from '../../types/design';
 import { GameCategory, GameDifficulty } from '../../utils/gameGenerators';
 import { playSound } from '../../utils/sounds';
 
-interface BurstParticle {
-  char: string;
-  color: string;
-  tx: number;
-  ty: number;
-  r: number;
-  s: number;
-}
-
 interface BurstParticles {
   id: number;
   modeId: string;
-  items: BurstParticle[];
 }
 
 interface GameModeOption {
@@ -192,8 +182,8 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             return (
               <div key={mode.id} className="relative">
                 <motion.button
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.015, y: -2 }}
+                  whileTap={{ scale: 0.985 }}
                   type="button"
                   onClick={() => {
                     playSound('click');
@@ -206,11 +196,20 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                       : 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-xs'
                   }`}
                 >
-                  <div className="w-full space-y-2.5">
+                  {/* Sutil brilho de fundo quando selecionado */}
+                  {isSelected && (
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-cyan-500/10 via-transparent to-transparent pointer-events-none rounded-tr-2xl" />
+                  )}
+
+                  <div className="w-full space-y-2.5 relative z-10">
                     <div className="flex items-center justify-between">
-                      <div className={`p-2.5 rounded-xl bg-gradient-to-br ${mode.color} text-white shadow-xs`}>
+                      <motion.div 
+                        animate={isSelected ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className={`p-2.5 rounded-xl bg-gradient-to-br ${mode.color} text-white shadow-xs`}
+                      >
                         <Icon className="w-5 h-5" />
-                      </div>
+                      </motion.div>
                       <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/60 shrink-0">
                         {mode.id === 'teacher_custom'
                           ? `${customQuestionsCount} no banco`
@@ -228,12 +227,16 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                     </div>
                   </div>
 
-                  <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-bold">
+                  <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-bold relative z-10">
                     {isSelected ? (
-                      <span className="flex items-center gap-1 text-cyan-600 dark:text-cyan-400 font-extrabold">
+                      <motion.span 
+                        initial={{ opacity: 0, x: -3 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center gap-1 text-cyan-600 dark:text-cyan-400 font-extrabold"
+                      >
                         <Check className="w-3.5 h-3.5" />
                         <span>Selecionado</span>
-                      </span>
+                      </motion.span>
                     ) : (
                       <span className="text-slate-400 dark:text-slate-500 group-hover:text-slate-600 flex items-center gap-1">
                         <span>Clique para treinar</span>
@@ -243,36 +246,17 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                   </div>
                 </motion.button>
 
-                {/* Partículas Temáticas Explodindo ao Clicar */}
+                {/* Efeito sutil de onda ao selecionar */}
                 <AnimatePresence>
                   {burstParticles && burstParticles.modeId === mode.id && (
-                    <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center overflow-visible">
-                      {burstParticles.items.map((p, idx) => (
-                        <motion.div
-                          key={`${burstParticles.id}-${idx}`}
-                          initial={{ opacity: 1, scale: 0.2, x: 0, y: 0, rotate: 0 }}
-                          animate={{
-                            opacity: [1, 1, 0],
-                            scale: [0.3, p.s * 1.25, 0.4],
-                            x: p.tx,
-                            y: p.ty,
-                            rotate: p.r
-                          }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.85,
-                            ease: [0.16, 1, 0.3, 1]
-                          }}
-                          className="absolute font-black font-mono select-none drop-shadow-md text-xs sm:text-sm px-1.5 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-xs border border-white/20 whitespace-nowrap"
-                          style={{
-                            color: p.color,
-                            boxShadow: `0 0 14px ${p.color}66`
-                          }}
-                        >
-                          {p.char}
-                        </motion.div>
-                      ))}
-                    </div>
+                    <motion.div
+                      key={burstParticles.id}
+                      initial={{ opacity: 0.6, scale: 0.98 }}
+                      animate={{ opacity: 0, scale: 1.04 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.45, ease: 'easeOut' }}
+                      className="absolute inset-0 rounded-2xl border-2 border-cyan-400/60 dark:border-cyan-400/40 pointer-events-none z-20"
+                    />
                   )}
                 </AnimatePresence>
               </div>

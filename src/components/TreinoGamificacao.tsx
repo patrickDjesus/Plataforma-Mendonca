@@ -260,64 +260,22 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [summaryModalData, setSummaryModalData] = useState<PostTrainingSummaryData | null>(null);
 
-  // Efeito de partículas explodindo do card de modalidade selecionado
+  // Efeito sutil ao selecionar modalidade
   const [burstParticles, setBurstParticles] = useState<{
     id: number;
     modeId: string;
-    items: { char: string; color: string; tx: number; ty: number; r: number; s: number }[];
   } | null>(null);
 
   const triggerModeBurst = (modeId: string) => {
-    let itemsPool: { chars: string[]; colors: string[] } = {
-      chars: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '+', '−', '×', '÷', '=', '√', 'π', 'x²', 'Δ'],
-      colors: ['#38bdf8', '#06b6d4', '#60a5fa', '#818cf8', '#93c5fd', '#3b82f6']
-    };
-
-    if (modeId === 'periodic_table') {
-      itemsPool = {
-        chars: ['H', 'He', 'Li', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Fe', 'Au', 'Ag', 'U', '⚛', '🧪', 'K', 'Ca', 'Cu'],
-        colors: ['#c084fc', '#e879f9', '#a855f7', '#f472b6', '#38bdf8', '#34d399']
-      };
-    } else if (modeId === 'enem_formulas') {
-      itemsPool = {
-        chars: ['V=R·I', 'Q=m·c·ΔT', 'v=λ·f', 'F=m·a', 'E=mc²', 'ΔS=v·t', 'Ω', '⚡', '🔬', '💡', 'W=F·d', 'P=U·i'],
-        colors: ['#fbbf24', '#f59e0b', '#fb923c', '#ea580c', '#facc15', '#f87171']
-      };
-    } else if (modeId === 'endurance') {
-      itemsPool = {
-        chars: ['⚡', '⏱️', '🔥', '10x', 'x2', 'x5', 'x8', 'HARDCORE', 'COMBO', '🚀', '🧠', 'MAX', '100%'],
-        colors: ['#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#3b82f6', '#10b981']
-      };
-    } else if (modeId === 'teacher_custom') {
-      itemsPool = {
-        chars: ['🎓', '📝', 'A', 'B', 'C', 'D', 'E', '✓', '⭐', '📚', '💡', '100%', 'ENEM', 'Simulado'],
-        colors: ['#34d399', '#10b981', '#059669', '#2dd4bf', '#6ee7b7', '#14b8a6']
-      };
-    }
-
-    const count = 16;
-    const generated = Array.from({ length: count }, (_, i) => {
-      const char = itemsPool.chars[Math.floor(Math.random() * itemsPool.chars.length)];
-      const color = itemsPool.colors[Math.floor(Math.random() * itemsPool.colors.length)];
-      const angle = (i / count) * 2 * Math.PI + (Math.random() * 0.4 - 0.2);
-      const distance = 60 + Math.random() * 95;
-      const tx = Math.cos(angle) * distance;
-      const ty = Math.sin(angle) * distance;
-      const r = Math.random() * 60 - 30;
-      const s = 0.8 + Math.random() * 0.5;
-      return { char, color, tx, ty, r, s };
-    });
-
     setBurstParticles({
       id: Date.now(),
       modeId,
-      items: generated
     });
 
     if (burstTimerRef.current) clearTimeout(burstTimerRef.current);
     burstTimerRef.current = setTimeout(() => {
       setBurstParticles(null);
-    }, 1100);
+    }, 500);
   };
 
   // Timer Cronômetro Contínuo

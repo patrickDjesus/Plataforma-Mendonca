@@ -1,5 +1,4 @@
 import { supabase } from '../services/supabase';
-import { PerformanceAnalytics } from '../types/design';
 
 export interface CleanupOptions {
   deleteQuestions?: boolean;

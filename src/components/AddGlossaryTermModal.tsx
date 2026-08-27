@@ -7,14 +7,16 @@ interface AddGlossaryTermModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialTerm?: string;
-  onSaveTerm: (definition: GlossaryDefinition) => void;
+  onSaveTerm?: (definition: GlossaryDefinition) => void;
+  onAddTerm?: (term: string, definition: GlossaryDefinition) => void;
 }
 
 export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
   isOpen,
   onClose,
   initialTerm = '',
-  onSaveTerm
+  onSaveTerm,
+  onAddTerm
 }) => {
   const [term, setTerm] = useState(initialTerm);
   const [definition, setDefinition] = useState('');
@@ -32,12 +34,15 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
     e.preventDefault();
     if (!term.trim() || !definition.trim()) return;
 
-    onSaveTerm({
+    const def: GlossaryDefinition = {
       term: term.trim(),
       definition: definition.trim(),
       example: example.trim() || undefined,
       category: category.trim() || 'Conceito'
-    });
+    };
+
+    if (onSaveTerm) onSaveTerm(def);
+    if (onAddTerm) onAddTerm(term.trim(), def);
 
     setTerm('');
     setDefinition('');

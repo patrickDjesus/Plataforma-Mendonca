@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ScreenId } from './types/design';
 import { Navbar } from './components/Navbar';
 import { HomeDashboard } from './components/HomeDashboard';
@@ -6,15 +6,14 @@ import { AuthScreen } from './components/AuthScreen';
 import { LoadingTransition } from './components/LoadingTransition';
 import { NotificationsDrawer } from './components/NotificationsDrawer';
 import { CommandPalette } from './components/CommandPalette';
+import { CadernoWorkspace } from './components/CadernoWorkspace';
+import { MapaConceitos } from './components/MapaConceitos';
+import { TreinoGamificacao } from './components/TreinoGamificacao';
 import { INITIAL_NOTIFICATIONS } from './data/initialNotifications';
 import { StudyNotification } from './types/notification';
 import { AnimatePresence, motion } from 'motion/react';
 import { Moon, Sun } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
-
-const CadernoWorkspace = lazy(() => import('./components/CadernoWorkspace').then(m => ({ default: m.CadernoWorkspace })));
-const MapaConceitos = lazy(() => import('./components/MapaConceitos').then(m => ({ default: m.MapaConceitos })));
-const TreinoGamificacao = lazy(() => import('./components/TreinoGamificacao').then(m => ({ default: m.TreinoGamificacao })));
 
 export const App: React.FC = () => {
   const { currentUser, userProfile, logoutUser } = useAuth();
@@ -338,29 +337,23 @@ export const App: React.FC = () => {
 
                   {currentScreen === 'caderno' && (
                     <div className="flex-1 overflow-hidden h-full">
-                      <Suspense fallback={<LoadingTransition userName={user.name} onFinish={() => {}} />}>
-                        <CadernoWorkspace onNavigate={setCurrentScreen} />
-                      </Suspense>
+                      <CadernoWorkspace onNavigate={setCurrentScreen} />
                     </div>
                   )}
 
                   {currentScreen === 'mapa' && (
                     <div className="flex-1 overflow-hidden h-full">
-                      <Suspense fallback={<LoadingTransition userName={user.name} onFinish={() => {}} />}>
-                        <MapaConceitos onNavigate={setCurrentScreen} />
-                      </Suspense>
+                      <MapaConceitos onNavigate={setCurrentScreen} />
                     </div>
                   )}
 
                   {currentScreen === 'treino' && (
                     <div className="flex-1 overflow-hidden h-full">
-                      <Suspense fallback={<LoadingTransition userName={user.name} onFinish={() => {}} />}>
-                        <TreinoGamificacao
-                          onNavigate={setCurrentScreen}
-                          streakCount={streakCount}
-                          onStreakChange={setStreakCount}
-                        />
-                      </Suspense>
+                      <TreinoGamificacao
+                        onNavigate={setCurrentScreen}
+                        streakCount={streakCount}
+                        onStreakChange={setStreakCount}
+                      />
                     </div>
                   )}
                 </motion.div>

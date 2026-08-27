@@ -1,0 +1,296 @@
+{
+  "logaritmo": {
+    "term": "Logaritmo",
+    "definition": "Expoente ao qual se deve elevar uma base fixa para produzir um determinado número. É a operação inversa da exponenciação.",
+    "example": "Se 2³ = 8, então log₂(8) = 3.",
+    "category": "Matemática"
+  },
+  "função exponencial": {
+    "term": "Função Exponencial",
+    "definition": "Função matemática na forma f(x) = aˣ (com a > 0 e a ≠ 1), em que a variável está no expoente. Modela crescimento ou decaimento acelerado.",
+    "example": "Crescimento bacteriano ou cálculo de juros compostos.",
+    "category": "Matemática"
+  },
+  "derivada": {
+    "term": "Derivada",
+    "definition": "Taxa de variação instantânea de uma função em relação a uma de suas variáveis. Geometricamente representa a inclinação da reta tangente à curva no ponto.",
+    "example": "A derivada da posição em função do tempo é a velocidade instantânea (v = ds/dt).",
+    "category": "Cálculo"
+  },
+  "integral": {
+    "term": "Integral",
+    "definition": "Operação matemática que calcula a área sob a curva de uma função em um intervalo ou a acumulação contínua de grandezas.",
+    "example": "A integral da velocidade em relação ao tempo fornece o deslocamento total.",
+    "category": "Cálculo"
+  },
+  "matriz": {
+    "term": "Matriz",
+    "definition": "Tabela retangular de números ou expressões dispostos em linhas e colunas, utilizada para resolver sistemas lineares e transformações.",
+    "example": "Matrizes 3x3 na computação gráfica para rotação espacial de objetos.",
+    "category": "Matemática"
+  },
+  "determinante": {
+    "term": "Determinante",
+    "definition": "Valor numérico associado a uma matriz quadrada que indica se uma matriz possui inversa e se um sistema linear tem solução única.",
+    "example": "Se det(A) ≠ 0, a matriz é invertível.",
+    "category": "Matemática"
+  },
+  "probabilidade": {
+    "term": "Probabilidade",
+    "definition": "Medida numérica da chance de ocorrência de um evento específico, variando de 0 (impossível) a 1 (100% certo).",
+    "example": "P(A) = número de casos favoráveis / número de casos possíveis.",
+    "category": "Matemática"
+  },
+  "trigonometria": {
+    "term": "Trigonometria",
+    "definition": "Ramo da matemática que estuda as relações métricas e angulares nos triângulos e no círculo trigonométrico (seno, cosseno e tangente).",
+    "example": "Relação fundamental: sen²(θ) + cos²(θ) = 1.",
+    "category": "Matemática"
+  },
+  "progressão aritmética": {
+    "term": "Progressão Aritmética (PA)",
+    "definition": "Sequência numérica em que cada termo, a partir do segundo, é obtido somando uma constante (razão r) ao termo anterior.",
+    "example": "(2, 5, 8, 11...) com razão r = 3.",
+    "category": "Matemática"
+  },
+  "progressão geométrica": {
+    "term": "Progressão Geométrica (PG)",
+    "definition": "Sequência numérica em que cada termo, a partir do segundo, é obtido multiplicando o termo anterior por uma constante não nula (razão q).",
+    "example": "(3, 6, 12, 24...) com razão q = 2.",
+    "category": "Matemática"
+  },
+  "geometria espacial": {
+    "term": "Geometria Espacial",
+    "definition": "Estudo das formas e sólidos que possuem três dimensões (comprimento, largura e altura), como prismas, pirâmides, cilindros, cones e esferas.",
+    "example": "Cálculo do volume de um cilindro: V = π · r² · h.",
+    "category": "Matemática"
+  },
+  "análise combinatória": {
+    "term": "Análise Combinatória",
+    "definition": "Ramo da matemática que estuda métodos de contagem de agrupamentos e possibilidades sem a necessidade de enumerar todos os casos individualmente.",
+    "example": "Fórmula de combinação simples: C(n, k) = n! / (k! · (n-k)!).",
+    "category": "Matemática"
+  },
+  "entropia": {
+    "term": "Entropia",
+    "definition": "Medida do grau de desordem, dispersão de energia ou número de microestados acessíveis de um sistema termodinâmico.",
+    "example": "A 2ª Lei da Termodinâmica dita que a entropia de um sistema isolado sempre tende a aumentar.",
+    "category": "Física"
+  },
+  "efeito fotoelétrico": {
+    "term": "Efeito Fotoelétrico",
+    "definition": "Emissão de elétrons por uma superfície metálica quando atingida por radiação eletromagnética (fótons) de energia superior à função trabalho do material.",
+    "example": "Fenômeno que rendeu o Prêmio Nobel a Albert Einstein e fundamenta os painéis solares.",
+    "category": "Física"
+  },
+  "indução eletromagnética": {
+    "term": "Indução Eletromagnética",
+    "definition": "Geração de força eletromotriz e corrente elétrica induzida em um condutor devido à variação do fluxo magnético ao longo do tempo (Lei de Faraday-Lenz).",
+    "example": "Princípio de funcionamento dos geradores das usinas hidrelétricas.",
+    "category": "Física"
+  },
+  "refração": {
+    "term": "Refração",
+    "definition": "Fenômeno em que uma onda luminosa muda de velocidade e direção ao passar de um meio de propagação para outro com índice de refração diferente.",
+    "example": "A aparente quebra de um canudo imerso em um copo com água (Lei de Snell: n₁ · sen θ₁ = n₂ · sen θ₂).",
+    "category": "Física"
+  },
+  "difração": {
+    "term": "Difração",
+    "definition": "Capacidade de uma onda contornar obstáculos ou fendas de dimensões comparáveis ao seu comprimento de onda.",
+    "example": "Ouvir um som vindo de trás de uma parede mesmo sem linha de visão direta.",
+    "category": "Física"
+  },
+  "empuxo": {
+    "term": "Empuxo",
+    "definition": "Força vertical orientada para cima exercida por um fluido sobre um corpo total ou parcialmente submerso (Princípio de Arquimedes).",
+    "example": "E = d_fluido · V_submerso · g. Explica a flutuação de navios de aço.",
+    "category": "Física"
+  },
+  "gravitação": {
+    "term": "Gravitação Universal",
+    "definition": "Força atrativa mútua entre dois corpos com massa, proporcional ao produto de suas massas e inversamente proporcional ao quadrado da distância.",
+    "example": "F = G · (m₁ · m₂) / d² (Lei de Newton).",
+    "category": "Física"
+  },
+  "efeito doppler": {
+    "term": "Efeito Doppler",
+    "definition": "Alteração aparente na frequência de uma onda percebida por um observador quando há movimento relativo entre a fonte emissora e o receptor.",
+    "example": "A sirene de uma ambulância parece mais aguda ao se aproximar e mais grave ao se afastar.",
+    "category": "Física"
+  },
+  "mitose": {
+    "term": "Mitose",
+    "definition": "Processo de divisão celular equacional pelo qual uma célula eucariótica dá origem a duas células-filhas geneticamente idênticas com o mesmo número de cromossomos.",
+    "example": "Fundamental para o crescimento tecidual e cicatrização de ferimentos.",
+    "category": "Biologia"
+  },
+  "meiose": {
+    "term": "Meiose",
+    "definition": "Divisão celular reducional que forma quatro células-filhas haploides (n) a partir de uma célula diploide (2n), gerando gametas e promovendo variabilidade genética via crossing-over.",
+    "example": "Formação de espermatozoides e óvulos.",
+    "category": "Biologia"
+  },
+  "genoma": {
+    "term": "Genoma",
+    "definition": "Conjunto completo de moléculas de DNA de um organismo, incluindo todos os genes codificantes e as regiões não codificantes de regulação.",
+    "example": "O Projeto Genoma Humano mapeou os ~20.000 genes da nossa espécie.",
+    "category": "Biologia"
+  },
+  "fotossíntese": {
+    "term": "Fotossíntese",
+    "definition": "Processo anabólico autótrofo no qual energia luminosa é convertida em energia química (glicose), fixando dióxido de carbono e liberando oxigênio.",
+    "example": "6CO₂ + 6H₂O + luz → C₆H₁₂O₆ + 6O₂ nos cloroplastos.",
+    "category": "Biologia"
+  },
+  "respiração celular": {
+    "term": "Respiração Celular",
+    "definition": "Processo catabólico aeróbio de degradação da glicose nas mitocôndrias para produção de energia na forma de ATP, liberando CO₂ e H₂O.",
+    "example": "Fases: Glicólise, Ciclo de Krebs e Fosforilação Oxidativa.",
+    "category": "Biologia"
+  },
+  "enzima": {
+    "term": "Enzima",
+    "definition": "Proteína catalisadora biológica que acelera a velocidade das reações químicas celulares ao diminuir a energia de ativação necessária.",
+    "example": "A amilase salivar quebra o amido presente nos alimentos durante a mastigação.",
+    "category": "Biologia"
+  },
+  "seleção natural": {
+    "term": "Seleção Natural",
+    "definition": "Mecanismo evolutivo darwiniano em que indivíduos com características mais vantajosas para determinado ambiente têm maior probabilidade de sobreviver e reproduzir.",
+    "example": "Resistência de bactérias a antibióticos ao longo das gerações.",
+    "category": "Biologia"
+  },
+  "osmose": {
+    "term": "Osmose",
+    "definition": "Transporte passivo de água através de uma membrana semipermeável do meio hipotônico (menos concentrado) para o meio hipertônico (mais concentrado).",
+    "example": "Murchamento de folhas de alface ao adicionar sal (meio hipertônico).",
+    "category": "Biologia"
+  },
+  "estequiometria": {
+    "term": "Estequiometria",
+    "definition": "Cálculo das proporções quantitativas de massa, volume, mols e moléculas envolvidas em reagentes e produtos de uma reação química.",
+    "example": "Determinar a massa de CO₂ produzida na combustão completa de 1 mol de etanol.",
+    "category": "Química"
+  },
+  "oxirredução": {
+    "term": "Oxirredução (Redox)",
+    "definition": "Reação química caracterizada pela transferência de elétrons entre espécies químicas, onde uma sofre oxidação (perda de e⁻) e outra redução (ganho de e⁻).",
+    "example": "Corrosão do ferro ou geração de energia em pilhas e baterias de lítio.",
+    "category": "Química"
+  },
+  "termoquímica": {
+    "term": "Termoquímica",
+    "definition": "Estudo das quantidades de calor liberadas (reações exotérmicas, ΔH < 0) ou absorvidas (reações endotérmicas, ΔH > 0) durante transformações químicas.",
+    "example": "A queima de combustíveis fósseis é altamente exotérmica.",
+    "category": "Química"
+  },
+  "equilíbrio químico": {
+    "term": "Equilíbrio Químico",
+    "definition": "Estado de uma reação reversível no qual as velocidades das reações direta e inversa se igualam e as concentrações de reagentes e produtos permanecem constantes.",
+    "example": "Princípio de Le Chatelier: perturbações de pressão/temperatura deslocam o equilíbrio.",
+    "category": "Química"
+  },
+  "ligação covalente": {
+    "term": "Ligação Covalente",
+    "definition": "Ligação química caracterizada pelo compartilhamento de pares de elétrons entre átomos, comum entre ametais e hidrogênio.",
+    "example": "A molécula de água (H₂O) e o gás metano (CH₄).",
+    "category": "Química"
+  },
+  "ph": {
+    "term": "pH (Potencial Hidrogeniônico)",
+    "definition": "Escala logarítmica que mede a concentração de íons H⁺ (ou H₃O⁺) em uma solução, indicando sua acidez (pH < 7), neutralidade (pH = 7) ou basicidade (pH > 7).",
+    "example": "pH = -log[H⁺]. O sangue humano mantém pH tamponado entre 7,35 e 7,45.",
+    "category": "Química"
+  },
+  "isomeria": {
+    "term": "Isomeria",
+    "definition": "Fenômeno em que dois ou mais compostos possuem a mesma fórmula molecular, porém diferentes estruturas espaciais ou fórmulas estruturais e propriedades físicas/químicas distintas.",
+    "example": "Isomeria plana de função: etanol e metoximetano (ambos C₂H₆O).",
+    "category": "Química"
+  },
+  "feudalismo": {
+    "term": "Feudalismo",
+    "definition": "Sistema político, econômico e social europeu medieval caracterizado pela posse de terras (feudos), servidão, descentralização do poder e relações de suserania e vassalagem.",
+    "example": "A economia feudal era autossuficiente e voltada à subsistência agrária.",
+    "category": "História"
+  },
+  "iluminismo": {
+    "term": "Iluminismo",
+    "definition": "Movimento filosófico e intelectual do século XVIII que defendia o uso da razão, a liberdade individual, o progresso científico e criticava o absolutismo e os privilégios clericais.",
+    "example": "Pensadores centrais: Voltaire, Montesquieu, Rousseau e John Locke.",
+    "category": "História"
+  },
+  "revolução industrial": {
+    "term": "Revolução Industrial",
+    "definition": "Transformação socioeconômica iniciada na Inglaterra no século XVIII com a introdução de máquinas a vapor, transição da manufatura para a fábrica e consolidação do capitalismo industrial.",
+    "example": "Surgimento do proletariado e acelerado processo de urbanização.",
+    "category": "História"
+  },
+  "guerra fria": {
+    "term": "Guerra Fria",
+    "definition": "Período de disputa geopolítica, ideológica, armamentista e espacial entre as duas superpotências mundiais pós-Segunda Guerra: EUA (capitalismo) e URSS (socialismo).",
+    "example": "Corrida espacial, Crise dos Mísseis em Cuba e o Muro de Berlim.",
+    "category": "História"
+  },
+  "globalização": {
+    "term": "Globalização",
+    "definition": "Processo de integração econômica, cultural, social e política mundial impulsionado pelos avanços nos transportes e nas tecnologias de telecomunicação.",
+    "example": "Cadeias globais de suprimentos e difusão instantânea de dados via internet.",
+    "category": "Geografia"
+  },
+  "placa tectônica": {
+    "term": "Placa Tectônica",
+    "definition": "Bloco rígido e semirrígido que compõe a litosfera terrestre e flutua sobre a astenosfera, cuja movimentação causa terremotos, vulcanismo e formação de montanhas.",
+    "example": "O Brasil situa-se no centro da Placa Sul-Americana, garantindo estabilidade geológica.",
+    "category": "Geografia"
+  },
+  "urbanização": {
+    "term": "Urbanização",
+    "definition": "Processo de crescimento da população urbana em ritmo superior ao da população rural, motivado pela industrialização e pelo êxodo rural.",
+    "example": "Formação de metrópoles e conurbação urbana no Sudeste brasileiro.",
+    "category": "Geografia"
+  },
+  "imperativo categórico": {
+    "term": "Imperativo Categórico",
+    "definition": "Conceito ético kantiano que propõe uma lei moral universal e incondicional: aja apenas segundo uma máxima que você possa querer que se torne lei universal.",
+    "example": "Filosofia moral de Immanuel Kant.",
+    "category": "Filosofia"
+  },
+  "maiêutica": {
+    "term": "Maiêutica",
+    "definition": "Método dialógico socrático que, por meio de sucessivas perguntas e refutações, ajuda o interlocutor a dar à luz ao verdadeiro conhecimento e ideias próprias.",
+    "example": "Método praticado por Sócrates nas praças de Atenas.",
+    "category": "Filosofia"
+  },
+  "alienação": {
+    "term": "Alienação",
+    "definition": "Em Marx, processo em que o trabalhador perde o controle e a identificação com o produto do seu próprio trabalho, sendo coisificado no sistema capitalista.",
+    "example": "O operário na linha de montagem produz um carro que ele mesmo não pode comprar.",
+    "category": "Sociologia"
+  },
+  "metáfora": {
+    "term": "Metáfora",
+    "definition": "Figura de linguagem baseada em uma comparação implícita, na qual uma palavra é usada fora de seu sentido literal devido a uma semelhança subjetiva.",
+    "example": "'O tempo é um rio que corre sem volta.'",
+    "category": "Linguagens"
+  },
+  "metonímia": {
+    "term": "Metonímia",
+    "definition": "Figura de linguagem que consiste na substituição de um termo por outro com o qual mantém relação de contiguidade ou proximidade lógica (autor pela obra, continente pelo conteúdo).",
+    "example": "'Li Machado de Assis no vestibular' (li as obras do autor).",
+    "category": "Linguagens"
+  },
+  "coesão textual": {
+    "term": "Coesão Textual",
+    "definition": "Mecanismo gramatical e lexical de conexão entre as partes de um texto (frases, orações, parágrafos) através de conectivos, pronomes, elipses e sinônimos.",
+    "example": "Critério avaliado na Competência 4 da Redação do ENEM.",
+    "category": "Redação"
+  },
+  "intertextualidade": {
+    "term": "Intertextualidade",
+    "definition": "Diálogo, influência ou citação direta/indireta que um texto estabelece com outro texto pré-existente na cultura.",
+    "example": "Paródias, alusões históricas e citações filosóficas na redação.",
+    "category": "Linguagens"
+  }
+}

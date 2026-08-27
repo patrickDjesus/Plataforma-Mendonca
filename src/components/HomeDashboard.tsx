@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { DailyLearningGoal } from './DailyLearningGoal';
+import { StudyTimeSummaryCard } from './StudyTimeSummaryCard';
 import { StudyMaterialModal } from './StudyMaterialModal';
 import { StudyBadgesAndRewards } from './StudyBadgesAndRewards';
 import { HIGH_YIELD_STUDY_MATERIALS, HighYieldStudyMaterial } from '../data/highYieldMaterials';
@@ -395,6 +396,14 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
             <div className="absolute right-[-20px] bottom-[-20px] opacity-20 w-64 h-64 border-[30px] border-white rounded-full pointer-events-none" />
             <div className="absolute right-24 top-[-40px] opacity-10 w-48 h-48 border-[20px] border-cyan-200 rounded-full pointer-events-none" />
           </motion.div>
+
+          {/* ========================================================================= */}
+          {/* 1.5 SEÇÃO DE RESUMO: TEMPO TOTAL DE ESTUDO (ÚLTIMOS 7 DIAS) & META DIÁRIA */}
+          {/* ========================================================================= */}
+          <StudyTimeSummaryCard
+            onStartTraining={() => onNavigate('treino')}
+            streakCount={streakCount}
+          />
 
           {/* ========================================================================= */}
           {/* 2. COMPONENTE RECHARTS: META DIÁRIA DE APRENDIZADO */}

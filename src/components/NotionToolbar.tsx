@@ -38,9 +38,11 @@ import {
   Cpu,
   Image as ImageIcon,
   Link,
-  ExternalLink
+  ExternalLink,
+  Smile
 } from 'lucide-react';
 import { DocSection } from '../data/disciplinesData';
+import { EmojiQuickPicker } from './EmojiQuickPicker';
 
 export interface FormattingState {
   type: DocSection['type'];
@@ -59,6 +61,7 @@ interface NotionToolbarProps {
   onApplyFormat: (format: Partial<DocSection>) => void;
   onAddBlock: (type: DocSection['type'], extra?: Partial<DocSection>) => void;
   onOpenAddGlossary: () => void;
+  onInsertEmoji?: (emoji: string) => void;
   onUndo?: () => void;
   onRedo?: () => void;
   canUndo?: boolean;
@@ -102,6 +105,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
   onApplyFormat,
   onAddBlock,
   onOpenAddGlossary,
+  onInsertEmoji,
   onUndo,
   onRedo,
   canUndo = false,
@@ -113,6 +117,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
   const [showHighlightPopover, setShowHighlightPopover] = useState(false);
   const [showCalloutMenu, setShowCalloutMenu] = useState(false);
   const [showImagePopover, setShowImagePopover] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [imageCaptionInput, setImageCaptionInput] = useState('');
 
@@ -127,6 +132,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
         setShowHighlightPopover(false);
         setShowCalloutMenu(false);
         setShowImagePopover(false);
+        setShowEmojiPicker(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -168,6 +174,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
       <div className="flex items-center gap-0.5 pr-1.5 border-r border-slate-200 dark:border-slate-800">
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={onUndo}
           disabled={!canUndo}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
@@ -181,6 +188,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
         </button>
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={onRedo}
           disabled={!canRedo}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
@@ -198,6 +206,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
       <div className="relative">
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
             setShowTypeDropdown(!showTypeDropdown);
             setShowTextColorPopover(false);
@@ -218,6 +227,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
             </div>
             
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 onApplyFormat({ type: 'paragraph', fontSize: 'base' });
                 setShowTypeDropdown(false);
@@ -233,6 +243,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
             </button>
 
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 onApplyFormat({ type: 'h1', fontSize: '3xl' });
                 setShowTypeDropdown(false);
@@ -248,6 +259,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
             </button>
 
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 onApplyFormat({ type: 'h2', fontSize: '2xl' });
                 setShowTypeDropdown(false);
@@ -263,6 +275,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
             </button>
 
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 onApplyFormat({ type: 'h3', fontSize: 'xl' });
                 setShowTypeDropdown(false);
@@ -278,6 +291,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
             </button>
 
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 onApplyFormat({ type: 'quote' });
                 setShowTypeDropdown(false);
@@ -294,6 +308,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
       <div className="flex items-center gap-0.5 px-1.5 border-x border-slate-200 dark:border-slate-800">
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ isBold: !currentFormatting.isBold })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             currentFormatting.isBold
@@ -307,6 +322,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
 
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ isItalic: !currentFormatting.isItalic })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             currentFormatting.isItalic
@@ -320,6 +336,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
 
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ isUnderline: !currentFormatting.isUnderline })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             currentFormatting.isUnderline
@@ -333,6 +350,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
 
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ isStrikethrough: !currentFormatting.isStrikethrough })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             currentFormatting.isStrikethrough
@@ -352,6 +370,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
         <div className="relative">
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               setShowTextColorPopover(!showTextColorPopover);
               setShowHighlightPopover(false);
@@ -380,6 +399,8 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
                 {TEXT_COLORS.map((c) => (
                   <button
                     key={c.name}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       onApplyFormat({ textColor: c.value });
                       setShowTextColorPopover(false);
@@ -394,6 +415,8 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
               </div>
               {currentFormatting.textColor && (
                 <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     onApplyFormat({ textColor: '' });
                     setShowTextColorPopover(false);
@@ -411,6 +434,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
         <div className="relative">
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               setShowHighlightPopover(!showHighlightPopover);
               setShowTextColorPopover(false);
@@ -439,6 +463,8 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
                 {HIGHLIGHT_COLORS.map((c) => (
                   <button
                     key={c.name}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       onApplyFormat({ highlightColor: c.value });
                       setShowHighlightPopover(false);
@@ -463,6 +489,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
       <div className="flex items-center gap-0.5 pr-1.5 border-r border-slate-200 dark:border-slate-800">
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ align: 'left' })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             (!currentFormatting.align || currentFormatting.align === 'left')
@@ -476,6 +503,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
 
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ align: 'center' })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             currentFormatting.align === 'center'
@@ -489,6 +517,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
 
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ align: 'right' })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             currentFormatting.align === 'right'
@@ -502,6 +531,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
 
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ align: 'justify' })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             currentFormatting.align === 'justify'
@@ -518,6 +548,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
       <div className="flex items-center gap-0.5 pr-1.5 border-r border-slate-200 dark:border-slate-800">
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ type: currentFormatting.type === 'bullet' ? 'paragraph' : 'bullet' })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             currentFormatting.type === 'bullet'
@@ -531,6 +562,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
 
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ type: currentFormatting.type === 'numbered' ? 'paragraph' : 'numbered' })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             currentFormatting.type === 'numbered'
@@ -544,6 +576,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
 
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onApplyFormat({ type: currentFormatting.type === 'todo' ? 'paragraph' : 'todo' })}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
             currentFormatting.type === 'todo'
@@ -563,6 +596,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
         <div className="relative">
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               setShowCalloutMenu(!showCalloutMenu);
               setShowTypeDropdown(false);
@@ -582,6 +616,8 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
                 Tipo de Caixa
               </div>
               <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   onAddBlock('callout', { calloutType: 'tip', content: 'Dica essencial para o estudo.' });
                   setShowCalloutMenu(false);
@@ -591,6 +627,8 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
                 <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Dica & Macete
               </button>
               <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   onAddBlock('callout', { calloutType: 'warning', content: 'Atenção redobrada para pegadinhas recorrentes.' });
                   setShowCalloutMenu(false);
@@ -600,6 +638,8 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
                 <AlertTriangle className="w-3.5 h-3.5 text-red-500" /> Atenção & Pegadinha
               </button>
               <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   onAddBlock('callout', { calloutType: 'success', content: 'Regra de ouro comprovada.' });
                   setShowCalloutMenu(false);
@@ -609,6 +649,8 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Regra de Ouro / Sucesso
               </button>
               <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   onAddBlock('callout', { calloutType: 'focus', content: 'Conceito chave para memorização.' });
                   setShowCalloutMenu(false);
@@ -625,6 +667,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
         <div className="relative">
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               setShowImagePopover(!showImagePopover);
               setShowCalloutMenu(false);
@@ -731,6 +774,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
         {/* Inserir Fórmula / Bloco de Código */}
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onAddBlock('code', { formula: 'Fórmula ou Expressão Matemática' })}
           className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-cyan-600 dark:text-cyan-400 transition-all cursor-pointer"
           title="Inserir Fórmula / Código"
@@ -741,6 +785,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
         {/* Inserir Tabela Word */}
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onAddBlock('table', { 
             tableData: [
               ['Cabeçalho 1', 'Cabeçalho 2', 'Cabeçalho 3'],
@@ -754,9 +799,49 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
           <TableIcon className="w-3.5 h-3.5" />
         </button>
 
+        {/* Inserir Emojis Temáticos Rápidos */}
+        <div className="relative">
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              setShowEmojiPicker(!showEmojiPicker);
+              setShowImagePopover(false);
+              setShowCalloutMenu(false);
+              setShowTypeDropdown(false);
+              setShowTextColorPopover(false);
+              setShowHighlightPopover(false);
+            }}
+            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+              showEmojiPicker
+                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 ring-2 ring-amber-400'
+                : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-amber-500 hover:text-amber-600'
+            }`}
+            title="Inserir Emoji Temático"
+          >
+            <Smile className="w-3.5 h-3.5" />
+          </button>
+
+          {showEmojiPicker && (
+            <div className="absolute right-0 sm:left-0 top-full mt-1.5 z-50 w-72 sm:w-80 animate-in fade-in zoom-in-95">
+              <EmojiQuickPicker
+                onSelectEmoji={(emoji) => {
+                  if (onInsertEmoji) {
+                    onInsertEmoji(emoji);
+                  } else {
+                    onAddBlock('paragraph', { content: emoji, contentHtml: emoji });
+                  }
+                }}
+                onClose={() => setShowEmojiPicker(false)}
+              />
+            </div>
+          )}
+        </div>
+
         {/* Inserir Divisor */}
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => onAddBlock('divider')}
           className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-all cursor-pointer"
           title="Inserir Linha Divisória"
@@ -769,24 +854,14 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
       {onClearFormatting && (
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={onClearFormatting}
-          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all cursor-pointer"
+          className="ml-auto p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all cursor-pointer"
           title="Limpar Formatação do Bloco"
         >
           <Eraser className="w-3.5 h-3.5" />
         </button>
       )}
-
-      {/* 9. BOTÃO DE NOVO TERMO NO GLOSSÁRIO */}
-      <button
-        type="button"
-        onClick={onOpenAddGlossary}
-        className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold border border-blue-200/80 dark:border-blue-800/80 transition-all cursor-pointer text-xs shrink-0"
-        title="Cadastrar palavra e significado interativo com tooltip ao passar o mouse"
-      >
-        <BookOpen className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">+ Glossário</span>
-      </button>
 
     </motion.div>
   );

@@ -47,6 +47,7 @@ import {
 import { DocSection, GlossaryDefinition } from '../data/disciplinesData';
 import { FormattedContentWithGlossary } from './GlossaryTooltip';
 import { NotionToolbar, FormattingState, TEXT_COLORS, HIGHLIGHT_COLORS } from './NotionToolbar';
+import { DocContextMenu } from './DocContextMenu';
 
 interface NotionDocEditorProps {
   sections: DocSection[];
@@ -54,7 +55,7 @@ interface NotionDocEditorProps {
   disciplineColor?: string;
   paperMode?: 'docs' | 'ruled' | 'grid';
   onUpdateSections: (newSections: DocSection[]) => void;
-  onOpenAddGlossary?: () => void;
+  onOpenAddGlossary?: (initialTerm?: string) => void;
 }
 
 // Escape HTML special characters (used for placeholder/default text)
@@ -91,11 +92,12 @@ const TextEditable: React.FC<{
   onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   onFocus?: () => void;
   onBlur?: () => void;
+  onSelectionUpdate?: () => void;
   placeholder?: string;
   className?: string;
   style?: React.CSSProperties;
   inputRef?: (el: HTMLDivElement | null) => void;
-}> = ({ value, onChange, onKeyDown, onFocus, onBlur, placeholder, className = '', style, inputRef }) => {
+}> = ({ value, onChange, onKeyDown, onFocus, onBlur, onSelectionUpdate, placeholder, className = '', style, inputRef }) => {
   const elRef = useRef<HTMLDivElement | null>(null);
   const focusedRef = useRef(false);
   const lastHtmlRef = useRef<string>('');
@@ -103,12 +105,14 @@ const TextEditable: React.FC<{
   const onKeyDownRef = useRef(onKeyDown);
   const onFocusRef = useRef(onFocus);
   const onBlurRef = useRef(onBlur);
+  const onSelectionUpdateRef = useRef(onSelectionUpdate);
   const inputRefRef = useRef(inputRef);
   useEffect(() => {
     onChangeRef.current = onChange;
     onKeyDownRef.current = onKeyDown;
     onFocusRef.current = onFocus;
     onBlurRef.current = onBlur;
+    onSelectionUpdateRef.current = onSelectionUpdate;
     inputRefRef.current = inputRef;
   });
 
@@ -147,6 +151,9 @@ const TextEditable: React.FC<{
     lastHtmlRef.current = html;
     onChangeRef.current(stripHtml(html), html);
     resize();
+    if (onSelectionUpdateRef.current) {
+      onSelectionUpdateRef.current();
+    }
   };
 
   useEffect(() => {
@@ -169,10 +176,20 @@ const TextEditable: React.FC<{
       role="textbox"
       aria-multiline="true"
       data-placeholder={placeholder}
-      onKeyDown={e => onKeyDownRef.current && onKeyDownRef.current(e)}
+      onKeyDown={e => {
+        if (onKeyDownRef.current) onKeyDownRef.current(e);
+        if (onSelectionUpdateRef.current) setTimeout(() => onSelectionUpdateRef.current?.(), 10);
+      }}
+      onKeyUp={() => {
+        if (onSelectionUpdateRef.current) onSelectionUpdateRef.current();
+      }}
+      onMouseUp={() => {
+        if (onSelectionUpdateRef.current) onSelectionUpdateRef.current();
+      }}
       onFocus={() => {
         focusedRef.current = true;
         if (onFocusRef.current) onFocusRef.current();
+        if (onSelectionUpdateRef.current) onSelectionUpdateRef.current();
         resize();
       }}
       onBlur={() => {
@@ -215,6 +232,19 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   const [dragLiveIds, setDragLiveIds] = useState<string[]>([]);
   const [dragSelectRect, setDragSelectRect] = useState<{ top: number; height: number } | null>(null);
   const [moveIndicatorY, setMoveIndicatorY] = useState<number | null>(null);
+  const [isDraggingActive, setIsDraggingActive] = useState(false);
+
+  // Manage body userSelect cleanly via effect
+  useEffect(() => {
+    if (isDraggingActive) {
+      document.body.style.userSelect = 'none';
+      return () => {
+        document.body.style.userSelect = '';
+      };
+    } else {
+      document.body.style.userSelect = '';
+    }
+  }, [isDraggingActive]);
 
   // History Undo/Redo State
   const [history, setHistory] = useState<DocSection[][]>([sections]);
@@ -228,6 +258,99 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   // Floating Mini Bubble Toolbar State
   const [showFloatingToolbar, setShowFloatingToolbar] = useState(false);
   const [floatingToolbarPos, setFloatingToolbarPos] = useState({ top: 0, left: 0 });
+
+  // Context Menu State (botão direito: Copiar, Colar, Definir Conceito, Corretor Ortográfico)
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean;
+    position: { x: number; y: number };
+    selectedText: string;
+    targetBlockIndex: number;
+  }>({
+    isOpen: false,
+    position: { x: 0, y: 0 },
+    selectedText: '',
+    targetBlockIndex: 0,
+  });
+
+  const handleContextMenu = (e: React.MouseEvent, blockIndex?: number) => {
+    const sel = window.getSelection();
+    let selectedStr = sel ? sel.toString().trim() : '';
+
+    const targetIdx = typeof blockIndex === 'number' ? blockIndex : activeBlockIndex;
+
+    if (!selectedStr && sections[targetIdx]) {
+      selectedStr = sections[targetIdx].content || '';
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    setContextMenu({
+      isOpen: true,
+      position: { x: e.clientX, y: e.clientY },
+      selectedText: selectedStr,
+      targetBlockIndex: targetIdx,
+    });
+  };
+
+  const handleContextMenuPaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) return;
+      const targetIdx = contextMenu.targetBlockIndex;
+      const current = sections[targetIdx];
+      if (current) {
+        const updated = [...sections];
+        const newContent = (current.content || '') + (current.content ? ' ' : '') + text;
+        updated[targetIdx] = { ...current, content: newContent, contentHtml: undefined };
+        pushToHistory(updated);
+      }
+    } catch (err) {
+      console.warn('Não foi possível acessar a área de transferência:', err);
+    }
+  };
+
+  const handleContextMenuDefine = (term: string) => {
+    if (onOpenAddGlossary) {
+      onOpenAddGlossary(term);
+    }
+  };
+
+  const handleContextMenuCorrection = (originalWord: string, replacement: string) => {
+    const targetIdx = contextMenu.targetBlockIndex;
+    const current = sections[targetIdx];
+    if (!current) return;
+
+    const regex = new RegExp(`\\b${originalWord}\\b`, 'i');
+    let newContent = current.content;
+    if (regex.test(newContent)) {
+      newContent = newContent.replace(regex, replacement);
+    } else {
+      newContent = newContent.split(originalWord).join(replacement);
+    }
+
+    let newHtml = current.contentHtml;
+    if (newHtml) {
+      if (regex.test(newHtml)) {
+        newHtml = newHtml.replace(regex, replacement);
+      } else {
+        newHtml = newHtml.split(originalWord).join(replacement);
+      }
+    }
+
+    const updated = [...sections];
+    updated[targetIdx] = {
+      ...current,
+      content: newContent,
+      contentHtml: newHtml,
+    };
+    pushToHistory(updated);
+
+    setContextMenu(prev => ({
+      ...prev,
+      selectedText: prev.selectedText.replace(originalWord, replacement),
+    }));
+  };
 
   // Refs for focusing
   const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -257,7 +380,96 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     }
   };
 
-  // Current active formatting state based on selected block
+  // Inline formatting detection state (for selection or cursor in contentEditable)
+  const [inlineFormatting, setInlineFormatting] = useState<{
+    isBold: boolean;
+    isItalic: boolean;
+    isUnderline: boolean;
+    isStrikethrough: boolean;
+    textColor?: string;
+    highlightColor?: string;
+  }>({
+    isBold: false,
+    isItalic: false,
+    isUnderline: false,
+    isStrikethrough: false,
+  });
+
+  const updateSelectionFormatting = useCallback(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    let isBold = false;
+    let isItalic = false;
+    let isUnderline = false;
+    let isStrikethrough = false;
+    let textColor = '';
+    let highlightColor = '';
+
+    try {
+      isBold = document.queryCommandState('bold');
+      isItalic = document.queryCommandState('italic');
+      isUnderline = document.queryCommandState('underline');
+      isStrikethrough = document.queryCommandState('strikeThrough');
+    } catch {
+      // ignore
+    }
+
+    // Inspect anchor and focus nodes inside contentEditable
+    const nodes = [sel.anchorNode, sel.focusNode];
+    for (const node of nodes) {
+      let curr: Node | null = node;
+      while (curr && curr !== document.body) {
+        if (curr.nodeType === Node.ELEMENT_NODE) {
+          const el = curr as HTMLElement;
+          if (el.getAttribute('contenteditable') === 'true') {
+            break;
+          }
+          const tag = el.tagName.toLowerCase();
+          if (tag === 'b' || tag === 'strong') isBold = true;
+          if (tag === 'i' || tag === 'em') isItalic = true;
+          if (tag === 'u') isUnderline = true;
+          if (tag === 's' || tag === 'strike' || tag === 'del') isStrikethrough = true;
+
+          const weight = el.style.fontWeight || window.getComputedStyle(el).fontWeight;
+          if (weight === 'bold' || parseInt(weight, 10) >= 600) isBold = true;
+          const fontStyle = el.style.fontStyle || window.getComputedStyle(el).fontStyle;
+          if (fontStyle === 'italic') isItalic = true;
+          const decor = el.style.textDecoration || window.getComputedStyle(el).textDecorationLine;
+          if (decor && decor.includes('underline')) isUnderline = true;
+          if (decor && (decor.includes('line-through') || decor.includes('strike'))) isStrikethrough = true;
+
+          if (el.style.color) textColor = el.style.color;
+          if (el.style.backgroundColor && el.style.backgroundColor !== 'transparent' && el.style.backgroundColor !== 'rgba(0, 0, 0, 0)') {
+            highlightColor = el.style.backgroundColor;
+          }
+        }
+        curr = curr.parentNode;
+      }
+    }
+
+    setInlineFormatting({
+      isBold,
+      isItalic,
+      isUnderline,
+      isStrikethrough,
+      textColor,
+      highlightColor,
+    });
+  }, []);
+
+  // Listen to document-wide selection changes
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      updateSelectionFormatting();
+    };
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, [updateSelectionFormatting]);
+
+  // Current active formatting state based on selected block and active selection
   const currentBlock = sections[activeBlockIndex] || sections[0] || {
     id: 's-default',
     type: 'paragraph',
@@ -269,19 +481,79 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     type: currentBlock.type || 'paragraph',
     align: currentBlock.align || 'left',
     fontSize: currentBlock.fontSize || (currentBlock.type === 'h1' ? '3xl' : currentBlock.type === 'h2' ? '2xl' : currentBlock.type === 'h3' ? 'xl' : 'base'),
-    isBold: !!currentBlock.isBold,
-    isItalic: !!currentBlock.isItalic,
-    isUnderline: !!currentBlock.isUnderline,
-    isStrikethrough: !!currentBlock.isStrikethrough,
-    textColor: currentBlock.textColor || '',
-    highlightColor: currentBlock.highlightColor || '',
+    isBold: inlineFormatting.isBold || !!currentBlock.isBold || currentBlock.type === 'h1' || currentBlock.type === 'h2' || currentBlock.type === 'h3',
+    isItalic: inlineFormatting.isItalic || !!currentBlock.isItalic || currentBlock.type === 'quote',
+    isUnderline: inlineFormatting.isUnderline || !!currentBlock.isUnderline,
+    isStrikethrough: inlineFormatting.isStrikethrough || !!currentBlock.isStrikethrough,
+    textColor: inlineFormatting.textColor || currentBlock.textColor || '',
+    highlightColor: inlineFormatting.highlightColor || currentBlock.highlightColor || '',
   };
 
-  // Apply format to active block or all selected
+  // Apply format to active block or selection
   const handleApplyFormat = (format: Partial<DocSection>) => {
-    const updated = [...sections];
-    if (activeBlockIndex < 0 || activeBlockIndex >= updated.length) return;
+    if (activeBlockIndex < 0 || activeBlockIndex >= sections.length) return;
 
+    const activeEl = blockRefs.current[activeBlockIndex];
+    const sel = window.getSelection();
+    const isFocusInActive = activeEl && (document.activeElement === activeEl || (sel && sel.rangeCount > 0 && activeEl.contains(sel.anchorNode)));
+
+    const hasInlineFormatKey = 
+      format.isBold !== undefined || 
+      format.isItalic !== undefined || 
+      format.isUnderline !== undefined || 
+      format.isStrikethrough !== undefined || 
+      format.textColor !== undefined || 
+      format.highlightColor !== undefined;
+
+    if (hasInlineFormatKey && isFocusInActive && activeEl) {
+      if (document.activeElement !== activeEl) {
+        activeEl.focus();
+      }
+
+      if (format.isBold !== undefined) {
+        document.execCommand('bold');
+      }
+      if (format.isItalic !== undefined) {
+        document.execCommand('italic');
+      }
+      if (format.isUnderline !== undefined) {
+        document.execCommand('underline');
+      }
+      if (format.isStrikethrough !== undefined) {
+        document.execCommand('strikeThrough');
+      }
+      if (format.textColor !== undefined) {
+        if (format.textColor) {
+          document.execCommand('foreColor', false, format.textColor);
+        } else {
+          document.execCommand('removeFormat', false, 'foreColor');
+        }
+      }
+      if (format.highlightColor !== undefined) {
+        if (format.highlightColor) {
+          document.execCommand('hiliteColor', false, format.highlightColor);
+        } else {
+          document.execCommand('removeFormat', false, 'hiliteColor');
+        }
+      }
+
+      const newHtml = activeEl.innerHTML;
+      const newText = stripHtml(newHtml);
+      const updated = [...sections];
+      updated[activeBlockIndex] = {
+        ...updated[activeBlockIndex],
+        content: newText,
+        contentHtml: newHtml,
+        ...(format.type ? { type: format.type } : {}),
+        ...(format.align ? { align: format.align } : {}),
+        ...(format.fontSize ? { fontSize: format.fontSize } : {}),
+      };
+      pushToHistory(updated);
+      setTimeout(updateSelectionFormatting, 10);
+      return;
+    }
+
+    const updated = [...sections];
     updated[activeBlockIndex] = {
       ...updated[activeBlockIndex],
       ...format,
@@ -292,13 +564,39 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     };
 
     pushToHistory(updated);
+    setTimeout(updateSelectionFormatting, 10);
   };
 
   // Clear format of current block
   const handleClearFormatting = () => {
-    const updated = [...sections];
-    if (activeBlockIndex < 0 || activeBlockIndex >= updated.length) return;
+    if (activeBlockIndex < 0 || activeBlockIndex >= sections.length) return;
 
+    const activeEl = blockRefs.current[activeBlockIndex];
+    if (activeEl) {
+      document.execCommand('removeFormat', false);
+      const newHtml = activeEl.innerHTML;
+      const newText = stripHtml(newHtml);
+      const updated = [...sections];
+      updated[activeBlockIndex] = {
+        ...updated[activeBlockIndex],
+        type: 'paragraph',
+        align: 'left',
+        fontSize: 'base',
+        isBold: false,
+        isItalic: false,
+        isUnderline: false,
+        isStrikethrough: false,
+        textColor: '',
+        highlightColor: '',
+        content: newText,
+        contentHtml: newHtml,
+      };
+      pushToHistory(updated);
+      setTimeout(updateSelectionFormatting, 10);
+      return;
+    }
+
+    const updated = [...sections];
     updated[activeBlockIndex] = {
       ...updated[activeBlockIndex],
       type: 'paragraph',
@@ -312,6 +610,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
       highlightColor: '',
     };
     pushToHistory(updated);
+    setTimeout(updateSelectionFormatting, 10);
   };
 
   // Add block from toolbar or slash menu
@@ -336,6 +635,43 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     setTimeout(() => {
       blockRefs.current[insertIdx]?.focus();
     }, 50);
+  };
+
+  // Insere um emoji selecionado no bloco ativo ou cria um novo bloco
+  const handleInsertEmoji = (emoji: string) => {
+    if (sections.length === 0) {
+      const newBlock: DocSection = {
+        id: `s-${Date.now()}`,
+        type: 'paragraph',
+        content: emoji,
+        contentHtml: emoji,
+        align: 'left',
+        fontSize: 'base'
+      };
+      pushToHistory([newBlock]);
+      setActiveBlockIndex(0);
+      return;
+    }
+
+    const targetIdx = (activeBlockIndex >= 0 && activeBlockIndex < sections.length) ? activeBlockIndex : sections.length - 1;
+    const currentBlock = sections[targetIdx];
+    const updated = [...sections];
+
+    const currentText = currentBlock.content || '';
+    const newText = currentText ? `${currentText} ${emoji}` : emoji;
+    const newHtml = currentBlock.contentHtml ? `${currentBlock.contentHtml}&nbsp;${emoji}` : newText;
+
+    updated[targetIdx] = {
+      ...currentBlock,
+      content: newText,
+      contentHtml: newHtml,
+      heading: (currentBlock.type === 'h1' || currentBlock.type === 'h2' || currentBlock.type === 'h3') ? newText : currentBlock.heading,
+    };
+
+    pushToHistory(updated);
+    setTimeout(() => {
+      blockRefs.current[targetIdx]?.focus();
+    }, 40);
   };
 
   // Content update handler with markdown triggers
@@ -430,25 +766,49 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
   // Keyboard shortcut handler
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, idx: number) => {
-    // Keyboard shortcuts (Ctrl+B, Ctrl+I, Ctrl+U, Ctrl+Shift+5 for strikethrough)
+    // Keyboard shortcuts (Ctrl+B, Ctrl+I, Ctrl+U, Ctrl+Shift+X for strikethrough)
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
       e.preventDefault();
       document.execCommand('bold');
+      const activeEl = blockRefs.current[idx];
+      if (activeEl) {
+        const html = activeEl.innerHTML;
+        handleUpdateBlockContent(idx, stripHtml(html), html);
+      }
+      setTimeout(updateSelectionFormatting, 10);
       return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i') {
       e.preventDefault();
       document.execCommand('italic');
+      const activeEl = blockRefs.current[idx];
+      if (activeEl) {
+        const html = activeEl.innerHTML;
+        handleUpdateBlockContent(idx, stripHtml(html), html);
+      }
+      setTimeout(updateSelectionFormatting, 10);
       return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') {
       e.preventDefault();
       document.execCommand('underline');
+      const activeEl = blockRefs.current[idx];
+      if (activeEl) {
+        const html = activeEl.innerHTML;
+        handleUpdateBlockContent(idx, stripHtml(html), html);
+      }
+      setTimeout(updateSelectionFormatting, 10);
       return;
     }
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'x') {
       e.preventDefault();
       document.execCommand('strikeThrough');
+      const activeEl = blockRefs.current[idx];
+      if (activeEl) {
+        const html = activeEl.innerHTML;
+        handleUpdateBlockContent(idx, stripHtml(html), html);
+      }
+      setTimeout(updateSelectionFormatting, 10);
       return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
@@ -601,7 +961,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     dragModeRef.current = null;
     moveDragRef.current = null;
     dragSelectRef.current = null;
-    document.body.style.userSelect = '';
+    setIsDraggingActive(false);
   };
 
   // Dois modos de arrasto: 'marquee' (selecionar vários) e 'move' (arrastar selecionados)
@@ -616,7 +976,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
       dragModeRef.current = 'move';
       didBlockDragRef.current = false;
       moveDragRef.current = { startY: e.clientY, insertion: null };
-      document.body.style.userSelect = 'none';
+      setIsDraggingActive(true);
       return;
     }
 
@@ -627,7 +987,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     dragModeRef.current = 'marquee';
     didBlockDragRef.current = false;
     dragSelectRef.current = { startY: e.clientY, moved: false };
-    document.body.style.userSelect = 'none';
+    setIsDraggingActive(true);
   };
 
   const onEditorMouseMove = (e: React.MouseEvent) => {
@@ -703,7 +1063,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     setMoveIndicatorY(null);
     setDragLiveIds([]);
     setDragSelectRect(null);
-    document.body.style.userSelect = '';
+    setIsDraggingActive(false);
   };
 
   const moveToInsertion = (insertion: number) => {
@@ -869,6 +1229,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
       onMouseMove={onEditorMouseMove}
       onMouseUp={onEditorMouseUp}
       onMouseLeave={() => { if (dragModeRef.current) onEditorMouseUp(); }}
+      onContextMenu={(e) => handleContextMenu(e)}
     >
       
       {/* 1. BARRA DE FERRAMENTAS PRINCIPAL ESTILO WORD (FIXA NO TOPO DO DOCUMENTO) */}
@@ -877,6 +1238,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
         onApplyFormat={handleApplyFormat}
         onAddBlock={handleAddBlock}
         onOpenAddGlossary={onOpenAddGlossary}
+        onInsertEmoji={handleInsertEmoji}
         onUndo={handleUndo}
         onRedo={handleRedo}
         canUndo={historyIndex > 0}
@@ -902,6 +1264,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
               transition={{ duration: 0.15 }}
               onMouseEnter={() => setHoveredIndex(idx)}
               onMouseLeave={() => setHoveredIndex(null)}
+              onContextMenu={(e) => handleContextMenu(e, idx)}
               onClick={(e) => {
                 if (didBlockDragRef.current) { didBlockDragRef.current = false; return; }
                 if (e.ctrlKey || e.metaKey) {
@@ -1032,14 +1395,18 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                 
                 {/* 1. PARÁGRAFO DE TEXTO NORMAL */}
                 {(!section.type || section.type === 'paragraph') && (
-                  <div className="py-1">
+                  <div className="py-1 min-h-[1.75rem]">
                     <TextEditable
                       inputRef={el => (blockRefs.current[idx] = el)}
                       value={section}
                       placeholder="Digite '/' para comandos ou comece a escrever..."
                       onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
                       onKeyDown={e => handleKeyDown(e, idx)}
-                      onFocus={() => setActiveBlockIndex(idx)}
+                      onFocus={() => {
+                        setActiveBlockIndex(idx);
+                        updateSelectionFormatting();
+                      }}
+                      onSelectionUpdate={updateSelectionFormatting}
                       style={inlineStyle}
                       className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 font-normal ${formatClass}`}
                     />
@@ -1048,14 +1415,18 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
                 {/* 2. TÍTULO 1 (H1) COM QUEBRA DE LINHA NATURAL */}
                 {section.type === 'h1' && (
-                  <div className="pt-4 pb-1">
+                  <div className="pt-4 pb-1 min-h-[2.5rem]">
                     <TextEditable
                       inputRef={el => (blockRefs.current[idx] = el)}
                       value={section}
                       placeholder="Título Principal H1..."
                       onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
                       onKeyDown={e => handleKeyDown(e, idx)}
-                      onFocus={() => setActiveBlockIndex(idx)}
+                      onFocus={() => {
+                        setActiveBlockIndex(idx);
+                        updateSelectionFormatting();
+                      }}
+                      onSelectionUpdate={updateSelectionFormatting}
                       style={inlineStyle}
                       className={`font-display font-black text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight leading-tight ${formatClass}`}
                     />
@@ -1064,14 +1435,18 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
                 {/* 3. TÍTULO 2 (H2) */}
                 {section.type === 'h2' && (
-                  <div className="pt-3 pb-1">
+                  <div className="pt-3 pb-1 min-h-[2.25rem]">
                     <TextEditable
                       inputRef={el => (blockRefs.current[idx] = el)}
                       value={section}
                       placeholder="Subtítulo H2..."
                       onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
                       onKeyDown={e => handleKeyDown(e, idx)}
-                      onFocus={() => setActiveBlockIndex(idx)}
+                      onFocus={() => {
+                        setActiveBlockIndex(idx);
+                        updateSelectionFormatting();
+                      }}
+                      onSelectionUpdate={updateSelectionFormatting}
                       style={inlineStyle}
                       className={`font-display font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white tracking-tight leading-snug ${formatClass}`}
                     />
@@ -1080,14 +1455,18 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
                 {/* 4. TÍTULO 3 (H3) */}
                 {section.type === 'h3' && (
-                  <div className="pt-2 pb-0.5">
+                  <div className="pt-2 pb-0.5 min-h-[2rem]">
                     <TextEditable
                       inputRef={el => (blockRefs.current[idx] = el)}
                       value={section}
                       placeholder="Título 3..."
                       onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
                       onKeyDown={e => handleKeyDown(e, idx)}
-                      onFocus={() => setActiveBlockIndex(idx)}
+                      onFocus={() => {
+                        setActiveBlockIndex(idx);
+                        updateSelectionFormatting();
+                      }}
+                      onSelectionUpdate={updateSelectionFormatting}
                       style={inlineStyle}
                       className={`font-display font-bold text-lg sm:text-xl text-slate-800 dark:text-slate-200 tracking-tight leading-normal ${formatClass}`}
                     />
@@ -1098,16 +1477,22 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                 {section.type === 'bullet' && (
                   <div className="flex items-start gap-3 py-1">
                     <span className="w-2 h-2 rounded-full bg-slate-500 dark:bg-slate-400 mt-2 shrink-0" />
-                    <TextEditable
-                      inputRef={el => (blockRefs.current[idx] = el)}
-                      value={section}
-                      placeholder="Item com marcador..."
-                      onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
-                      onKeyDown={e => handleKeyDown(e, idx)}
-                      onFocus={() => setActiveBlockIndex(idx)}
-                      style={inlineStyle}
-                      className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 ${formatClass}`}
-                    />
+                    <div className="flex-1 min-w-0">
+                      <TextEditable
+                        inputRef={el => (blockRefs.current[idx] = el)}
+                        value={section}
+                        placeholder="Item com marcador..."
+                        onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
+                        onKeyDown={e => handleKeyDown(e, idx)}
+                        onFocus={() => {
+                          setActiveBlockIndex(idx);
+                          updateSelectionFormatting();
+                        }}
+                        onSelectionUpdate={updateSelectionFormatting}
+                        style={inlineStyle}
+                        className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 ${formatClass}`}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -1117,16 +1502,22 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                     <span className="font-bold text-sm text-slate-500 dark:text-slate-400 mt-0.5 shrink-0 min-w-[20px]">
                       {idx + 1}.
                     </span>
-                    <TextEditable
-                      inputRef={el => (blockRefs.current[idx] = el)}
-                      value={section}
-                      placeholder="Item numerado..."
-                      onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
-                      onKeyDown={e => handleKeyDown(e, idx)}
-                      onFocus={() => setActiveBlockIndex(idx)}
-                      style={inlineStyle}
-                      className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 ${formatClass}`}
-                    />
+                    <div className="flex-1 min-w-0">
+                      <TextEditable
+                        inputRef={el => (blockRefs.current[idx] = el)}
+                        value={section}
+                        placeholder="Item numerado..."
+                        onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
+                        onKeyDown={e => handleKeyDown(e, idx)}
+                        onFocus={() => {
+                          setActiveBlockIndex(idx);
+                          updateSelectionFormatting();
+                        }}
+                        onSelectionUpdate={updateSelectionFormatting}
+                        style={inlineStyle}
+                        className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 ${formatClass}`}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -1144,20 +1535,26 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         <Square className="w-4 h-4 text-slate-400" />
                       )}
                     </button>
-                    <TextEditable
-                      inputRef={el => (blockRefs.current[idx] = el)}
-                      value={section}
-                      placeholder="Meta ou tarefa..."
-                      onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
-                      onKeyDown={e => handleKeyDown(e, idx)}
-                      onFocus={() => setActiveBlockIndex(idx)}
-                      style={inlineStyle}
-                      className={`text-sm sm:text-base leading-relaxed transition-all ${
-                        section.checked
-                          ? 'line-through text-slate-400 dark:text-slate-500'
-                          : 'text-slate-800 dark:text-slate-200'
-                      } ${formatClass}`}
-                    />
+                    <div className="flex-1 min-w-0">
+                      <TextEditable
+                        inputRef={el => (blockRefs.current[idx] = el)}
+                        value={section}
+                        placeholder="Meta ou tarefa..."
+                        onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
+                        onKeyDown={e => handleKeyDown(e, idx)}
+                        onFocus={() => {
+                          setActiveBlockIndex(idx);
+                          updateSelectionFormatting();
+                        }}
+                        onSelectionUpdate={updateSelectionFormatting}
+                        style={inlineStyle}
+                        className={`text-sm sm:text-base leading-relaxed transition-all ${
+                          section.checked
+                            ? 'line-through text-slate-400 dark:text-slate-500'
+                            : 'text-slate-800 dark:text-slate-200'
+                        } ${formatClass}`}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -1190,7 +1587,11 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         placeholder="Destaque importante, axioma ou regra de ouro..."
                         onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
                         onKeyDown={e => handleKeyDown(e, idx)}
-                        onFocus={() => setActiveBlockIndex(idx)}
+                        onFocus={() => {
+                          setActiveBlockIndex(idx);
+                          updateSelectionFormatting();
+                        }}
+                        onSelectionUpdate={updateSelectionFormatting}
                         style={inlineStyle}
                         className={`text-xs sm:text-sm font-medium leading-relaxed ${formatClass}`}
                       />
@@ -1207,7 +1608,11 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       placeholder="Citação memorável..."
                       onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
                       onKeyDown={e => handleKeyDown(e, idx)}
-                      onFocus={() => setActiveBlockIndex(idx)}
+                      onFocus={() => {
+                        setActiveBlockIndex(idx);
+                        updateSelectionFormatting();
+                      }}
+                      onSelectionUpdate={updateSelectionFormatting}
                       style={inlineStyle}
                       className={`text-sm sm:text-base font-serif italic ${formatClass}`}
                     />
@@ -1505,6 +1910,17 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
           </span>
         </div>
       </motion.div>
+
+      {/* Menu de Contexto Inteligente ao Clicar com Botão Direito no Documento */}
+      <DocContextMenu
+        isOpen={contextMenu.isOpen}
+        position={contextMenu.position}
+        selectedText={contextMenu.selectedText}
+        onClose={() => setContextMenu(prev => ({ ...prev, isOpen: false }))}
+        onPaste={handleContextMenuPaste}
+        onDefineConcept={handleContextMenuDefine}
+        onApplyCorrection={handleContextMenuCorrection}
+      />
 
     </div>
   );
