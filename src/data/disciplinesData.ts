@@ -4,6 +4,7 @@ export interface DocSection {
   id: string;
   heading: string;
   content: string;
+  contentHtml?: string;
   type?: 'paragraph' | 'h1' | 'h2' | 'h3' | 'callout' | 'quote' | 'code' | 'todo' | 'bullet' | 'numbered' | 'divider' | 'table' | 'image';
   callout?: string;
   calloutType?: 'tip' | 'warning' | 'focus' | 'success';

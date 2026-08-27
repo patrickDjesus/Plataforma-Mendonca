@@ -1,6 +1,7 @@
 import { createClient, RealtimeChannel } from '@supabase/supabase-js';
 import { QuizQuestion, PerformanceAnalytics, PerformanceSessionHistory } from '../types/design';
 import { LeaderboardUser } from '../components/GlobalLeaderboard';
+import { NotebookDoc } from '../data/disciplinesData';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -510,4 +511,106 @@ export const saveUserProfile = async (userId: string, profile: Record<string, an
     console.error('Erro ao salvar perfil:', error.message);
     throw error;
   }
+};
+
+// ============================================================================
+// 5. DOCUMENTS (Cadernos / Documentos por Usuario)
+// ============================================================================
+
+export const getUserDocuments = async (userId: string): Promise<NotebookDoc[]> => {
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from('documents')
+    .select('*')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Erro ao buscar documentos:', error.message);
+    return [];
+  }
+
+  return (data || []).map(row => ({
+    id: row.id,
+    title: row.title || 'Documento sem título',
+    disciplineId: row.discipline_id || '',
+    lastEdited: row.last_edited || '',
+    createdAt: row.created_at ? new Date(row.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '',
+    author: 'Você',
+    tags: row.tags || [],
+    summary: row.summary || '',
+    sections: row.sections || [],
+    wordCount: row.word_count || 0,
+    readTime: `${Math.max(1, Math.ceil((row.word_count || 0) / 120))} min`,
+    starred: row.starred || false,
+    isPublic: row.is_public !== false,
+    glossary: row.glossary || {},
+  } as NotebookDoc));
+};
+
+export const saveDocument = async (
+  userId: string,
+  doc: NotebookDoc
+): Promise<void> => {
+  if (!userId) return;
+
+  const payload = {
+    id: doc.id,
+    user_id: userId,
+    discipline_id: doc.disciplineId || '',
+    title: doc.title || '',
+    summary: doc.summary || '',
+    tags: doc.tags || [],
+    starred: doc.starred || false,
+    is_public: doc.isPublic !== false,
+    sections: doc.sections || [],
+    glossary: doc.glossary || {},
+    word_count: doc.wordCount || 0,
+    last_edited: doc.lastEdited || '',
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabase.from('documents').upsert(payload, { onConflict: 'id,user_id' });
+  if (error) {
+    console.error('Erro ao salvar documento:', error.message);
+    throw error;
+  }
+};
+
+export const deleteDocument = async (userId: string, docId: string): Promise<void> => {
+  if (!userId) return;
+  const { error } = await supabase.from('documents').delete().eq('id', docId).eq('user_id', userId);
+  if (error) {
+    console.error('Erro ao deletar documento:', error.message);
+    throw error;
+  }
+};
+
+export const getPublicDocuments = async (excludeUserId: string): Promise<NotebookDoc[]> => {
+  const { data, error } = await supabase
+    .from('documents')
+    .select('*')
+    .eq('is_public', true)
+    .neq('user_id', excludeUserId);
+
+  if (error) {
+    console.error('Erro ao buscar documentos públicos:', error.message);
+    return [];
+  }
+
+  return (data || []).map(row => ({
+    id: row.id,
+    title: row.title || 'Documento sem título',
+    disciplineId: row.discipline_id || '',
+    lastEdited: row.last_edited || '',
+    createdAt: row.created_at ? new Date(row.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '',
+    author: 'Comunidade',
+    tags: row.tags || [],
+    summary: row.summary || '',
+    sections: row.sections || [],
+    wordCount: row.word_count || 0,
+    readTime: `${Math.max(1, Math.ceil((row.word_count || 0) / 120))} min`,
+    starred: row.starred || false,
+    isPublic: true,
+    glossary: row.glossary || {},
+  } as NotebookDoc));
 };

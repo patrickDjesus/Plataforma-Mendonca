@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ScreenId } from '../types/design';
 import { DISCIPLINES, Discipline, NotebookDoc, DocSection, GlossaryDefinition } from '../data/disciplinesData';
 import { motion, AnimatePresence } from 'motion/react';
+import { useAuth } from '../context/AuthContext';
+import { getUserDocuments, saveDocument, deleteDocument, getPublicDocuments } from '../services/supabase';
 import { 
   Calculator,
   PenTool,
@@ -49,7 +51,9 @@ import {
   Eye,
   SlidersHorizontal,
   BookmarkPlus,
-  Compass
+  Compass,
+  MousePointer2,
+  X
 } from 'lucide-react';
 import { FormattedContentWithGlossary } from './GlossaryTooltip';
 import { CreateDocModal } from './CreateDocModal';
@@ -62,9 +66,45 @@ interface CadernoWorkspaceProps {
   onNavigate?: (screen: ScreenId) => void;
 }
 
+const RichText: React.FC<{ html?: string; text: string; className?: string }> = ({ html, text, className }) => {
+  if (html) {
+    return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  }
+  return <span className={className}>{text}</span>;
+};
+
 export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }) => {
+  const { currentUser } = useAuth();
+  const userId = currentUser?.id || null;
+
   // State for all disciplines (allows adding new docs locally)
   const [allDisciplines, setAllDisciplines] = useState<Discipline[]>(DISCIPLINES);
+
+  // Carrega os documentos do usuario autenticado vindos do Supabase
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    (async () => {
+      try {
+        const docs = await getUserDocuments(userId);
+        if (!active) return;
+        setAllDisciplines(prev =>
+          prev.map(d => {
+            const userDocs = docs.filter(doc => doc.disciplineId === d.id);
+            if (userDocs.length === 0) return d;
+            return {
+              ...d,
+              docCount: userDocs.length,
+              documents: userDocs.map(doc => ({ ...doc, disciplineId: d.id }))
+            };
+          })
+        );
+      } catch (err) {
+        console.warn('Erro ao carregar documentos do Supabase:', err);
+      }
+    })();
+    return () => { active = false; };
+  }, [userId]);
 
   // Navigation State inside Caderno:
   // Level 1: 'disciplines' (Gallery of Subjects)
@@ -74,6 +114,29 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'enem' | 'faculdade' | 'pessoal'>('all');
+
+  // Documentos públicos da comunidade (somente leitura)
+  const [publicDocs, setPublicDocs] = useState<NotebookDoc[]>([]);
+  const [selectedPublicDoc, setSelectedPublicDoc] = useState<NotebookDoc | null>(null);
+
+  // Carrega documentos públicos (excluindo os do próprio usuário)
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const docs = await getPublicDocuments(userId || '');
+        if (active) setPublicDocs(docs);
+      } catch (err) {
+        console.warn('Erro ao carregar documentos públicos:', err);
+      }
+    })();
+    return () => { active = false; };
+  }, [userId]);
+
+  // Limpa documento público selecionado ao trocar de disciplina
+  useEffect(() => {
+    setSelectedPublicDoc(null);
+  }, [selectedDisciplineId]);
 
   // Modals & Drawers State
   const [isCreateDocOpen, setIsCreateDocOpen] = useState(false);
@@ -85,6 +148,15 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
   // Search & View Modes
   const [searchQuery, setSearchQuery] = useState('');
   const [galleryViewMode, setGalleryViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Seleção estilo Windows (rubber-band) na galeria de documentos
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
+  const [dragRect, setDragRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  const [dragLiveIds, setDragLiveIds] = useState<string[]>([]);
+  const dragStartRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const didDragRef = useRef(false);
   
   // Discreet Document Paper Mode (📄 Digital, 📝 Pautado, 📐 Grade)
   const [docPaperMode, setDocPaperMode] = useState<'docs' | 'ruled' | 'grid'>('docs');
@@ -182,6 +254,11 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
     doc.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
   ) || [];
 
+  // Documentos públicos da comunidade filtrados pela disciplina selecionada
+  const disciplinePublicDocs = (selectedDiscipline
+    ? publicDocs.filter(doc => doc.disciplineId === selectedDiscipline.id)
+    : []);
+
   // Handlers for Document Creation & Updating
   const handleCreateDocument = (newDoc: NotebookDoc) => {
     if (!selectedDisciplineId) return;
@@ -198,6 +275,12 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
         return d;
       })
     );
+
+    if (userId) {
+      saveDocument(userId, { ...newDoc, disciplineId: selectedDisciplineId }).catch(err =>
+        console.warn('Erro ao salvar documento no Supabase:', err)
+      );
+    }
 
     // Open created doc directly
     setSelectedDocId(newDoc.id);
@@ -224,11 +307,17 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
         return d;
       })
     );
+
+    if (userId) {
+      saveDocument(userId, { ...selectedDoc, isPublic: newPublicState }).catch(err =>
+        console.warn('Erro ao salvar visibilidade no Supabase:', err)
+      );
+    }
   };
 
   // Handlers for in-place text and section editing
   const handleUpdateDocTitle = (newTitle: string) => {
-    if (!selectedDisciplineId || !selectedDocId) return;
+    if (!selectedDisciplineId || !selectedDocId || !selectedDoc) return;
     setSaveStatus('saving');
     setAllDisciplines(prev =>
       prev.map(d => {
@@ -246,11 +335,17 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
         return d;
       })
     );
+
+    if (userId) {
+      saveDocument(userId, { ...selectedDoc, title: newTitle, lastEdited: 'Agora mesmo' }).catch(err =>
+        console.warn('Erro ao salvar documento no Supabase:', err)
+      );
+    }
     setTimeout(() => setSaveStatus('saved'), 400);
   };
 
   const handleUpdateSections = (newSections: DocSection[]) => {
-    if (!selectedDisciplineId || !selectedDocId) return;
+    if (!selectedDisciplineId || !selectedDocId || !selectedDoc) return;
     setSaveStatus('saving');
 
     const wordCount = newSections.reduce((acc, s) => acc + (s.content || '').split(/\s+/).filter(Boolean).length, 0);
@@ -278,6 +373,12 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
         return d;
       })
     );
+
+    if (userId) {
+      saveDocument(userId, { ...selectedDoc, sections: newSections, wordCount, lastEdited: 'Agora mesmo' }).catch(err =>
+        console.warn('Erro ao salvar documento no Supabase:', err)
+      );
+    }
     setTimeout(() => setSaveStatus('saved'), 400);
   };
 
@@ -295,12 +396,134 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
         return d;
       })
     );
+
+    if (userId) {
+      deleteDocument(userId, selectedDocId).catch(err =>
+        console.warn('Erro ao deletar documento no Supabase:', err)
+      );
+    }
     setSelectedDocId(null);
+  };
+
+  // --- Seleção em lote estilo Windows (rubber-band) ---
+  const selectedDocs = (selectedDiscipline?.documents || []).filter(doc => selectedDocIds.includes(doc.id));
+  const isSelected = (id: string) => selectedDocIds.includes(id) || dragLiveIds.includes(id);
+
+  const rectsIntersect = (a: DOMRect, b: DOMRect) =>
+    a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+  const toggleSelect = (id: string) => {
+    setSelectedDocIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
+  };
+
+  const onGridMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    didDragRef.current = false;
+    dragStartRef.current = { x: e.clientX, y: e.clientY, moved: false };
+    document.body.style.userSelect = 'none';
+  };
+
+  const onGridMouseMove = (e: React.MouseEvent) => {
+    const start = dragStartRef.current;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (!start.moved && Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+    start.moved = true;
+    didDragRef.current = true;
+
+    const left = Math.min(start.x, e.clientX);
+    const top = Math.min(start.y, e.clientY);
+    const rect = new DOMRect(left, top, Math.abs(dx), Math.abs(dy));
+    setDragRect({ left, top, width: Math.abs(dx), height: Math.abs(dy) });
+
+    if (gridRef.current) {
+      const live: string[] = [];
+      gridRef.current.querySelectorAll('[data-doc-card]').forEach(card => {
+        const cr = card.getBoundingClientRect();
+        if (rectsIntersect(rect, cr)) {
+          const id = card.getAttribute('data-doc-card');
+          if (id) live.push(id);
+        }
+      });
+      setDragLiveIds(live);
+    }
+  };
+
+  const onGridMouseUp = () => {
+    const hadDrag = dragStartRef.current?.moved ?? false;
+    dragStartRef.current = null;
+    document.body.style.userSelect = '';
+    if (dragRect) {
+      setSelectedDocIds(prev => {
+        const merged = [...prev];
+        dragLiveIds.forEach(id => { if (!merged.includes(id)) merged.push(id); });
+        return merged;
+      });
+    }
+    setDragRect(null);
+    setDragLiveIds([]);
+    if (hadDrag && !selectionMode) setSelectionMode(true);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedDocIds([]);
+    setSelectionMode(false);
+  };
+
+  const handleSelectAllVisible = () => {
+    setSelectedDocIds(filteredDocs.map(d => d.id));
+    setSelectionMode(true);
+  };
+
+  const handleBulkDelete = () => {
+    if (!selectedDisciplineId || selectedDocIds.length === 0) return;
+    const ids = new Set<string>(selectedDocIds);
+    setAllDisciplines(prev => prev.map(d => {
+      if (d.id === selectedDisciplineId) {
+        const removed = d.documents.filter(doc => ids.has(doc.id)).length;
+        return {
+          ...d,
+          docCount: Math.max(0, d.docCount - removed),
+          documents: d.documents.filter(doc => !ids.has(doc.id))
+        };
+      }
+      return d;
+    }));
+    if (userId) {
+      ids.forEach(id => deleteDocument(userId, id).catch(err =>
+        console.warn('Erro ao deletar documento no Supabase:', err)));
+    }
+    handleClearSelection();
+  };
+
+  const handleBulkVisibility = () => {
+    if (!selectedDisciplineId || selectedDocs.length === 0) return;
+    const newPublic = selectedDocs.some(doc => doc.isPublic !== false) ? false : true;
+    const ids = new Set(selectedDocIds);
+    setAllDisciplines(prev => prev.map(d => {
+      if (d.id === selectedDisciplineId) {
+        return {
+          ...d,
+          documents: d.documents.map(doc => ids.has(doc.id) ? { ...doc, isPublic: newPublic } : doc)
+        };
+      }
+      return d;
+    }));
+    if (userId) {
+      selectedDocs.forEach(doc => saveDocument(userId, { ...doc, isPublic: newPublic }).catch(err =>
+        console.warn('Erro ao salvar visibilidade no Supabase:', err)));
+    }
   };
 
   // Add custom glossary term to current document
   const handleAddGlossaryTerm = (term: string, definition: GlossaryDefinition) => {
-    if (!selectedDisciplineId || !selectedDocId) return;
+    if (!selectedDisciplineId || !selectedDocId || !selectedDoc) return;
+
+    const newGlossary = {
+      ...(selectedDoc.glossary || {}),
+      [term]: definition
+    };
 
     setAllDisciplines(prev =>
       prev.map(d => {
@@ -309,13 +532,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
             ...d,
             documents: d.documents.map(doc => {
               if (doc.id === selectedDocId) {
-                return {
-                  ...doc,
-                  glossary: {
-                    ...(doc.glossary || {}),
-                    [term]: definition
-                  }
-                };
+                return { ...doc, glossary: newGlossary };
               }
               return doc;
             })
@@ -324,6 +541,12 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
         return d;
       })
     );
+
+    if (userId) {
+      saveDocument(userId, { ...selectedDoc, glossary: newGlossary }).catch(err =>
+        console.warn('Erro ao salvar glossário no Supabase:', err)
+      );
+    }
   };
 
   // Copy full document text
@@ -672,6 +895,21 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
 
             {/* Ações: Criar Documento + Visualização */}
             <div className="flex items-center gap-3">
+              {/* Alternador de Modo de Seleção */}
+              <button
+                onClick={() => setSelectionMode(m => !m)}
+                className={`p-2 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                  selectionMode
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'bg-slate-100 dark:bg-slate-800 border-slate-200/60 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+                title="Selecionar múltiplos documentos (arraste para marcar)"
+                aria-label="Modo de seleção múltipla"
+              >
+                <MousePointer2 className="w-4 h-4" />
+                <span className="hidden lg:inline">{selectionMode ? 'Sair da Seleção' : 'Selecionar'}</span>
+              </button>
+
               {/* Alternador Grid / Lista */}
               <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700">
                 <button
@@ -725,6 +963,49 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
             />
           </div>
 
+          {/* Barra de Ações em Lote (Modo Seleção) */}
+          {selectionMode && selectedDocs.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/70 dark:border-blue-900/60 shadow-sm">
+              <span className="text-xs font-bold text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                <CheckSquare className="w-4 h-4 text-blue-500" />
+                {selectedDocs.length} {selectedDocs.length === 1 ? 'documento selecionado' : 'documentos selecionados'}
+              </span>
+              <div className="flex items-center gap-2 ml-auto flex-wrap">
+                <button
+                  onClick={handleBulkVisibility}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-xs font-bold hover:bg-blue-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                  title="Alterar visibilidade dos selecionados"
+                >
+                  {selectedDocs.some(doc => doc.isPublic !== false) ? <Lock className="w-3.5 h-3.5" /> : <Globe className="w-3.5 h-3.5" />}
+                  {selectedDocs.some(doc => doc.isPublic !== false) ? 'Tornar Privados' : 'Tornar Públicos'}
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-500/25 transition-colors cursor-pointer"
+                  title="Deletar selecionados"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Deletar ({selectedDocs.length})
+                </button>
+                <button
+                  onClick={handleSelectAllVisible}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                  title="Selecionar todos os documentos visíveis"
+                >
+                  Selecionar tudo
+                </button>
+                <button
+                  onClick={handleClearSelection}
+                  className="p-1.5 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                  title="Limpar seleção"
+                  aria-label="Limpar seleção"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Grid ou Lista de Documentos, ou Empty State */}
           {filteredDocs.length === 0 ? (
             <div className="bg-white dark:bg-slate-900 rounded-[28px] p-12 border border-dashed border-slate-300 dark:border-slate-800 text-center flex flex-col items-center justify-center gap-4">
@@ -752,15 +1033,43 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               </motion.button>
             </div>
           ) : galleryViewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredDocs.map((doc) => (
-                <motion.div
-                  key={doc.id}
-                  whileHover={{ y: -4, transition: { duration: 0.15 } }}
-                  onClick={() => setSelectedDocId(doc.id)}
-                  className="group bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:shadow-xl hover:shadow-blue-500/10 transition-all cursor-pointer flex flex-col justify-between"
-                >
-                  <div className="space-y-3">
+            <div
+              ref={gridRef}
+              className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+              onMouseDown={onGridMouseDown}
+              onMouseMove={onGridMouseMove}
+              onMouseUp={onGridMouseUp}
+              onMouseLeave={() => { if (dragStartRef.current) onGridMouseUp(); }}
+            >
+              {filteredDocs.map((doc) => {
+                const sel = isSelected(doc.id);
+                return (
+                  <motion.div
+                    key={doc.id}
+                    data-doc-card={doc.id}
+                    whileHover={selectionMode ? { scale: 1.02 } : { y: -4, transition: { duration: 0.15 } }}
+                    onClick={() => {
+                      if (didDragRef.current) { didDragRef.current = false; return; }
+                      if (selectionMode) { toggleSelect(doc.id); return; }
+                      setSelectedDocId(doc.id);
+                    }}
+                    className={`group relative bg-white dark:bg-slate-900 rounded-[28px] p-6 border shadow-2xs transition-all flex flex-col justify-between cursor-pointer ${
+                      sel
+                        ? 'border-blue-500 ring-2 ring-blue-400/70 dark:ring-blue-500/60 bg-blue-50/60 dark:bg-blue-950/40 shadow-lg shadow-blue-500/20'
+                        : 'border-slate-200/80 dark:border-slate-800 hover:shadow-xl hover:shadow-blue-500/10'
+                    }`}
+                  >
+                    {/* Indicador de seleção (canto superior direito) */}
+                    {selectionMode && (
+                      <div className={`absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full border-[3px] border-white dark:border-slate-900 shadow-md flex items-center justify-center z-10 transition-all ${
+                        sel ? 'bg-blue-500 text-white' : 'bg-white dark:bg-slate-800 text-slate-300 dark:text-slate-600'
+                      }`}>
+                        {sel && <Check className="w-3.5 h-3.5" />}
+                      </div>
+                    )}
+
+
+                    <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300">
@@ -800,12 +1109,29 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
 
                   <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
                     <span>{doc.lastEdited}</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                      Abrir e Editar <ChevronRight className="w-3.5 h-3.5" />
+                    <span className={`font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1 ${sel ? 'text-blue-600 dark:text-blue-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                      {selectionMode ? (sel ? 'Selecionado' : 'Selecionar') : 'Abrir e Editar'} <ChevronRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
+
+              {/* Quadrado de seleção (rubber-band) */}
+              {dragRect && (
+                <div
+                  className="pointer-events-none fixed z-[60]"
+                  style={{
+                    left: dragRect.left,
+                    top: dragRect.top,
+                    width: dragRect.width,
+                    height: dragRect.height,
+                    background: 'rgba(59, 130, 246, 0.15)',
+                    border: '1.5px solid rgba(59, 130, 246, 0.7)',
+                    borderRadius: 6,
+                  }}
+                />
+              )}
             </div>
           ) : (
             /* Lista de Documentos */
@@ -851,6 +1177,71 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Seção de Documentos Públicos da Comunidade (Somente Leitura) */}
+          {disciplinePublicDocs.length > 0 && (
+            <div className="pt-2">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                  <Globe className="w-3.5 h-3.5" />
+                </div>
+                <h3 className="font-display font-extrabold text-sm text-slate-900 dark:text-white">
+                  Cadernos Públicos da Comunidade
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                  {disciplinePublicDocs.length} disponíveis
+                </span>
+                <span className="ml-auto text-[10px] text-slate-400 hidden sm:inline">
+                  Leitura compartilhada por outros usuários
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {disciplinePublicDocs.map((doc) => (
+                  <motion.div
+                    key={`${doc.id}-${doc.lastEdited}`}
+                    whileHover={{ y: -4, transition: { duration: 0.15 } }}
+                    onClick={() => setSelectedPublicDoc(doc)}
+                    className="group bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-purple-200/60 dark:border-purple-900/40 shadow-2xs hover:shadow-xl hover:shadow-purple-500/10 transition-all cursor-pointer flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                          <Eye className="w-3 h-3" /> Público
+                        </span>
+                        <span className="text-[10px] text-slate-400">Somente leitura</span>
+                      </div>
+
+                      <h4 className="font-display font-extrabold text-base text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors leading-snug line-clamp-2">
+                        {doc.title}
+                      </h4>
+
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                        {doc.summary}
+                      </p>
+
+                      {doc.tags && doc.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {doc.tags.slice(0, 4).map(t => (
+                            <span key={t} className="px-2 py-0.5 rounded-lg text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                              #{t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                      <span>{doc.lastEdited}</span>
+                      <span className="font-bold text-purple-600 dark:text-purple-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                        Visualizar <ChevronRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -1179,6 +1570,77 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
           onAddTerm={handleAddGlossaryTerm}
         />
       )}
+
+      {/* Visualizador de Documento Público da Comunidade (Somente Leitura) */}
+      <AnimatePresence>
+        {selectedPublicDoc && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100000] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
+            onClick={() => setSelectedPublicDoc(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 15 }}
+              transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200/90 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+            >
+              {/* Cabeçalho */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                    <Globe className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-slate-900 dark:text-white font-display">
+                      Caderno Público da Comunidade
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Modo somente leitura</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedPublicDoc(null)}
+                  className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  aria-label="Fechar visualização"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Conteúdo do Documento */}
+              <div className="flex-1 overflow-y-auto p-6 sm:p-10">
+                <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 dark:text-white leading-tight mb-1">
+                  {selectedPublicDoc.title}
+                </h2>
+                <p className="text-xs text-slate-400 mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                  {selectedPublicDoc.summary}
+                </p>
+
+                <div className="space-y-2">
+                  {selectedPublicDoc.sections.map((s, idx) => {
+                    if (s.type === 'h1') return <h3 key={idx} className="font-extrabold text-xl text-slate-900 dark:text-white pt-3"><RichText html={s.contentHtml} text={s.content || s.heading} /></h3>;
+                    if (s.type === 'h2') return <h4 key={idx} className="font-extrabold text-lg text-slate-900 dark:text-white pt-2"><RichText html={s.contentHtml} text={s.content || s.heading} /></h4>;
+                    if (s.type === 'h3') return <h5 key={idx} className="font-bold text-base text-slate-800 dark:text-slate-200 pt-1"><RichText html={s.contentHtml} text={s.content || s.heading} /></h5>;
+                    if (s.type === 'bullet') return <p key={idx} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"><span className="w-2 h-2 rounded-full bg-slate-400 mt-2 shrink-0" /><RichText html={s.contentHtml} text={s.content} /></p>;
+                    if (s.type === 'numbered') return <p key={idx} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"><span className="font-bold text-slate-400">{idx + 1}.</span><RichText html={s.contentHtml} text={s.content} /></p>;
+                    if (s.type === 'todo') return <p key={idx} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"><CheckSquare className={`w-4 h-4 mt-0.5 ${s.checked ? 'text-emerald-500' : 'text-slate-300'}`} /><span className={s.checked ? 'line-through text-slate-400' : ''}><RichText html={s.contentHtml} text={s.content} /></span></p>;
+                    if (s.type === 'callout') return <div key={idx} className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-900/60 text-amber-950 dark:text-amber-100 text-sm"><RichText html={s.contentHtml} text={s.content} /></div>;
+                    if (s.type === 'quote') return <blockquote key={idx} className="pl-3 border-l-4 border-purple-500 italic text-slate-600 dark:text-slate-300 text-sm"><RichText html={s.contentHtml} text={s.content} /></blockquote>;
+                    if (s.type === 'code') return <pre key={idx} className="p-3 rounded-xl bg-slate-950 text-cyan-300 font-mono text-xs overflow-x-auto border border-slate-800">{s.formula || s.content}</pre>;
+                    if (s.type === 'divider') return <hr key={idx} className="my-4 border-slate-200 dark:border-slate-800" />;
+                    if (s.type === 'image' && s.imageUrl) return <img key={idx} src={s.imageUrl} alt={s.imageCaption || ''} className="max-h-[460px] w-auto max-w-full object-contain rounded-2xl mx-auto my-3" />;
+                    return <p key={idx} className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed py-1"><RichText html={s.contentHtml} text={s.content} /></p>;
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

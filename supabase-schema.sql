@@ -79,6 +79,25 @@ CREATE TABLE IF NOT EXISTS public.leaderboard (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 5. TABELA DOCUMENTS (Cadernos / Documentos por Usuario)
+CREATE TABLE IF NOT EXISTS public.documents (
+  id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  discipline_id TEXT DEFAULT '',
+  title TEXT DEFAULT '',
+  summary TEXT DEFAULT '',
+  tags JSONB DEFAULT '[]'::jsonb,
+  starred BOOLEAN DEFAULT false,
+  is_public BOOLEAN DEFAULT true,
+  sections JSONB DEFAULT '[]'::jsonb,
+  glossary JSONB DEFAULT '{}'::jsonb,
+  word_count NUMERIC DEFAULT 0,
+  last_edited TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (id, user_id)
+);
+
 -- ============================================================
 -- INDEXES para performance nas queries
 -- ============================================================
@@ -86,6 +105,8 @@ CREATE INDEX IF NOT EXISTS idx_questions_subject ON public.questions(subject);
 CREATE INDEX IF NOT EXISTS idx_questions_creator ON public.questions(creator_id);
 CREATE INDEX IF NOT EXISTS idx_leaderboard_score ON public.leaderboard(score DESC);
 CREATE INDEX IF NOT EXISTS idx_performance_user ON public.performance(user_id);
+CREATE INDEX IF NOT EXISTS idx_documents_user ON public.documents(user_id);
+CREATE INDEX IF NOT EXISTS idx_documents_discipline ON public.documents(discipline_id);
 
 -- ============================================================
 -- ROW LEVEL SECURITY (RLS)
@@ -201,6 +222,34 @@ CREATE POLICY "leaderboard_delete_own"
   TO authenticated
   USING (user_id = auth.uid()::text);
 
+-- DOCUMENTS: dono pode ler/escrever; publicos podem ser lidos por todos
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "documents_select" ON public.documents;
+CREATE POLICY "documents_select"
+  ON public.documents FOR SELECT
+  TO authenticated
+  USING (user_id = auth.uid()::text OR is_public = true);
+
+DROP POLICY IF EXISTS "documents_insert_own" ON public.documents;
+CREATE POLICY "documents_insert_own"
+  ON public.documents FOR INSERT
+  TO authenticated
+  WITH CHECK (user_id = auth.uid()::text);
+
+DROP POLICY IF EXISTS "documents_update_own" ON public.documents;
+CREATE POLICY "documents_update_own"
+  ON public.documents FOR UPDATE
+  TO authenticated
+  USING (user_id = auth.uid()::text)
+  WITH CHECK (user_id = auth.uid()::text);
+
+DROP POLICY IF EXISTS "documents_delete_own" ON public.documents;
+CREATE POLICY "documents_delete_own"
+  ON public.documents FOR DELETE
+  TO authenticated
+  USING (user_id = auth.uid()::text);
+
 -- ============================================================
 -- HABILITAR REALTIME (para atualizacoes em tempo real)
 -- Seguro para rodar multiplas vezes (ignora se ja existe)
@@ -227,9 +276,16 @@ BEGIN
   ) THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.performance;
   END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'documents'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.documents;
+  END IF;
 END
 $$;
 
 -- ============================================================
--- PRONTO! As 4 tabelas estao criadas e seguras via RLS.
+-- PRONTO! As 5 tabelas estao criadas e seguras via RLS.
 -- ============================================================
