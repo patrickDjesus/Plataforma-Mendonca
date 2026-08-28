@@ -26,7 +26,7 @@ export const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
   const [streakCount, setStreakCount] = useState<number>(1);
 
-  // Sincroniza com Firebase Auth
+  // Sincroniza com Supabase Auth
   useEffect(() => {
     if (currentUser) {
       const displayName = currentUser.displayName || userProfile?.displayName || 'Estudante';

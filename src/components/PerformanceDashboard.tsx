@@ -5,31 +5,19 @@ import {
   Target, 
   AlertTriangle, 
   CheckCircle2, 
-  XCircle, 
   BookOpen, 
   Zap, 
-  RotateCcw, 
-  Sparkles, 
   Brain, 
   Lightbulb, 
-  ChevronRight, 
   ChevronDown, 
   ChevronUp, 
   BarChart3, 
   Flame, 
   Clock, 
-  Trophy, 
   Layers, 
-  Filter, 
-  GraduationCap, 
   HelpCircle,
   Copy,
-  Check,
-  Activity,
-  Gauge,
-  Compass,
-  ArrowUpRight,
-  TrendingDown
+  Check
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -43,7 +31,7 @@ import {
   Legend,
   ReferenceLine
 } from 'recharts';
-import { PerformanceAnalytics, QuizQuestion, ScreenId, TopicStudySuggestion } from '../types/design';
+import { PerformanceAnalytics, ScreenId, TopicStudySuggestion } from '../types/design';
 
 interface PerformanceDashboardProps {
   analytics: PerformanceAnalytics;
@@ -73,7 +61,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   onResetAnalytics
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'wrong' | 'correct'>('wrong');
-  const [selectedDisciplineFilter, setSelectedDisciplineFilter] = useState<string>('all');
+  const [selectedDisciplineFilter] = useState<string>('all');
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [expandedTopicSubject, setExpandedTopicSubject] = useState<string | null>(null);
   const [copiedReport, setCopiedReport] = useState(false);

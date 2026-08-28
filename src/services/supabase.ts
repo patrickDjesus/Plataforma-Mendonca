@@ -102,7 +102,6 @@ function createMockUser(email: string, displayName?: string): User {
 
 // Override auth listener if in fallback mode
 if (!isSupabaseConfigured) {
-  const originalOnAuthStateChange = supabase.auth.onAuthStateChange.bind(supabase.auth);
   supabase.auth.onAuthStateChange = ((callback: (event: AuthChangeEvent, session: Session | null) => void) => {
     authListeners.add(callback);
     const localUser = getLocalUser();
@@ -263,7 +262,7 @@ export const getCurrentSession = () => supabase.auth.getSession();
 
 export const createQuestion = async (
   questionData: Omit<QuizQuestion, 'id'> & { id?: string | number },
-  creatorUser: { uid: string; displayName?: string | null; email?: string | null }
+  creatorUser: { id: string; displayName?: string | null; email?: string | null }
 ): Promise<QuizQuestion> => {
   const generatedId = typeof questionData.id === 'number'
     ? String(questionData.id)
@@ -279,12 +278,12 @@ export const createQuestion = async (
   if (isSupabaseConfigured) {
     const payload = {
       id: generatedId,
-      creator_id: creatorUser.uid,
+      creator_id: creatorUser.id,
       creator_name: creatorUser.displayName || 'Professor(a) Mendonca',
       creator_email: creatorUser.email || '',
       subject: questionData.subject || 'Geral',
       topic: questionData.topic || 'Conceitos Gerais',
-      difficulty: questionData.difficulty || 'Medio',
+      difficulty: questionData.difficulty || 'Médio',
       statement: questionData.statement || '',
       options: questionData.options || [],
       image_url: questionData.imageUrl || '',
@@ -292,12 +291,15 @@ export const createQuestion = async (
       code_snippet: questionData.codeSnippet || '',
       game_type: questionData.gameType || 'standard',
       ai_hint: questionData.aiHint || '',
+      math_expression: questionData.mathExpression || '',
+      chemical_element: questionData.chemicalElement || null,
+      formula_info: questionData.formulaInfo || null,
       created_at: now,
       updated_at: now,
     };
 
     try {
-      const { error } = await supabase.from('questions').upsert(payload);
+      const { error } = await supabase.from('questions').upsert(payload, { onConflict: 'id' });
       if (!error) return createdQuestion;
     } catch (e) {
       console.warn('Erro ao criar no Supabase, salvando local:', e);
@@ -326,7 +328,7 @@ export const getQuestions = async (): Promise<QuizQuestion[]> => {
           id: Number(row.id) || row.id,
           subject: row.subject || 'Geral',
           topic: row.topic || '',
-          difficulty: row.difficulty || 'Medio',
+          difficulty: (row.difficulty === 'Medio' ? 'Médio' : row.difficulty) || 'Médio',
           statement: row.statement || '',
           options: row.options || [],
           imageUrl: row.image_url,
@@ -346,7 +348,15 @@ export const getQuestions = async (): Promise<QuizQuestion[]> => {
 
   try {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEYS.QUESTIONS);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed.map((q: any) => ({
+          ...q,
+          difficulty: q.difficulty === 'Medio' ? 'Médio' : (q.difficulty || 'Médio'),
+        }));
+      }
+    }
   } catch {
     // ignore
   }
@@ -392,6 +402,9 @@ export const updateQuestion = async (id: string | number, updates: Partial<QuizQ
     if (updates.codeSnippet !== undefined) payload.code_snippet = updates.codeSnippet;
     if (updates.gameType !== undefined) payload.game_type = updates.gameType;
     if (updates.aiHint !== undefined) payload.ai_hint = updates.aiHint;
+    if (updates.mathExpression !== undefined) payload.math_expression = updates.mathExpression;
+    if (updates.chemicalElement !== undefined) payload.chemical_element = updates.chemicalElement;
+    if (updates.formulaInfo !== undefined) payload.formula_info = updates.formulaInfo;
 
     try {
       const { error } = await supabase.from('questions').update(payload).eq('id', docId);
@@ -564,23 +577,40 @@ export const recordQuestionAnswer = async (
   const subject = record.question.subject || 'Geral';
   const topic = record.question.topic || 'Conceitos Gerais';
 
-  const updatedSubjectStats = { ...current.subjectStats };
-  if (!updatedSubjectStats[subject]) {
-    updatedSubjectStats[subject] = { answered: 0, correct: 0, wrong: 0, topics: {} };
-  }
+  const existingSub = current.subjectStats[subject];
+  const existingTop = existingSub?.topics?.[topic] || { answered: 0, correct: 0, wrong: 0 };
+  const sub = existingSub
+    ? {
+        ...existingSub,
+        answered: existingSub.answered + 1,
+        correct: existingSub.correct + (record.isCorrect ? 1 : 0),
+        wrong: existingSub.wrong + (record.isCorrect ? 0 : 1),
+        topics: {
+          ...existingSub.topics,
+          [topic]: {
+            answered: existingTop.answered + 1,
+            correct: existingTop.correct + (record.isCorrect ? 1 : 0),
+            wrong: existingTop.wrong + (record.isCorrect ? 0 : 1),
+          },
+        },
+      }
+    : {
+        answered: 1,
+        correct: record.isCorrect ? 1 : 0,
+        wrong: record.isCorrect ? 0 : 1,
+        topics: {
+          [topic]: {
+            answered: 1,
+            correct: record.isCorrect ? 1 : 0,
+            wrong: record.isCorrect ? 0 : 1,
+          },
+        },
+      };
 
-  const sub = updatedSubjectStats[subject];
-  sub.answered += 1;
-  if (record.isCorrect) sub.correct += 1;
-  else sub.wrong += 1;
-
-  if (!sub.topics[topic]) {
-    sub.topics[topic] = { answered: 0, correct: 0, wrong: 0 };
-  }
-  const top = sub.topics[topic];
-  top.answered += 1;
-  if (record.isCorrect) top.correct += 1;
-  else top.wrong += 1;
+  const updatedSubjectStats = {
+    ...current.subjectStats,
+    [subject]: sub,
+  };
 
   const now = new Date();
   const dateStr = `Hoje as ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
@@ -624,9 +654,20 @@ export const recordSessionCompleted = async (
   session: PerformanceSessionHistory,
   prevAnalytics: PerformanceAnalytics
 ): Promise<PerformanceAnalytics> => {
-  const updatedHistory = [session, ...(prevAnalytics.sessionsHistory || [])].slice(0, 20);
+  const base = prevAnalytics || {
+    totalAnswered: 0,
+    totalCorrect: 0,
+    totalWrong: 0,
+    totalXpEarned: 0,
+    bestStreakCombo: 1,
+    totalSecondsPlayed: 0,
+    subjectStats: {},
+    recentQuestionsLog: [],
+    sessionsHistory: [],
+  };
+  const updatedHistory = [session, ...(base.sessionsHistory || [])].slice(0, 20);
   const updatedAnalytics: PerformanceAnalytics = {
-    ...prevAnalytics,
+    ...base,
     sessionsHistory: updatedHistory,
   };
 

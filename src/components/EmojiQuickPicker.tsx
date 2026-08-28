@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Search, Sparkles, Clock, Star, X, Check, BookOpen, Calculator, FlaskConical, Globe, Flame } from 'lucide-react';
 import { AnimatedEmoji } from './AnimatedEmoji';
 
@@ -9,6 +8,7 @@ export interface EmojiItem {
   category: 'estudos' | 'exatas' | 'ciencias' | 'humanas' | 'metas' | 'simbolos';
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const THEMATIC_EMOJIS: EmojiItem[] = [
   // Estudos & Organização
   { emoji: '📚', name: 'Livros de Estudo', category: 'estudos' },

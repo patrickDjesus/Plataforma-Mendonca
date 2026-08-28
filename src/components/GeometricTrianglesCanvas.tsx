@@ -54,7 +54,6 @@ export const GeometricTrianglesCanvas: React.FC = () => {
 
     // Points / Vertices collection
     let points: Point[] = [];
-    const POINT_COUNT = Math.min(85, Math.floor((width * height) / 14000) + 30);
     const MAX_DISTANCE = 160; // Max line connection distance between nodes
     const TRIANGLE_MAX_DIST = 145; // Max distance to form filled triangles
 

@@ -21,42 +21,24 @@ import {
   ArrowUp,
   FileText,
   Clock,
-  Calendar,
   BookOpen,
   LayoutGrid,
   List,
-  ListTree,
   ChevronRight,
   Copy,
   Check,
-  Send,
   PenLine,
-  Grid,
   Plus,
   Lock,
   Trash2,
-  Edit3,
   CheckSquare,
-  Square,
-  Lightbulb,
-  AlertTriangle,
-  Quote,
-  Code,
-  HelpCircle,
-  CheckCircle2,
-  Bot,
   MoreHorizontal,
-  Layers,
-  Share2,
   Eye,
-  SlidersHorizontal,
   BookmarkPlus,
-  Compass,
   MousePointer2,
   Smile,
   X
 } from 'lucide-react';
-import { FormattedContentWithGlossary } from './GlossaryTooltip';
 import { CreateDocModal } from './CreateDocModal';
 import { AddGlossaryTermModal } from './AddGlossaryTermModal';
 import { DocInsightSidebar } from './DocInsightSidebar';
@@ -177,7 +159,6 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
 
   const [docScrolled, setDocScrolled] = useState(false);
   const [docPercent, setDocPercent] = useState(0);
-  const [isOutlineOpen, setIsOutlineOpen] = useState(false);
 
   // Scroll tracking handlers
   const handleGalleryScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -213,19 +194,6 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
 
   const handleDocScrollToTop = () => {
     docContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleScrollToSection = (blockIndex: number) => {
-    const el = document.getElementById(`doc-block-${blockIndex}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // Temporary neon flash highlight
-      el.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2', 'dark:ring-offset-slate-900', 'bg-blue-50/50', 'dark:bg-blue-950/40');
-      setTimeout(() => {
-        el.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2', 'dark:ring-offset-slate-900', 'bg-blue-50/50', 'dark:bg-blue-950/40');
-      }, 1500);
-    }
-    setIsOutlineOpen(false);
   };
 
   // Selected Discipline & Doc
@@ -395,7 +363,8 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
           id: `sec-${Date.now()}`,
           type: 'paragraph',
           content: emoji,
-          contentHtml: emoji
+          contentHtml: emoji,
+          heading: ''
         }
       ]);
     } else {
@@ -1698,7 +1667,14 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                     if (s.type === 'h2') return <h4 key={idx} className="font-extrabold text-lg text-slate-900 dark:text-white pt-2"><RichText html={s.contentHtml} text={s.content || s.heading} /></h4>;
                     if (s.type === 'h3') return <h5 key={idx} className="font-bold text-base text-slate-800 dark:text-slate-200 pt-1"><RichText html={s.contentHtml} text={s.content || s.heading} /></h5>;
                     if (s.type === 'bullet') return <p key={idx} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"><span className="w-2 h-2 rounded-full bg-slate-400 mt-2 shrink-0" /><RichText html={s.contentHtml} text={s.content} /></p>;
-                    if (s.type === 'numbered') return <p key={idx} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"><span className="font-bold text-slate-400">{idx + 1}.</span><RichText html={s.contentHtml} text={s.content} /></p>;
+                    if (s.type === 'numbered') {
+                      let num = 0;
+                      for (let i = idx; i >= 0; i--) {
+                        if (selectedPublicDoc.sections[i].type === 'numbered') num++;
+                        else break;
+                      }
+                      return <p key={idx} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"><span className="font-bold text-slate-400">{num}.</span><RichText html={s.contentHtml} text={s.content} /></p>;
+                    }
                     if (s.type === 'todo') return <p key={idx} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"><CheckSquare className={`w-4 h-4 mt-0.5 ${s.checked ? 'text-emerald-500' : 'text-slate-300'}`} /><span className={s.checked ? 'line-through text-slate-400' : ''}><RichText html={s.contentHtml} text={s.content} /></span></p>;
                     if (s.type === 'callout') return <div key={idx} className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-900/60 text-amber-950 dark:text-amber-100 text-sm"><RichText html={s.contentHtml} text={s.content} /></div>;
                     if (s.type === 'quote') return <blockquote key={idx} className="pl-3 border-l-4 border-purple-500 italic text-slate-600 dark:text-slate-300 text-sm"><RichText html={s.contentHtml} text={s.content} /></blockquote>;

@@ -4,16 +4,12 @@ import {
   Sparkles,
   X,
   Send,
-  Bot,
-  User,
-  Zap,
-  HelpCircle,
-  Lightbulb,
   Copy,
   Check,
   Plus
 } from 'lucide-react';
 import { NotebookDoc, Discipline } from '../data/disciplinesData';
+import { chatWithGroq } from '../services/ai';
 
 interface DocAiChatDrawerProps {
   isOpen: boolean;
@@ -45,12 +41,13 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
   ]);
   const [input, setInput] = useState('');
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSend = (textToSend?: string) => {
+  const handleSend = async (textToSend?: string) => {
     const query = (textToSend || input).trim();
-    if (!query) return;
+    if (!query || isTyping) return;
 
     const newMsg: Message = {
       sender: 'user',
@@ -60,31 +57,48 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
 
     setMessages(prev => [...prev, newMsg]);
     setInput('');
+    setIsTyping(true);
 
-    // Generate Contextual AI Response
-    setTimeout(() => {
-      let aiReply = '';
+    const systemInstruction =
+      `Você é a "Lumina", tutora de estudos da Plataforma Mendonça preparando o aluno para o ENEM e vestibulares. ` +
+      `Está analisando o documento de estudo "${doc.title.replace(/^[^\w\s]+/, '').trim()}" da disciplina ${discipline.name}. ` +
+      `Contexto do documento: ${doc.summary}. ` +
+      `Responda em português do Brasil, de forma clara, didática e objetiva, ajudando o estudante a sintetizar e fixar o conteúdo.` +
+      (doc.sections && doc.sections.length > 0
+        ? ` As anotações do documento incluem os seguintes títulos: ${doc.sections.filter(s => s.heading).slice(0, 20).map(s => s.heading).join('; ')}.`
+        : '');
+
+    const history = [
+      ...messages.map(m => ({ role: (m.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant', content: m.text })),
+      { role: 'user' as const, content: query },
+    ];
+
+    const aiReply = await chatWithGroq(history, systemInstruction);
+
+    // Fallback local (mock) caso a Edge Function não esteja disponível
+    let reply = aiReply;
+    if (!reply) {
       const qLower = query.toLowerCase();
-
       if (qLower.includes('resum') || qLower.includes('síntese') || qLower.includes('tópicos')) {
-        aiReply = `📌 **Síntese Estratégica do Documento:**\n\n1. **Núcleo Temático:** ${doc.title.replace(/^[^\w\s]+/, '').trim()} em ${discipline.name}.\n2. **Conceito Chave:** ${doc.summary}\n3. **Axiomas de Destaque:** O texto estrutura a base conceitual e relaciona as fórmulas às condições operatórias no exame.`;
+        reply = `📌 **Síntese Estratégica do Documento:**\n\n1. **Núcleo Temático:** ${doc.title.replace(/^[^\w\s]+/, '').trim()} em ${discipline.name}.\n2. **Conceito Chave:** ${doc.summary}\n3. **Axiomas de Destaque:** O texto estrutura a base conceitual e relaciona as fórmulas às condições operatórias no exame.`;
       } else if (qLower.includes('explic') || qLower.includes('fórmula') || qLower.includes('dúvida')) {
-        aiReply = `💡 **Explicação Pedagógica:**\n\nNo contexto de ${discipline.name}, esse princípio demonstra que toda variação contínua possui uma relação direta com o acúmulo de grandezas. Para aplicar em exercícios, sempre isole primeiro os parâmetros conhecidos e cheque as dimensões físicas no SI.`;
+        reply = `💡 **Explicação Pedagógica:**\n\nNo contexto de ${discipline.name}, esse princípio demonstra que toda variação contínua possui uma relação direta com o acúmulo de grandezas. Para aplicar em exercícios, sempre isole primeiro os parâmetros conhecidos e cheque as dimensões físicas no SI.`;
       } else if (qLower.includes('quest') || qLower.includes('quiz') || qLower.includes('pergunta')) {
-        aiReply = `🎯 **Desafio Rápido de Fixação:**\n\n*Qual é a principal condição de contorno para a validade do teorema exposto nas anotações?*\n\n> Dica: Pense na continuidade e diferenciabilidade da função no intervalo fechado [a, b].`;
+        reply = `🎯 **Desafio Rápido de Fixação:**\n\n*Qual é a principal condição de contorno para a validade do teorema exposto nas anotações?*\n\n> Dica: Pense na continuidade e diferenciabilidade da função no intervalo fechado [a, b].`;
       } else {
-        aiReply = `Entendi sua dúvida sobre "${query}". Ao analisar seu caderno de ${discipline.name}, sugiro conectar este tópico com os nós conceituais no Mapa Neural para maximizar a retenção da memória sináptica.`;
+        reply = `Entendi sua dúvida sobre "${query}". Ao analisar seu caderno de ${discipline.name}, sugiro conectar este tópico com os nós conceituais no Mapa Neural para maximizar a retenção da memória sináptica.`;
       }
+    }
 
-      setMessages(prev => [
-        ...prev,
-        {
-          sender: 'ai',
-          text: aiReply,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
-    }, 500);
+    setMessages(prev => [
+      ...prev,
+      {
+        sender: 'ai',
+        text: reply,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+    setIsTyping(false);
   };
 
   const handleCopyText = (text: string, idx: number) => {
@@ -187,6 +201,17 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
                 </span>
               </div>
             ))}
+            {isTyping && (
+              <div className="flex flex-col items-start">
+                <div className="max-w-[88%] p-3.5 rounded-2xl text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-200/80 dark:border-slate-700/80">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce [animation-delay:0.15s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce [animation-delay:0.3s]" />
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Prompts */}

@@ -5,15 +5,11 @@ import {
   X, 
   Check, 
   CheckCheck, 
-  AlertCircle, 
   AlertTriangle, 
   Info, 
   Clock, 
-  Calendar, 
   ShieldAlert, 
-  Sparkles,
-  ArrowRight,
-  Filter
+  ArrowRight
 } from 'lucide-react';
 import { StudyNotification, NotificationLevel } from '../types/notification';
 import { ScreenId } from '../types/design';

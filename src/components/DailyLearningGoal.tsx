@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ResponsiveContainer, 
@@ -11,14 +11,10 @@ import {
   Target, 
   CheckCircle2, 
   Clock, 
-  Flame, 
   Zap, 
   Sparkles, 
   Play, 
-  Edit3, 
-  Settings2, 
-  Award,
-  BookOpen
+  Settings2 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -34,8 +30,8 @@ interface DailyLearningGoalProps {
 
 export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
   onStartTraining,
-  onOpenCaderno,
-  streakCount,
+  onOpenCaderno: _onOpenCaderno,
+  streakCount: _streakCount,
   todayQuestionsAnswered = 12,
   todayMinutesStudied = 35,
   todayXpEarned = 450
@@ -81,18 +77,6 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
   const activePercent = 
     activeMetric === 'questions' ? questionsProgress :
     activeMetric === 'time' ? timeProgress : xpProgress;
-
-  const currentVal = 
-    activeMetric === 'questions' ? todayQuestionsAnswered :
-    activeMetric === 'time' ? todayMinutesStudied : todayXpEarned;
-
-  const targetVal = 
-    activeMetric === 'questions' ? targetQuestions :
-    activeMetric === 'time' ? targetMinutes : targetXp;
-
-  const unitLabel = 
-    activeMetric === 'questions' ? 'questões' :
-    activeMetric === 'time' ? 'minutos' : 'XP';
 
   const gaugeData = [
     { name: 'Concluído', value: Math.min(100, activePercent), color: activePercent >= 100 ? '#10B981' : '#3B82F6' },

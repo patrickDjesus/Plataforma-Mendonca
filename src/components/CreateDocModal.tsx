@@ -7,7 +7,6 @@ import {
   Lock,
   Plus,
   Tag,
-  BookOpen,
   Sparkles,
   Check,
   Calendar,
@@ -32,6 +31,7 @@ export interface EmojiCategory {
   emojis: string[];
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const EMOJI_CATEGORIES: EmojiCategory[] = [
   {
     id: 'estudos',

@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS public.questions (
   creator_email TEXT DEFAULT '',
   subject TEXT DEFAULT 'Geral',
   topic TEXT DEFAULT '',
-  difficulty TEXT DEFAULT 'Medio',
+  difficulty TEXT DEFAULT 'Médio',
   statement TEXT DEFAULT '',
   options JSONB DEFAULT '[]'::jsonb,
   image_url TEXT DEFAULT '',

@@ -13,8 +13,7 @@ import {
   Sun,
   Moon,
   Bell,
-  Search,
-  Command
+  Search
 } from 'lucide-react';
 import { LogoMendonca } from './LogoMendonca';
 

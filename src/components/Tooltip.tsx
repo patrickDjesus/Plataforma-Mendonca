@@ -13,6 +13,7 @@ export interface DefinitionItem {
 export type DefinitionsMap = Record<string, DefinitionItem>;
 
 // Carrega as definições padrão do arquivo definitions.json
+// eslint-disable-next-line react-refresh/only-export-components
 export const STUDY_DEFINITIONS: DefinitionsMap = definitionsData as DefinitionsMap;
 
 interface TooltipProps {

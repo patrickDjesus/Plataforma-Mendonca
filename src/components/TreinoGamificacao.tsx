@@ -3,51 +3,29 @@ import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { 
   CheckCircle2, 
-  XCircle, 
   Sparkles, 
-  ArrowRight, 
   RotateCcw, 
   Zap, 
   Trophy, 
   Flame, 
   Check, 
-  Award, 
   Layers,
-  Brain,
   Plus,
   FileQuestion,
-  Calculator,
-  Atom,
   FlaskConical,
   GraduationCap,
-  Heart,
-  HeartCrack,
-  Timer as TimerIcon,
   Lightbulb,
   Search,
-  Filter,
   Edit3,
   Trash2,
   Play,
-  Maximize2,
   ChevronRight,
   ChevronLeft,
   Image as ImageIcon,
-  ExternalLink,
-  Shuffle,
   Eye,
   BookOpen,
-  HelpCircle,
-  Clock,
-  CheckCircle,
   AlertCircle,
-  Copy,
-  ChevronDown,
-  ChevronUp,
-  X,
-  Target,
-  BarChart3,
-  Pause
+  BarChart3
 } from 'lucide-react';
 import { QUIZ_QUESTIONS } from '../data/mockData';
 import { QuizQuestion, ScreenId, PerformanceAnalytics, PerformanceSessionHistory } from '../types/design';
@@ -74,13 +52,10 @@ import {
   generateRandomMathQuestion, 
   generateRandomPeriodicTableQuestion, 
   generateRandomFormulaQuestion,
-  cleanMathText,
   GameCategory,
-  GameDifficulty,
-  ChemicalElement,
-  PERIODIC_ELEMENTS 
+  GameDifficulty
 } from '../utils/gameGenerators';
-import { playSound, getAudioContext } from '../utils/sounds';
+import { playSound } from '../utils/sounds';
 import { getEnduranceLevel } from '../utils/endurance';
 import { CUSTOM_QUESTIONS_STORAGE_KEY, HIGH_SCORE_STORAGE_KEY, ANALYTICS_STORAGE_KEY, DEFAULT_ANALYTICS, SUBJECT_OPTIONS } from '../constants/game';
 
@@ -92,8 +67,7 @@ interface TreinoGamificacaoProps {
 
 export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({ 
   onNavigate,
-  streakCount = 1,
-  onStreakChange
+  streakCount = 1
 }) => {
   const { userProfile, currentUser, saveGamificationProgress } = useAuth();
   // Aba ativa: 'game' (Centro de Treino), 'dashboard' (Dashboard de Desempenho), 'leaderboard' (Ranking Global) ou 'teacher' (Estúdio do Professor)
@@ -139,9 +113,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   // Sincronizar estatisticas de desempenho em tempo real do Supabase para o usuario autenticado
   useEffect(() => {
     if (!currentUser) return;
-    const unsubscribe = subscribeToUserPerformance(currentUser.uid, (firestoreAnalytics) => {
-      if (firestoreAnalytics) {
-        setAnalytics(firestoreAnalytics);
+    const unsubscribe = subscribeToUserPerformance(currentUser.id, (serverAnalytics) => {
+      if (serverAnalytics) {
+        setAnalytics(serverAnalytics);
       }
     });
     return () => unsubscribe();
@@ -162,7 +136,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     };
     setAnalytics(fresh);
     if (currentUser) {
-      resetUserPerformance(currentUser.uid).catch(console.warn);
+      resetUserPerformance(currentUser.id).catch(console.warn);
     }
     try {
       localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(fresh));
@@ -229,9 +203,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
   // Sincronizar questoes autorais e comunitarias em tempo real do Supabase
   useEffect(() => {
-    const unsubscribe = subscribeToQuestions((firestoreQuestions) => {
-      if (firestoreQuestions && firestoreQuestions.length > 0) {
-        setCustomQuestions(firestoreQuestions);
+    const unsubscribe = subscribeToQuestions((serverQuestions) => {
+      if (serverQuestions && serverQuestions.length > 0) {
+        setCustomQuestions(serverQuestions);
       }
     });
     return () => unsubscribe();
@@ -382,7 +356,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   };
 
   // Iniciar Treino Focado a partir do Dashboard de Desempenho
-  const handleStartFocusedPractice = (subject: string, topic?: string) => {
+  const handleStartFocusedPractice = (subject: string, _topic?: string) => {
     playSound('click');
     setActiveTab('game');
 
@@ -447,7 +421,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       // No modo Endurance, o streak máximo chega até 10x!
       const maxStreakLimit = gameMode === 'endurance' ? 10 : 5;
       const nextStreak = Math.min(maxStreakLimit, streakMultiplier + 1);
-      const isNewHighScore = (score + earnedPoints) > highScore && highScore > 0;
+      const isNewHighScore = (score + earnedPoints) > highScore;
       
       setStreakMultiplier(nextStreak);
       setMaxCombo(prev => Math.max(prev, nextStreak));
@@ -559,7 +533,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
         }
 
         if (currentUser) {
-          recordQuestionAnswer(currentUser.uid, prev, {
+          recordQuestionAnswer(currentUser.id, prev, {
             question: currentQuestion,
             isCorrect: true,
             selectedOptionId,
@@ -630,7 +604,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
         }
 
         if (currentUser) {
-          recordQuestionAnswer(currentUser.uid, prev, {
+          recordQuestionAnswer(currentUser.id, prev, {
             question: currentQuestion,
             isCorrect: false,
             selectedOptionId,
@@ -697,7 +671,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             });
 
             if (currentUser) {
-              recordSessionCompleted(currentUser.uid, newSession, prev).catch(console.warn);
+              recordSessionCompleted(currentUser.id, newSession, prev).catch(console.warn);
             }
 
             // Ativar Modal de Resumo com Gráfico Donut Recharts
@@ -803,6 +777,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, gameStatus, currentQuestion, isAnswerConfirmed, selectedOptionId]);
 
   // =========================================================================
@@ -842,7 +817,6 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
-  const [showSavedQuestionsList, setShowSavedQuestionsList] = useState(false);
   const [teacherSearch, setTeacherSearch] = useState('');
   const [teacherSubjectFilter, setTeacherSubjectFilter] = useState('all');
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
@@ -1030,7 +1004,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       setSuccessToast('Questão atualizada com sucesso no banco de dados!');
     } else {
       createQuestion(newQuestion, {
-        uid: currentUser?.uid || 'professor-anon',
+        id: currentUser?.id || 'professor-anon',
         displayName: userProfile?.displayName || 'Professor Mendonça',
         email: currentUser?.email || ''
       }).catch(console.warn);
@@ -1046,7 +1020,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     setCustomQuestions(prev => prev.filter(q => q.id !== id));
     await deleteQuestion(String(id)).catch(console.warn);
     if (editingQuestionId === id) clearForm();
-    showToast('Questão removida do Firebase com sucesso.');
+    showToast('Questão removida com sucesso.');
   };
 
   const filteredQuestions = useMemo(() => {
@@ -2114,7 +2088,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                   onClick={() => {
                     setGameMode('teacher_custom');
                     setActiveTab('game');
-                    handleStartSurvival();
+                    handleStartSurvival('teacher_custom');
                   }}
                   disabled={customQuestions.length === 0}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"

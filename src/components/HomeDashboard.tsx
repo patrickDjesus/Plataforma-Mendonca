@@ -8,25 +8,19 @@ import {
   Flame, 
   BrainCircuit, 
   Clock, 
-  BookOpen, 
-  Layers, 
   Play, 
   Zap, 
   Network,
-  Atom,
   Target,
   Trophy,
   CheckCircle2,
   X,
   Compass,
-  Award,
   ChevronDown,
   Calendar,
   PenTool,
   FlaskConical,
-  Calculator,
-  HelpCircle,
-  FileText
+  Calculator
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { DailyLearningGoal } from './DailyLearningGoal';
@@ -34,7 +28,8 @@ import { StudyTimeSummaryCard } from './StudyTimeSummaryCard';
 import { StudyMaterialModal } from './StudyMaterialModal';
 import { StudyBadgesAndRewards } from './StudyBadgesAndRewards';
 import { HIGH_YIELD_STUDY_MATERIALS, HighYieldStudyMaterial } from '../data/highYieldMaterials';
-import { TARGET_EXAMS, calculateExamCountdown, TargetExam } from '../utils/examCountdown';
+import { TARGET_EXAMS, calculateExamCountdown } from '../utils/examCountdown';
+import { chatWithGroq } from '../services/ai';
 
 interface HomeDashboardProps {
   onNavigate: (screen: ScreenId) => void;
@@ -149,6 +144,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
 
   // Chat com IA Tutor
   const [chatInput, setChatInput] = useState('');
+  const [isChatTyping, setIsChatTyping] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -190,9 +186,9 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentExam, countdownTick]);
 
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!chatInput.trim()) return;
+    if (!chatInput.trim() || isChatTyping) return;
 
     const newMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -204,9 +200,25 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
     setMessages(prev => [...prev, newMsg]);
     const prompt = chatInput;
     setChatInput('');
+    setIsChatTyping(true);
 
-    setTimeout(() => {
-      let reply = `Excelente reflexão, ${firstName}! Conectando com a base de questões da Plataforma Mendonça, sugiro praticar no modo Treino ou revisar os resumos no Caderno.`;
+    const systemInstruction =
+      `Você é o assistente de estudos "IA Mendonça" da Plataforma Mendonça, preparando o estudante ${firstName} para o ENEM e vestibulares. ` +
+      `Faltam ${countdown.formattedText} dias para o ${currentExam.shortName}. ` +
+      `Responda em português do Brasil, de forma clara, didática e objetiva, orientando o aluno sobre estudos, ` +
+      `redação, treinos, simulados, foco e revisão. Seja apoio e motivação.`;
+
+    const history = [
+      ...messages.map(m => ({ role: (m.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant', content: m.text })),
+      { role: 'user' as const, content: prompt },
+    ];
+
+    const aiReply = await chatWithGroq(history, systemInstruction);
+
+    // Fallback local (mock) caso a Edge Function não esteja disponível
+    let reply = aiReply;
+    if (!reply) {
+      reply = `Excelente reflexão, ${firstName}! Conectando com a base de questões da Plataforma Mendonça, sugiro praticar no modo Treino ou revisar os resumos no Caderno.`;
       const pLower = prompt.toLowerCase();
       if (pLower.includes('redacao') || pLower.includes('redação') || pLower.includes('proposta')) {
         reply = 'Para a Redação Nota 1000, garanta os 5 elementos da C5: Agente, Ação, Meio/Modo, Efeito e Detalhamento. Acesse o material recente para ver exemplos práticos!';
@@ -219,16 +231,18 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
       } else if (pLower.includes('mapa') || pLower.includes('conceito')) {
         reply = 'O Grafo de Conhecimento Neural conecta conceitos interdisciplinares de Matemática, Física, Química e Biologia em tempo real.';
       }
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          sender: 'ai',
-          text: reply,
-          time: 'Agora'
-        }
-      ]);
-    }, 600);
+    }
+
+    setMessages(prev => [
+      ...prev,
+      {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        text: reply,
+        time: 'Agora'
+      }
+    ]);
+    setIsChatTyping(false);
   };
 
   const handleSelectPlan = (planId: FocusLevel) => {
@@ -267,9 +281,6 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
       };
     });
   }, [streakCount]);
-
-  const currentPlan = FOCUS_PLANS.find(p => p.id === activeFocus.level) || FOCUS_PLANS[1];
-  const progressPercent = Math.min(100, Math.round((activeFocus.completed / activeFocus.total) * 100));
 
   return (
     <div className="flex-1 flex flex-col gap-6 overflow-y-auto pb-24 pr-1 relative select-none text-slate-900 dark:text-slate-100">
@@ -618,6 +629,15 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                     </span>
                   </div>
                 ))}
+                {isChatTyping && (
+                  <div className="p-3 text-xs leading-relaxed bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 rounded-2xl rounded-tl-xs border border-slate-200/60 dark:border-slate-700/60 self-start">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce [animation-delay:0.15s]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce [animation-delay:0.3s]" />
+                    </span>
+                  </div>
+                )}
               </div>
 
               <form onSubmit={handleSendMessage} className="mt-4 relative">

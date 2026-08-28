@@ -17,16 +17,12 @@ import {
   Clock, 
   Zap, 
   Sparkles, 
-  ArrowRight, 
   Target, 
-  BookOpen, 
-  Share2, 
   X,
-  Award,
   BrainCircuit
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { QuizQuestion, PerformanceSessionHistory } from '../types/design';
+import { QuizQuestion } from '../types/design';
 
 export interface PostTrainingSummaryData {
   score: number;
@@ -64,7 +60,7 @@ export const PostTrainingSummaryModal: React.FC<PostTrainingSummaryModalProps> =
   onPlayAgain,
   onViewDashboard,
   onViewLeaderboard,
-  onOpenCaderno
+  onOpenCaderno: _onOpenCaderno
 }) => {
   const effectiveData: PostTrainingSummaryData = data || summaryData || {
     score: 0,

@@ -205,25 +205,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     answeredCount: number;
     correctCount: number;
   }) => {
-    if (!currentUser || !userProfile) return;
+    if (!currentUser) return;
+
+    let profile = userProfile;
+    if (!profile) {
+      try {
+        profile = await getUserProfile(currentUser.id);
+      } catch {
+        // ignore
+      }
+    }
+    if (!profile) return;
 
     try {
-      const newTotalXp = (userProfile.totalXp || 0) + stats.xpEarned;
-      const newHighScore = Math.max(userProfile.highScore || 0, stats.score);
-      const newTotalAnswered = (userProfile.totalAnswered || 0) + stats.answeredCount;
-      const newTotalCorrect = (userProfile.totalCorrect || 0) + stats.correctCount;
-      const newAccuracy = newTotalAnswered > 0 ? Math.round((newTotalCorrect / newTotalAnswered) * 100) : (userProfile?.accuracy ?? 0);
-      const newStreak = stats.streak !== undefined ? stats.streak : (userProfile?.streak ?? 1);
+      const newTotalXp = (profile.totalXp || 0) + stats.xpEarned;
+      const newHighScore = Math.max(profile.highScore || 0, stats.score);
+      const newTotalAnswered = (profile.totalAnswered || 0) + stats.answeredCount;
+      const newTotalCorrect = (profile.totalCorrect || 0) + stats.correctCount;
+      const newAccuracy = newTotalAnswered > 0 ? Math.round((newTotalCorrect / newTotalAnswered) * 100) : (profile.accuracy ?? 0);
+      const newStreak = stats.streak !== undefined ? stats.streak : (profile.streak ?? 1);
       const now = new Date().toISOString();
 
-      let newDivision = userProfile.division || 'Iniciante';
+      let newDivision = profile.division || 'Iniciante';
       if (newTotalXp > 5000) newDivision = 'Mestre';
       else if (newTotalXp > 2500) newDivision = 'Diamante';
       else if (newTotalXp > 1000) newDivision = 'Ouro';
       else if (newTotalXp > 300) newDivision = 'Prata';
 
       const updatedProfile: UserProfileData = {
-        ...userProfile,
+        ...profile,
         totalXp: newTotalXp,
         highScore: newHighScore,
         totalAnswered: newTotalAnswered,
@@ -280,6 +290,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

@@ -7,7 +7,6 @@ import {
   SpellCheck,
   CheckCircle2,
   AlertTriangle,
-  Sparkles,
   ArrowRight,
   X,
   Check

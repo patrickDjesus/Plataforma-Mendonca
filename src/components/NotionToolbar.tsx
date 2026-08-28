@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import {
   Heading1,
   Heading2,
@@ -16,8 +16,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Info,
-  Plus,
-  BookOpen,
   Bold,
   Italic,
   Underline,
@@ -30,15 +28,10 @@ import {
   Minus,
   RotateCcw,
   RotateCw,
-  Palette,
   ChevronDown,
   Baseline,
   Eraser,
-  HelpCircle,
-  Cpu,
   Image as ImageIcon,
-  Link,
-  ExternalLink,
   Smile
 } from 'lucide-react';
 import { DocSection } from '../data/disciplinesData';
@@ -69,6 +62,7 @@ interface NotionToolbarProps {
   onClearFormatting?: () => void;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const TEXT_COLORS = [
   { name: 'Padrão', value: '', class: 'bg-slate-800 dark:bg-slate-200 text-slate-800' },
   { name: 'Azul Real', value: '#2563EB', class: 'bg-blue-600' },
@@ -80,6 +74,7 @@ export const TEXT_COLORS = [
   { name: 'Ciano', value: '#0891B2', class: 'bg-cyan-600' },
 ];
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const HIGHLIGHT_COLORS = [
   { name: 'Sem Destaque', value: '', colorClass: 'bg-transparent border border-slate-300' },
   { name: 'Amarelo Caneta', value: '#FEF08A', colorClass: 'bg-yellow-200 text-yellow-950' },
@@ -104,7 +99,7 @@ export const NotionToolbar: React.FC<NotionToolbarProps> = ({
   },
   onApplyFormat,
   onAddBlock,
-  onOpenAddGlossary,
+  onOpenAddGlossary: _onOpenAddGlossary,
   onInsertEmoji,
   onUndo,
   onRedo,

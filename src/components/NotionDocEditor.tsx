@@ -1,52 +1,34 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import {
   Heading1,
   Heading2,
   Heading3,
   List,
   ListOrdered,
+  Quote,
+  Minus,
   CheckSquare,
   Square,
   Lightbulb,
   AlertTriangle,
   CheckCircle2,
   Info,
-  Quote,
   Code,
-  Minus,
   Plus,
   Trash2,
   MoreVertical,
   Type,
-  Bold,
-  Italic,
-  Underline,
-  Strikethrough,
-  Highlighter,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
   Check,
-  Table as TableIcon,
-  BookOpen,
-  CornerDownLeft,
-  ChevronDown,
   Image as ImageIcon,
   Link,
   Clock,
   FileText,
   Layers,
-  ExternalLink,
-  Edit3,
-  X,
-  ChevronUp,
-  Copy
+  ExternalLink
 } from 'lucide-react';
 import { DocSection, GlossaryDefinition } from '../data/disciplinesData';
-import { FormattedContentWithGlossary } from './GlossaryTooltip';
-import { NotionToolbar, FormattingState, TEXT_COLORS, HIGHLIGHT_COLORS } from './NotionToolbar';
+import { NotionToolbar, FormattingState } from './NotionToolbar';
 import { DocContextMenu } from './DocContextMenu';
 
 interface NotionDocEditorProps {
@@ -142,7 +124,7 @@ const TextEditable: React.FC<{
       lastHtmlRef.current = htmlOf(value);
     }
     resize();
-  }, []);
+  }, [value, resize]);
 
   const commit = () => {
     const el = elRef.current;
@@ -211,11 +193,8 @@ const TextEditable: React.FC<{
 
 export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   sections,
-  glossary = {},
-  disciplineColor = '#3B82F6',
-  paperMode = 'docs',
   onUpdateSections,
-  onOpenAddGlossary = () => {},
+  onOpenAddGlossary = (_initialTerm?: string) => {},
 }) => {
   // Focus & Selection States
   const [activeBlockIndex, setActiveBlockIndex] = useState<number>(0);
@@ -255,9 +234,20 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   const [slashQuery, setSlashQuery] = useState('');
   const [selectedSlashItem, setSelectedSlashItem] = useState(0);
 
-  // Floating Mini Bubble Toolbar State
-  const [showFloatingToolbar, setShowFloatingToolbar] = useState(false);
-  const [floatingToolbarPos, setFloatingToolbarPos] = useState({ top: 0, left: 0 });
+  const SLASH_ITEMS: { type: DocSection['type']; label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; color: string }[] = [
+    { type: 'paragraph', label: 'Texto Normal', icon: Type, color: '#94a3b8' },
+    { type: 'h1', label: 'Título 1 (H1)', icon: Heading1, color: '#3b82f6' },
+    { type: 'h2', label: 'Título 2 (H2)', icon: Heading2, color: '#6366f1' },
+    { type: 'h3', label: 'Título 3 (H3)', icon: Heading3, color: '#8b5cf6' },
+    { type: 'bullet', label: 'Lista com Marcadores', icon: List, color: '#10b981' },
+    { type: 'numbered', label: 'Lista Numerada', icon: ListOrdered, color: '#0ea5e9' },
+    { type: 'quote', label: 'Citação', icon: Quote, color: '#f59e0b' },
+    { type: 'code', label: 'Bloco de Código', icon: Code, color: '#ef4444' },
+    { type: 'divider', label: 'Divisor', icon: Minus, color: '#64748b' },
+  ];
+  const filteredSlashItems = slashQuery
+    ? SLASH_ITEMS.filter(it => it.label.toLowerCase().includes(slashQuery.toLowerCase()))
+    : SLASH_ITEMS;
 
   // Context Menu State (botão direito: Copiar, Colar, Definir Conceito, Corretor Ortográfico)
   const [contextMenu, setContextMenu] = useState<{
@@ -354,6 +344,13 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
   // Refs for focusing
   const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const typingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
+    };
+  }, []);
 
   // Update history on external change
   const pushToHistory = useCallback((newSections: DocSection[]) => {
@@ -645,6 +642,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
         type: 'paragraph',
         content: emoji,
         contentHtml: emoji,
+        heading: '',
         align: 'left',
         fontSize: 'base'
       };
@@ -738,6 +736,11 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
       formula: updated[idx].type === 'code' ? text : updated[idx].formula,
     };
     onUpdateSections(updated);
+
+    if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
+    typingDebounceRef.current = setTimeout(() => {
+      pushToHistory(updated);
+    }, 600);
   };
 
   const convertBlockType = (idx: number, newType: DocSection['type'], cleanContent?: string) => {
@@ -829,14 +832,24 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
     // Slash menu navigation
     if (slashMenuIndex !== null) {
+      const itemCount = Math.max(1, filteredSlashItems.length);
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedSlashItem(prev => (prev + 1) % 9);
+        setSelectedSlashItem(prev => (prev + 1) % itemCount);
         return;
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedSlashItem(prev => (prev - 1 + 9) % 9);
+        setSelectedSlashItem(prev => (prev - 1 + itemCount) % itemCount);
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (filteredSlashItems.length > 0) {
+          convertBlockType(idx, filteredSlashItems[selectedSlashItem % filteredSlashItems.length].type);
+        } else {
+          setSlashMenuIndex(null);
+        }
         return;
       }
       if (e.key === 'Escape') {
@@ -1096,6 +1109,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBlockIds]);
 
   const handleToggleTodo = (idx: number) => {
@@ -1254,6 +1268,14 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
           const isHovered = hoveredIndex === idx;
           const { className: formatClass, inlineStyle } = getBlockStyle(section);
 
+          let numberedNumber = 0;
+          if (section.type === 'numbered') {
+            for (let i = idx; i >= 0; i--) {
+              if (sections[i].type === 'numbered') numberedNumber++;
+              else break;
+            }
+          }
+
           return (
             <motion.div
               key={section.id || idx}
@@ -1285,6 +1307,28 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
               {isBlockSelected(section.id) && (
                 <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-blue-500 border-2 border-white dark:border-slate-900 text-white flex items-center justify-center z-20 shadow-md">
                   <Check className="w-3 h-3" />
+                </div>
+              )}
+              {/* Slash Command Menu */}
+              {slashMenuIndex === idx && filteredSlashItems.length > 0 && (
+                <div className="absolute left-6 top-10 z-50 w-60 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-1.5 text-xs animate-in fade-in zoom-in-95 max-h-80 overflow-y-auto">
+                  {filteredSlashItems.map((item, i) => (
+                    <button
+                      key={item.type}
+                      type="button"
+                      onClick={() => {
+                        convertBlockType(idx, item.type);
+                        setSlashMenuIndex(null);
+                      }}
+                      onMouseEnter={() => setSelectedSlashItem(i)}
+                      className={`w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                        i === selectedSlashItem % Math.max(1, filteredSlashItems.length) ? 'bg-slate-100 dark:bg-slate-800' : ''
+                      }`}
+                    >
+                      <item.icon className="w-4 h-4" style={{ color: item.color }} />
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
                 </div>
               )}
               {/* Left Action Handle Gutter */}
@@ -1500,7 +1544,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                 {section.type === 'numbered' && (
                   <div className="flex items-start gap-2.5 py-1">
                     <span className="font-bold text-sm text-slate-500 dark:text-slate-400 mt-0.5 shrink-0 min-w-[20px]">
-                      {idx + 1}.
+                      {numberedNumber}.
                     </span>
                     <div className="flex-1 min-w-0">
                       <TextEditable

@@ -2,21 +2,14 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, 
-  HelpCircle, 
   Sparkles, 
   Plus, 
   Check, 
   Code, 
   Lightbulb, 
-  Award,
-  Layers,
   FileQuestion,
-  CheckCircle2,
   Image as ImageIcon,
-  Link,
   Trash2,
-  ExternalLink,
-  Eye,
   AlertCircle
 } from 'lucide-react';
 import { QuizQuestion } from '../types/design';

@@ -3,19 +3,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Award, 
   Flame, 
-  Target, 
   Zap, 
   Trophy, 
-  Sparkles, 
   Lock, 
   CheckCircle2, 
   X, 
   ChevronRight, 
-  Crown, 
-  Star,
-  ShieldCheck,
-  TrendingUp,
-  Brain
+  Crown 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -47,7 +41,6 @@ interface StudyBadgesAndRewardsProps {
 export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
   streakCount,
   totalAnswered,
-  totalCorrect,
   accuracy,
   totalXp,
   onNavigateToTreino
@@ -251,7 +244,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
     ];
 
     return list;
-  }, [streakCount, totalAnswered, totalCorrect, accuracy, totalXp]);
+  }, [streakCount, totalAnswered, accuracy, totalXp]);
 
   const unlockedCount = badges.filter(b => b.unlocked).length;
   const totalCount = badges.length;

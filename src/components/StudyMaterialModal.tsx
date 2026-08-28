@@ -8,15 +8,7 @@ import {
   XCircle, 
   Copy, 
   Check, 
-  Zap, 
-  ArrowRight, 
-  Layers, 
-  Calculator, 
-  FlaskConical, 
-  PenTool, 
-  Clock, 
-  Lightbulb, 
-  Share2 
+  Zap 
 } from 'lucide-react';
 import { HighYieldStudyMaterial } from '../data/highYieldMaterials';
 import confetti from 'canvas-confetti';

@@ -29,7 +29,7 @@ export const AdminCleanupModal: React.FC<AdminCleanupModalProps> = ({
   onClose,
   onSuccess
 }) => {
-  const { currentUser, userProfile } = useAuth();
+  const { currentUser } = useAuth();
   
   const [counts, setCounts] = useState<CollectionCounts>({
     questions: 0,

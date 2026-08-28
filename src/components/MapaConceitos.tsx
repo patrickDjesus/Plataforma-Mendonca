@@ -5,15 +5,11 @@ import {
   ZoomIn, 
   ZoomOut, 
   Search, 
-  Sparkles, 
-  Zap, 
   Play, 
   ArrowUpRight, 
   Brain,
   Plus,
-  Share2,
-  CheckCircle2,
-  Filter
+  CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AddConceptModal } from './AddConceptModal';
@@ -26,7 +22,7 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
   const [nodes, setNodes] = useState<ConceptNode[]>(CONCEPT_NODES);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedNodeId, setSelectedNodeId] = useState<string>('node-1');
-  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [, setHoveredNodeId] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -295,7 +291,6 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
 
               const isHighlighted = selectedNodeId === node.id || selectedNodeId === targetId;
               const dx = targetNode.x - node.x;
-              const dy = targetNode.y - node.y;
               const cx1 = node.x + dx * 0.5;
               const cy1 = node.y;
               const cx2 = node.x + dx * 0.5;
@@ -333,7 +328,6 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
           {/* Renderização dos Nós */}
           {filteredNodes.map((node) => {
             const isSelected = selectedNodeId === node.id;
-            const isHovered = hoveredNodeId === node.id;
 
             return (
               <g

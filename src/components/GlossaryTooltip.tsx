@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Sparkles, Lightbulb, Tag } from 'lucide-react';
+import React from 'react';
 import { GlossaryDefinition } from '../data/disciplinesData';
 import definitionsData from '../data/definitions.json';
-import { Tooltip, DefinitionItem } from './Tooltip';
+import { Tooltip } from './Tooltip';
 import { AnimatedEmoji } from './AnimatedEmoji';
 
 // Exporta o dicionário global carregado de definitions.json para compatibilidade
+// eslint-disable-next-line react-refresh/only-export-components
 export const GLOBAL_GLOSSARY: Record<string, GlossaryDefinition> = definitionsData as Record<string, GlossaryDefinition>;
 
 interface GlossaryWordProps {
@@ -18,7 +17,7 @@ interface GlossaryWordProps {
 /**
  * Componente que envolve um termo com destaque de cor azul suave e Tooltip ao passar o mouse
  */
-export const GlossaryWord: React.FC<GlossaryWordProps> = ({ term, definition, children }) => {
+export const GlossaryWord: React.FC<GlossaryWordProps> = ({ term: _term, definition, children }) => {
   return (
     <Tooltip definition={definition} position="top">
       <span

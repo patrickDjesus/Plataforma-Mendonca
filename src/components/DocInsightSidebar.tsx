@@ -1,21 +1,14 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import {
   Sparkles,
-  HelpCircle,
   CheckCircle2,
   XCircle,
   Brain,
   Zap,
   RotateCcw,
-  ChevronRight,
-  ChevronLeft,
   X,
-  Lightbulb,
-  ArrowRight,
-  Award,
-  Layers,
-  BookOpen
+  Lightbulb
 } from 'lucide-react';
 import { NotebookDoc, Discipline } from '../data/disciplinesData';
 import { ScreenId } from '../types/design';
@@ -47,8 +40,6 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
   // Generate smart quiz questions based on the document content
   const generateQuestionsForDoc = (): DocQuizQuestion[] => {
     const titleLower = doc.title.toLowerCase();
-    const sectionsText = doc.sections.map(s => `${s.heading} ${s.content}`).join(' ');
-
     if (titleLower.includes('cálculo') || titleLower.includes('integral') || titleLower.includes('derivada')) {
       return [
         {
@@ -112,7 +103,6 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
     }
 
     // Default dynamic questions derived from document
-    const mainHeading = doc.sections[0]?.heading || 'Conceitos Fundamentais';
     return [
       {
         id: 'q-dyn-1',

@@ -11,16 +11,7 @@ import {
   ShieldCheck, 
   Swords, 
   Search, 
-  ArrowUpRight, 
-  TrendingUp, 
-  Award, 
-  Sparkles, 
-  Clock, 
-  Check, 
-  Share2, 
-  ChevronRight,
-  Filter,
-  UserCheck
+  Sparkles 
 } from 'lucide-react';
 import { ScreenId } from '../types/design';
 import confetti from 'canvas-confetti';
@@ -64,7 +55,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
   userTotalXp,
   userAccuracy,
   onStartChallenge,
-  onNavigate
+  onNavigate: _onNavigate
 }) => {
   const { userProfile, currentUser } = useAuth();
   // Filtros
@@ -98,7 +89,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
 
     // Mapear entradas reais do Supabase
     const list: LeaderboardUser[] = supabaseEntries.map((fe, index) => {
-      const isMe = fe.userId === currentUser?.uid;
+      const isMe = fe.userId === currentUser?.id;
       const score = isMe ? calculatedUserScore : (fe.score || fe.totalXp || 0);
       const leagueName: 'Diamante' | 'Platina' | 'Ouro' | 'Prata' = 
         score > 8000 ? 'Diamante' : score > 4000 ? 'Platina' : score > 1500 ? 'Ouro' : 'Prata';
@@ -125,9 +116,9 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
     });
 
     // Se o usuario atual nao estiver no Supabase ainda, adiciona-o como competidor ativo
-    if (!list.some(u => u.isCurrentUser || u.id === currentUser?.uid)) {
+    if (!list.some(u => u.isCurrentUser || u.id === currentUser?.id)) {
       list.push({
-        id: currentUser?.uid || 'user-current',
+        id: currentUser?.id || 'user-current',
         rank: list.length + 1,
         name: `${displayName} (Você)`,
         handle: `@${displayName.toLowerCase().replace(/\s+/g, '')}`,
@@ -185,7 +176,6 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
 
   const currentUserData = mockCompetitors.find(u => u.isCurrentUser);
   const top3 = filteredUsers.slice(0, 3);
-  const remainingUsers = filteredUsers.slice(3);
 
   const handleCheerFriend = (user: LeaderboardUser) => {
     try {

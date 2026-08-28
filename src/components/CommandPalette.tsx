@@ -9,15 +9,11 @@ import {
   Sun,
   Moon,
   Bell,
-  Sparkles,
   ArrowRight,
-  Flame,
   FileText,
-  Clock,
   Command,
   X,
   Keyboard,
-  Trash2,
 } from 'lucide-react';
 import { ScreenId } from '../types/design';
 
@@ -44,7 +40,6 @@ interface CommandPaletteProps {
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
   isOpen,
   onClose,
-  currentScreen,
   onNavigate,
   theme,
   onToggleTheme,
