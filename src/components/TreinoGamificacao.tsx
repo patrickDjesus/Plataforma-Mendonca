@@ -287,55 +287,64 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   const generateNextQuestion = (mode: GameCategory | 'teacher_custom', diff: GameDifficulty, currentElapsed = elapsedSeconds): QuizQuestion => {
     const effectiveDiff = mode === 'endurance' ? getEnduranceLevel(currentElapsed).diff : diff;
 
+    // Embaralha as alternativas para que o gabarito nunca fique na mesma posição
+    const shuffled = (q: QuizQuestion): QuizQuestion => {
+      const opts = q.options
+        .map((o) => ({ o, r: Math.random() }))
+        .sort((a, b) => a.r - b.r)
+        .map(n => n.o);
+      return { ...q, options: opts };
+    };
+
     if (mode === 'endurance') {
 
       // No Endurance, alterna dinamicamente com dificuldade crescente
       const dice = Math.random();
       if (dice < 0.35) {
-        return generateRandomMathQuestion(effectiveDiff);
+        return shuffled(generateRandomMathQuestion(effectiveDiff));
       } else if (dice < 0.65) {
-        return generateRandomFormulaQuestion(effectiveDiff);
+        return shuffled(generateRandomFormulaQuestion(effectiveDiff));
       } else if (dice < 0.90) {
-        return generateRandomPeriodicTableQuestion(effectiveDiff);
+        return shuffled(generateRandomPeriodicTableQuestion(effectiveDiff));
       } else {
         const pool = [...QUIZ_QUESTIONS, ...customQuestions];
         if (pool.length > 0) {
           const selected = pool[Math.floor(Math.random() * pool.length)];
-          return {
+          return shuffled({
             ...selected,
             id: Date.now() + Math.random(),
             difficulty: effectiveDiff === 'Hardcore' ? 'Difícil' : effectiveDiff
-          };
+          });
         }
         // Sem questões no banco → cai no gerador randômico
-        return generateRandomMathQuestion(effectiveDiff);
+        return shuffled(generateRandomMathQuestion(effectiveDiff));
       }
     }
 
     if (mode === 'math_arcade') {
-      return generateRandomMathQuestion(diff);
+      return shuffled(generateRandomMathQuestion(diff));
     } else if (mode === 'periodic_table') {
-      return generateRandomPeriodicTableQuestion(diff);
+      return shuffled(generateRandomPeriodicTableQuestion(diff));
     } else if (mode === 'enem_formulas') {
-      return generateRandomFormulaQuestion(diff);
+      return shuffled(generateRandomFormulaQuestion(diff));
     } else if (mode === 'teacher_custom') {
       if (customQuestions.length > 0) {
         const randomIndex = Math.floor(Math.random() * customQuestions.length);
-        return { ...customQuestions[randomIndex], id: Date.now() + Math.random() };
+        return shuffled({ ...customQuestions[randomIndex], id: Date.now() + Math.random() });
       }
-      return generateRandomMathQuestion(diff);
+      return shuffled(generateRandomMathQuestion(diff));
     } else {
       // enem_mixed: alterna aleatoriamente entre todos os tipos
       const coin = Math.floor(Math.random() * 4);
-      if (coin === 0) return generateRandomMathQuestion(diff);
-      if (coin === 1) return generateRandomPeriodicTableQuestion(diff);
-      if (coin === 2) return generateRandomFormulaQuestion(diff);
+      if (coin === 0) return shuffled(generateRandomMathQuestion(diff));
+      if (coin === 1) return shuffled(generateRandomPeriodicTableQuestion(diff));
+      if (coin === 2) return shuffled(generateRandomFormulaQuestion(diff));
       const pool = [...QUIZ_QUESTIONS, ...customQuestions];
       if (pool.length > 0) {
         const selected = pool[Math.floor(Math.random() * pool.length)];
-        return { ...selected, id: Date.now() + Math.random() };
+        return shuffled({ ...selected, id: Date.now() + Math.random() });
       }
-      return generateRandomMathQuestion(diff);
+      return shuffled(generateRandomMathQuestion(diff));
     }
   };
 
@@ -826,6 +835,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   const [teacherSubjectFilter, setTeacherSubjectFilter] = useState('all');
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
 
+  // Seleção múltipla de questões salvas (para exclusão em lote)
+  const [isMultiSelect, setIsMultiSelect] = useState(false);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<(number | string)[]>([]);
+
   // Modal de Importação JSON
   const [showImportModal, setShowImportModal] = useState(false);
   const [importJsonText, setImportJsonText] = useState('');
@@ -1034,6 +1047,28 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     showToast('Questão removida com sucesso.');
   };
 
+  const toggleSelectQuestion = (id: number | string) => {
+    setSelectedQuestionIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedQuestionIds.length === 0) return;
+    playSound('click');
+    const toDelete = [...selectedQuestionIds];
+    setCustomQuestions(prev => prev.filter(q => !toDelete.includes(q.id)));
+    await Promise.all(toDelete.map(id => deleteQuestion(String(id)).catch(console.warn)));
+    setSelectedQuestionIds([]);
+    if (editingQuestionId && toDelete.includes(editingQuestionId)) clearForm();
+    showToast(`${toDelete.length} questão(ões) removida(s) com sucesso.`);
+  };
+
+  const exitMultiSelect = () => {
+    setIsMultiSelect(false);
+    setSelectedQuestionIds([]);
+  };
+
   const filteredQuestions = useMemo(() => {
     return customQuestions.filter(q => {
       const matchSearch = q.statement.toLowerCase().includes(teacherSearch.toLowerCase()) ||
@@ -1043,6 +1078,21 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       return matchSearch && matchSub;
     });
   }, [customQuestions, teacherSearch, teacherSubjectFilter]);
+
+  const toggleSelectAllFiltered = () => {
+    const filteredIds = filteredQuestions.map(q => q.id);
+    setSelectedQuestionIds(prev => {
+      const allSelected = filteredIds.length > 0 && filteredIds.every(id => prev.includes(id));
+      if (allSelected) {
+        return prev.filter(x => !filteredIds.includes(x));
+      }
+      const result = [...prev];
+      filteredIds.forEach(id => {
+        if (!result.includes(id)) result.push(id);
+      });
+      return result;
+    });
+  };
 
   const handleImportQuestions = async () => {
     setImportError(null);
@@ -2213,21 +2263,78 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
               </div>
 
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setGameMode('teacher_custom');
-                    setActiveTab('game');
-                    handleStartSurvival('teacher_custom');
-                  }}
-                  disabled={customQuestions.length === 0}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-                >
-                  <Play className="w-3.5 h-3.5 fill-white" />
-                  <span>Simulado com Minhas Questões</span>
-                </button>
+                {isMultiSelect ? (
+                  <>
+                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      {selectedQuestionIds.length} selecionada(s)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleBulkDelete}
+                      disabled={selectedQuestionIds.length === 0}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Excluir Selecionadas</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={exitMultiSelect}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Cancelar</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playSound('click');
+                        setIsMultiSelect(true);
+                        setSelectedQuestionIds([]);
+                      }}
+                      disabled={customQuestions.length === 0}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                      title="Ativar modo de seleção múltipla para excluir várias questões de uma vez"
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      <span>Selecionar Várias</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGameMode('teacher_custom');
+                        setActiveTab('game');
+                        handleStartSurvival('teacher_custom');
+                      }}
+                      disabled={customQuestions.length === 0}
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-white" />
+                      <span>Simulado com Minhas Questões</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
+
+            {/* Barra de ação da seleção múltipla */}
+            {isMultiSelect && (
+              <div className="flex flex-wrap items-center gap-2 pt-1 px-1">
+                <button
+                  type="button"
+                  onClick={toggleSelectAllFiltered}
+                  className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                >
+                  {filteredQuestions.length > 0 && filteredQuestions.every(q => selectedQuestionIds.includes(q.id))
+                    ? 'Desmarcar todas as exibidas'
+                    : 'Selecionar todas as exibidas'}
+                </button>
+                <span className="text-[11px] text-slate-400">({filteredQuestions.length} na lista atual)</span>
+              </div>
+            )}
 
             {/* Filtros da Lista */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -2257,56 +2364,94 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             {/* Itens da Lista */}
             {filteredQuestions.length > 0 ? (
               <div className="space-y-2.5 pt-2">
-                {filteredQuestions.map((q) => (
-                  <div
-                    key={q.id}
-                    className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-slate-300 dark:hover:border-slate-700 transition-all"
-                  >
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300">
-                          {q.subject}
-                        </span>
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{q.topic}</span>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                          q.difficulty === 'Fácil' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50' :
-                          q.difficulty === 'Médio' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/50' :
-                          'text-rose-600 bg-rose-50 dark:bg-rose-950/50'
-                        }`}>
-                          {q.difficulty}
-                        </span>
-                        {q.imageUrl && (
-                          <span className="text-[10px] text-pink-600 font-bold flex items-center gap-0.5">
-                            <ImageIcon className="w-3 h-3" /> Imagem
+                {filteredQuestions.map((q) => {
+                  const isSelected = selectedQuestionIds.includes(q.id);
+                  const isEditing = editingQuestionId === q.id;
+                  const correctLetter = q.options.find(o => o.isCorrect)?.id || '-';
+                  return (
+                    <div
+                      key={q.id}
+                      className={`p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all ${
+                        isSelected
+                          ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-400 dark:border-blue-700 ring-2 ring-blue-400/30'
+                          : isEditing
+                          ? 'bg-purple-50/80 dark:bg-purple-950/40 border-purple-400 dark:border-purple-700 ring-2 ring-purple-400/30 hover:border-purple-400'
+                          : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                      }`}
+                    >
+                      {isMultiSelect && (
+                        <button
+                          type="button"
+                          onClick={() => toggleSelectQuestion(q.id)}
+                          className={`mt-0.5 sm:mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-blue-600 border-blue-600 text-white'
+                              : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-500 hover:border-blue-400'
+                          }`}
+                          aria-label={isSelected ? 'Desmarcar' : 'Selecionar'}
+                        >
+                          {isSelected && <Check className="w-3.5 h-3.5" />}
+                        </button>
+                      )}
+
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300">
+                            {q.subject}
                           </span>
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{q.topic}</span>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                            q.difficulty === 'Fácil' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50' :
+                            q.difficulty === 'Médio' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/50' :
+                            'text-rose-600 bg-rose-50 dark:bg-rose-950/50'
+                          }`}>
+                            {q.difficulty}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400" title="Número de alternativas e letra do gabarito">
+                            {q.options.length} opções • Gabarito: {correctLetter}
+                          </span>
+                          {q.imageUrl && (
+                            <span className="text-[10px] text-pink-600 font-bold flex items-center gap-0.5">
+                              <ImageIcon className="w-3 h-3" /> Imagem
+                            </span>
+                          )}
+                          {isEditing && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-600 text-white">
+                              Editando agora
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-1">
+                          {q.statement}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                        {!isMultiSelect && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleEditQuestionInForm(q)}
+                              className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 border border-slate-200 dark:border-slate-600 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>{isEditing ? 'Editar de novo' : 'Editar'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteQuestion(q.id)}
+                              className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
+                              title="Excluir"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
                         )}
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-1">
-                        {q.statement}
-                      </p>
                     </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
-                      <button
-                        type="button"
-                        onClick={() => handleEditQuestionInForm(q)}
-                        className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 border border-slate-200 dark:border-slate-600 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span>Editar</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteQuestion(q.id)}
-                        className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
-                        title="Excluir"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="p-8 text-center text-xs text-slate-400">
