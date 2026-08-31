@@ -65,6 +65,23 @@ import { getEnduranceLevel } from '../utils/endurance';
 import { setGameActive } from '../utils/gameActivity';
 import { CUSTOM_QUESTIONS_STORAGE_KEY, HIGH_SCORE_STORAGE_KEY, ANALYTICS_STORAGE_KEY, DEFAULT_ANALYTICS, SUBJECT_OPTIONS } from '../constants/game';
 
+const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
+
+// Embaralha as alternativas de uma questão e reatribui os ids (A-E) para manter a
+// consistência visual e dos atalhos de teclado, independente da posição do gabarito.
+const shuffleQuestionOptions = (question: QuizQuestion): QuizQuestion => {
+  const options = [...question.options];
+  for (let i = options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [options[i], options[j]] = [options[j], options[i]];
+  }
+  const letters = OPTION_LETTERS.slice(0, options.length);
+  return {
+    ...question,
+    options: options.map((opt, idx) => ({ ...opt, id: letters[idx] }))
+  };
+};
+
 interface TreinoGamificacaoProps {
   onNavigate: (screen: ScreenId) => void;
   streakCount?: number;
@@ -255,6 +272,17 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gameoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastQuestionIdsRef = useRef<number[]>([]);
+
+  // Sorteia uma questão do pool evitando repetições em sequência, deixando a ordem imprevisível.
+  const pickRandomFromPool = (pool: QuizQuestion[]): QuizQuestion | null => {
+    if (!pool || pool.length === 0) return null;
+    const available = pool.filter(q => !lastQuestionIdsRef.current.includes(q.id));
+    const candidates = available.length > 0 ? available : pool;
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+    lastQuestionIdsRef.current = [...lastQuestionIdsRef.current, chosen.id].slice(-8);
+    return { ...chosen, id: Date.now() + Math.random() };
+  };
 
   useEffect(() => {
     return () => {
@@ -300,12 +328,14 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       } else {
         const pool = [...QUIZ_QUESTIONS, ...customQuestions];
         if (pool.length > 0) {
-          const selected = pool[Math.floor(Math.random() * pool.length)];
-          return {
-            ...selected,
-            id: Date.now() + Math.random(),
-            difficulty: effectiveDiff === 'Hardcore' ? 'Difícil' : effectiveDiff
-          };
+          const selected = pickRandomFromPool(pool);
+          if (selected) {
+            return {
+              ...shuffleQuestionOptions(selected),
+              id: Date.now() + Math.random(),
+              difficulty: effectiveDiff === 'Hardcore' ? 'Difícil' : effectiveDiff
+            };
+          }
         }
         // Sem questões no banco → cai no gerador randômico
         return generateRandomMathQuestion(effectiveDiff);
@@ -320,8 +350,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       return generateRandomFormulaQuestion(diff);
     } else if (mode === 'teacher_custom') {
       if (customQuestions.length > 0) {
-        const randomIndex = Math.floor(Math.random() * customQuestions.length);
-        return { ...customQuestions[randomIndex], id: Date.now() + Math.random() };
+        const picked = pickRandomFromPool(customQuestions);
+        if (picked) {
+          return { ...shuffleQuestionOptions(picked), id: Date.now() + Math.random() };
+        }
       }
       return generateRandomMathQuestion(diff);
     } else {
@@ -332,8 +364,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       if (coin === 2) return generateRandomFormulaQuestion(diff);
       const pool = [...QUIZ_QUESTIONS, ...customQuestions];
       if (pool.length > 0) {
-        const selected = pool[Math.floor(Math.random() * pool.length)];
-        return { ...selected, id: Date.now() + Math.random() };
+        const selected = pickRandomFromPool(pool);
+        if (selected) {
+          return { ...shuffleQuestionOptions(selected), id: Date.now() + Math.random() };
+        }
       }
       return generateRandomMathQuestion(diff);
     }
@@ -825,6 +859,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   const [teacherSearch, setTeacherSearch] = useState('');
   const [teacherSubjectFilter, setTeacherSubjectFilter] = useState('all');
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<(number | string)[]>([]);
+  const [confirmDeleteSelected, setConfirmDeleteSelected] = useState(false);
 
   // Modal de Importação JSON
   const [showImportModal, setShowImportModal] = useState(false);
@@ -1043,6 +1079,35 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       return matchSearch && matchSub;
     });
   }, [customQuestions, teacherSearch, teacherSubjectFilter]);
+
+  const toggleQuestionSelection = (id: number | string) => {
+    playSound('click');
+    setSelectedQuestionIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAllVisible = () => {
+    playSound('click');
+    const visibleIds = filteredQuestions.map(q => q.id);
+    setSelectedQuestionIds(prev => {
+      const allSelected = visibleIds.length > 0 && visibleIds.every(id => prev.includes(id));
+      if (allSelected) {
+        return prev.filter(x => !visibleIds.includes(x));
+      }
+      return Array.from(new Set([...prev, ...visibleIds]));
+    });
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedQuestionIds.length === 0) return;
+    playSound('click');
+    const ids = selectedQuestionIds;
+    setCustomQuestions(prev => prev.filter(q => !ids.includes(q.id)));
+    await Promise.all(ids.map(id => deleteQuestion(String(id)).catch(console.warn)));
+    if (ids.includes(editingQuestionId as never)) clearForm();
+    setSelectedQuestionIds([]);
+    setConfirmDeleteSelected(false);
+    showToast(`${ids.length} questão(ões) removida(s) com sucesso.`);
+  };
 
   const handleImportQuestions = async () => {
     setImportError(null);
@@ -2229,6 +2294,57 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
               </div>
             </div>
 
+            {/* Barra de Seleção e Exclusão em Massa */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleSelectAllVisible}
+                  disabled={filteredQuestions.length === 0}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                  title={filteredQuestions.length > 0 && filteredQuestions.every(q => selectedQuestionIds.includes(q.id)) ? 'Desmarcar todas' : 'Selecionar todas as visíveis'}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                  <span>{filteredQuestions.length > 0 && filteredQuestions.every(q => selectedQuestionIds.includes(q.id)) ? 'Desmarcar todas' : 'Selecionar todas'}</span>
+                </button>
+
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  {selectedQuestionIds.length > 0 ? `${selectedQuestionIds.length} selecionada(s)` : ''}
+                </span>
+              </div>
+
+              {selectedQuestionIds.length > 0 && (
+                !confirmDeleteSelected ? (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteSelected(true)}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Excluir Selecionadas ({selectedQuestionIds.length})</span>
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400">Excluir {selectedQuestionIds.length} questão(ões)?</span>
+                    <button
+                      type="button"
+                      onClick={handleDeleteSelected}
+                      className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer"
+                    >
+                      Sim, excluir
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteSelected(false)}
+                      className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                )
+              )}
+            </div>
+
             {/* Filtros da Lista */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <div className="flex-1 min-w-[200px] relative">
@@ -2257,11 +2373,31 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             {/* Itens da Lista */}
             {filteredQuestions.length > 0 ? (
               <div className="space-y-2.5 pt-2">
-                {filteredQuestions.map((q) => (
+                {filteredQuestions.map((q) => {
+                  const isSelected = selectedQuestionIds.includes(q.id);
+                  return (
                   <div
                     key={q.id}
-                    className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+                    onClick={() => toggleQuestionSelection(q.id)}
+                    className={`p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all cursor-pointer border ${
+                      isSelected
+                        ? 'bg-cyan-50/80 dark:bg-cyan-950/50 border-cyan-400 ring-2 ring-cyan-400/25'
+                        : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                    }`}
                   >
+                    {/* Checkbox de multiseleção */}
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className={`w-6 h-6 rounded-lg shrink-0 flex items-center justify-center border transition-all cursor-pointer mt-0.5 ${
+                        isSelected
+                          ? 'bg-cyan-600 border-cyan-600 text-white'
+                          : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-cyan-500'
+                      }`}
+                      title="Alternar seleção"
+                    >
+                      {isSelected && <Check className="w-4 h-4" />}
+                    </div>
+
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300">
@@ -2289,7 +2425,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                     <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
                       <button
                         type="button"
-                        onClick={() => handleEditQuestionInForm(q)}
+                        onClick={(e) => { e.stopPropagation(); handleEditQuestionInForm(q); }}
                         className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 border border-slate-200 dark:border-slate-600 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
@@ -2298,7 +2434,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
                       <button
                         type="button"
-                        onClick={() => handleDeleteQuestion(q.id)}
+                        onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }}
                         className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
                         title="Excluir"
                       >
@@ -2306,7 +2442,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       </button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="p-8 text-center text-xs text-slate-400">
