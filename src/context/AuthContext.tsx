@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { supabase, signInWithGoogle, signInWithEmail as supabaseSignInWithEmail, signUpWithEmail as supabaseSignUpWithEmail, logout as supabaseLogout, getUserProfile, saveUserProfile, saveLeaderboardEntry } from '../services/supabase';
+import { supabase, signInWithEmail as supabaseSignInWithEmail, signUpWithEmail as supabaseSignUpWithEmail, logout as supabaseLogout, getUserProfile, saveUserProfile, saveLeaderboardEntry } from '../services/supabase';
 
 export interface UserProfileData {
   userId: string;
@@ -23,7 +23,6 @@ interface AuthContextType {
   currentUser: User | null;
   userProfile: UserProfileData | null;
   loading: boolean;
-  loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<boolean>;
   registerWithEmail: (name: string, email: string, pass: string) => Promise<boolean>;
   logoutUser: () => Promise<void>;
@@ -159,15 +158,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const loginWithGoogle = async () => {
-    try {
-      await signInWithGoogle();
-      // OAuth redireciona - onAuthStateChange cuida do resto
-    } catch (error) {
-      console.warn('Erro login Google:', error);
-    }
-  };
-
   const loginWithEmail = async (email: string, pass: string) => {
     try {
       const user = await supabaseSignInWithEmail(email, pass);
@@ -285,7 +275,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentUser,
         userProfile,
         loading,
-        loginWithGoogle,
         loginWithEmail,
         registerWithEmail,
         logoutUser,
