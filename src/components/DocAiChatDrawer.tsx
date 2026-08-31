@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { NotebookDoc, Discipline } from '../data/disciplinesData';
 import { chatWithGroq } from '../services/ai';
+import { Markdown } from './Markdown';
 
 interface DocAiChatDrawerProps {
   isOpen: boolean;
@@ -170,7 +171,7 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
                       : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-200/80 dark:border-slate-700/80'
                   }`}
                 >
-                  <p className="whitespace-pre-line">{msg.text}</p>
+                  <Markdown content={msg.text} />
                   
                   {/* Action Bar for AI response */}
                   {msg.sender === 'ai' && (

@@ -1,4 +1,5 @@
 import unisulBanner from '../assets/images/unisul_faculdade_banner.jpg';
+import { simulatorDoc } from '../corpoHumano/simulatorDoc';
 
 export interface DocSection {
   id: string;
@@ -23,6 +24,9 @@ export interface DocSection {
   imageUrl?: string;
   imageCaption?: string;
   imageAlt?: string;
+  imageLayout?: 'block' | 'float';
+  imageFloatSide?: 'left' | 'right';
+  imageSize?: number;
 }
 
 export interface GlossaryDefinition {
@@ -126,10 +130,10 @@ export const DISCIPLINES: Discipline[] = [
     hoverColor: '#047857',
     hoverGradient: 'from-emerald-600 to-teal-800',
     image: 'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?auto=format&fit=crop&w=800&q=80',
-    docCount: 0,
+    docCount: 1,
     description: 'Citologia celular, genética mendeliana, ecologia de ecossistemas, botânica e fisiologia humana.',
     topics: ['Genética & DNA', 'Ecologia & Biomas', 'Fisiologia Humana'],
-    documents: [],
+    documents: [simulatorDoc],
   },
   {
     id: 'historia',

@@ -472,6 +472,12 @@ export function checkSpelling(text: string): SpellCheckResult {
 
     if (!clean) continue;
 
+    // Checa vocabulário oficial PRIMEIRO (evita falsos positivos de palavras
+    // corretas que também apareçam no mapa de erros comuns, ex.: "biologia")
+    if (VALID_VOCABULARY.has(clean)) {
+      continue;
+    }
+
     // Checa se está no mapa direto de erros comuns
     if (COMMON_TYPOS_MAP[clean]) {
       const typoInfo = COMMON_TYPOS_MAP[clean];
@@ -482,11 +488,6 @@ export function checkSpelling(text: string): SpellCheckResult {
         reason: typoInfo.reason,
         suggestions: [typoInfo.correction]
       });
-      continue;
-    }
-
-    // Checa se está no vocabulário oficial
-    if (VALID_VOCABULARY.has(clean)) {
       continue;
     }
 

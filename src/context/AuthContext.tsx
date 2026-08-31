@@ -24,8 +24,8 @@ interface AuthContextType {
   userProfile: UserProfileData | null;
   loading: boolean;
   loginWithGoogle: () => Promise<void>;
-  loginWithEmail: (email: string, pass: string) => Promise<void>;
-  registerWithEmail: (name: string, email: string, pass: string) => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<boolean>;
+  registerWithEmail: (name: string, email: string, pass: string) => Promise<boolean>;
   logoutUser: () => Promise<void>;
   saveGamificationProgress: (stats: {
     xpEarned: number;
@@ -172,6 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const user = await supabaseSignInWithEmail(email, pass);
       if (user) await syncUserProfile(user as any, { email });
+      return !!user;
     } catch (error: any) {
       console.warn('Aviso de autenticacao por e-mail:', error?.message || error);
       throw error;
@@ -180,8 +181,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const registerWithEmail = async (name: string, email: string, pass: string) => {
     try {
-      const user = await supabaseSignUpWithEmail(email, pass, name);
-      if (user) await syncUserProfile(user as any, { displayName: name, email });
+      const result = await supabaseSignUpWithEmail(email, pass, name);
+      // Se o Supabase não gerou sessão (email-confirm), aguarda a confirmação
+      // e NÃO entra na aplicação — evita perfil "logado" sem sessão real.
+      if (result.session?.user) {
+        await syncUserProfile(result.session.user as any, { displayName: name, email });
+        return true;
+      }
+      return false;
     } catch (error: any) {
       console.warn('Aviso de cadastro por e-mail:', error?.message || error);
       throw error;

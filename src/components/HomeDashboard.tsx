@@ -30,6 +30,7 @@ import { StudyBadgesAndRewards } from './StudyBadgesAndRewards';
 import { HIGH_YIELD_STUDY_MATERIALS, HighYieldStudyMaterial } from '../data/highYieldMaterials';
 import { TARGET_EXAMS, calculateExamCountdown } from '../utils/examCountdown';
 import { chatWithGroq } from '../services/ai';
+import { Markdown } from './Markdown';
 
 interface HomeDashboardProps {
   onNavigate: (screen: ScreenId) => void;
@@ -215,22 +216,10 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
 
     const aiReply = await chatWithGroq(history, systemInstruction);
 
-    // Fallback local (mock) caso a Edge Function não esteja disponível
+    // Se a Edge Function não estiver disponível, não fabrica resposta formatada
     let reply = aiReply;
     if (!reply) {
-      reply = `Excelente reflexão, ${firstName}! Conectando com a base de questões da Plataforma Mendonça, sugiro praticar no modo Treino ou revisar os resumos no Caderno.`;
-      const pLower = prompt.toLowerCase();
-      if (pLower.includes('redacao') || pLower.includes('redação') || pLower.includes('proposta')) {
-        reply = 'Para a Redação Nota 1000, garanta os 5 elementos da C5: Agente, Ação, Meio/Modo, Efeito e Detalhamento. Acesse o material recente para ver exemplos práticos!';
-      } else if (pLower.includes('foco') || pLower.includes('meta')) {
-        reply = 'O Modo Foco foi calibrado para sua meta semanal. Você pode alternar entre Fácil (50q), Médio (100q) e Difícil (200q) a qualquer momento!';
-      } else if (pLower.includes('enem') || pLower.includes('dias') || pLower.includes('tempo')) {
-        reply = `Faltam exatamente ${countdown.formattedText} para o ${currentExam.shortName}. Mantenha a constância diária para maximizar sua nota TRI!`;
-      } else if (pLower.includes('simulado') || pLower.includes('treino') || pLower.includes('quest')) {
-        reply = 'Preparei uma bateria adaptativa no modo Treino com cálculo mental, tabela periódica e questões autorais do professor.';
-      } else if (pLower.includes('mapa') || pLower.includes('conceito')) {
-        reply = 'O Grafo de Conhecimento Neural conecta conceitos interdisciplinares de Matemática, Física, Química e Biologia em tempo real.';
-      }
+      reply = 'Não foi possível conectar meu assistente de estudos agora. Verifique sua conexão (ou se o serviço Groq está ativo) e tente novamente em instantes.';
     }
 
     setMessages(prev => [
@@ -623,7 +612,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                         : 'bg-blue-600 text-white rounded-2xl rounded-tr-xs self-end max-w-[85%] shadow-sm'
                     }`}
                   >
-                    <p>{msg.text}</p>
+                    <Markdown content={msg.text} />
                     <span className={`block text-[9px] mt-1 font-medium ${msg.sender === 'ai' ? 'text-slate-400 dark:text-slate-400' : 'text-blue-200'}`}>
                       {msg.time}
                     </span>

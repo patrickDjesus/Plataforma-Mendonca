@@ -45,7 +45,8 @@ import {
   subscribeToUserPerformance, 
   recordQuestionAnswer, 
   recordSessionCompleted, 
-  resetUserPerformance 
+  resetUserPerformance,
+  mergeImportedQuestions 
 } from '../services/supabase';
 
 import { 
@@ -57,6 +58,7 @@ import {
 } from '../utils/gameGenerators';
 import { playSound } from '../utils/sounds';
 import { getEnduranceLevel } from '../utils/endurance';
+import { setGameActive } from '../utils/gameActivity';
 import { CUSTOM_QUESTIONS_STORAGE_KEY, HIGH_SCORE_STORAGE_KEY, ANALYTICS_STORAGE_KEY, DEFAULT_ANALYTICS, SUBJECT_OPTIONS } from '../constants/game';
 
 interface TreinoGamificacaoProps {
@@ -121,6 +123,12 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     return () => unsubscribe();
   }, [currentUser]);
 
+  // Avisa ao App que o jogo está ativo para bloquear atalhos globais (1-4, N)
+  useEffect(() => {
+    setGameActive(activeTab === 'game' && gameStatus === 'playing');
+    return () => setGameActive(false);
+  }, [activeTab, gameStatus]);
+
   // Resetar Analytics
   const handleResetAnalytics = () => {
     const fresh: PerformanceAnalytics = {
@@ -146,6 +154,28 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     showToast('Estatísticas de desempenho redefinidas com sucesso!');
   };
 
+  // Importa questões respondidas fora do app (JSON) e mescla nas analytics do usuário
+  const handleImportAnalytics = async (
+    records: { subject: string; topic: string; isCorrect: boolean }[]
+  ): Promise<boolean> => {
+    if (!records || records.length === 0) return false;
+
+    let result: PerformanceAnalytics;
+    if (currentUser) {
+      result = await mergeImportedQuestions(currentUser.id, analytics, records);
+    } else {
+      result = await mergeImportedQuestions('', analytics, records);
+    }
+    setAnalytics(result);
+    try {
+      localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(result));
+    } catch (error) {
+      console.warn('Erro ao salvar no localStorage:', error);
+    }
+    showToast(`${records.length} questão(ões) importada(s) com sucesso!`);
+    return true;
+  };
+
   // Questões personalizadas do professor
   const [customQuestions, setCustomQuestions] = useState<QuizQuestion[]>(() => {
     try {
@@ -154,43 +184,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     } catch (e) {
       console.error('Erro ao ler custom questions:', e);
     }
-    return [
-      {
-        id: 101,
-        subject: 'Física Clássica & Moderna',
-        topic: 'Circuitos Elétricos & Associação de Resistores',
-        difficulty: 'Médio',
-        statement: 'Analise o circuito elétrico ilustrado no esquema abaixo contendo resistores alimentados por uma fonte de tensão contínua. Sabendo que a corrente total que sai da fonte é 2 A, determine a potência total dissipada por efeito Joule no circuito.',
-        imageUrl: 'https://images.unsplash.com/photo-1517420704952-d9f39e95b43e?auto=format&fit=crop&w=800&q=80',
-        imageCaption: 'Figura 1: Diagrama esquemático de resistores ôhmicos.',
-        codeSnippet: 'P_total = V · I = Req · I²',
-        gameType: 'standard',
-        options: [
-          { id: 'A', text: '40 Watts', isCorrect: false, explanation: 'Incorreto.' },
-          { id: 'B', text: '80 Watts', isCorrect: true, explanation: 'Correto! Com Req = 20 Ω, P = Req · I² = 20 · 4 = 80 W.' },
-          { id: 'C', text: '120 Watts', isCorrect: false, explanation: 'Incorreto.' },
-          { id: 'D', text: '160 Watts', isCorrect: false, explanation: 'Incorreto.' }
-        ],
-        aiHint: 'Lembre-se da fórmula de potência elétrica dissipada por efeito Joule: P = R · I² ou P = V · I.'
-      },
-      {
-        id: 102,
-        subject: 'Biologia & Genética',
-        topic: 'Estrutura Celular & Mitocôndrias',
-        difficulty: 'Fácil',
-        statement: 'A organela citoplasmática mostrada na micrografia abaixo possui membrana dupla, cristas internas e DNA próprio. Qual é a sua função primordial na célula eucariótica?',
-        imageUrl: 'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?auto=format&fit=crop&w=800&q=80',
-        imageCaption: 'Micrografia: Organela celular responsável pela respiração celular aeróbica.',
-        gameType: 'standard',
-        options: [
-          { id: 'A', text: 'Respiração celular aeróbia e síntese massiva de ATP via fosforilação oxidativa.', isCorrect: true, explanation: 'Correto! A mitocôndria atua na produção de energia celular.' },
-          { id: 'B', text: 'Síntese e empacotamento de proteínas para exportação.', isCorrect: false, explanation: 'Incorreto.' },
-          { id: 'C', text: 'Digestão intracelular de macromoléculas através de enzimas.', isCorrect: false, explanation: 'Incorreto.' },
-          { id: 'D', text: 'Degradação de peróxido de hidrogênio e oxidação de ácidos graxos.', isCorrect: false, explanation: 'Incorreto.' }
-        ],
-        aiHint: 'Observe as cristas mitocondriais e recorde a Teoria da Endossimbiose (organela com DNA próprio circular).'
-      }
-    ];
+    return [];
   });
 
   useEffect(() => {
@@ -301,12 +295,16 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
         return generateRandomPeriodicTableQuestion(effectiveDiff);
       } else {
         const pool = [...QUIZ_QUESTIONS, ...customQuestions];
-        const selected = pool[Math.floor(Math.random() * pool.length)];
-        return {
-          ...selected,
-          id: Date.now() + Math.random(),
-          difficulty: effectiveDiff === 'Hardcore' ? 'Difícil' : effectiveDiff
-        };
+        if (pool.length > 0) {
+          const selected = pool[Math.floor(Math.random() * pool.length)];
+          return {
+            ...selected,
+            id: Date.now() + Math.random(),
+            difficulty: effectiveDiff === 'Hardcore' ? 'Difícil' : effectiveDiff
+          };
+        }
+        // Sem questões no banco → cai no gerador randômico
+        return generateRandomMathQuestion(effectiveDiff);
       }
     }
 
@@ -329,8 +327,11 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       if (coin === 1) return generateRandomPeriodicTableQuestion(diff);
       if (coin === 2) return generateRandomFormulaQuestion(diff);
       const pool = [...QUIZ_QUESTIONS, ...customQuestions];
-      const selected = pool[Math.floor(Math.random() * pool.length)];
-      return { ...selected, id: Date.now() + Math.random() };
+      if (pool.length > 0) {
+        const selected = pool[Math.floor(Math.random() * pool.length)];
+        return { ...selected, id: Date.now() + Math.random() };
+      }
+      return generateRandomMathQuestion(diff);
     }
   };
 
@@ -1252,6 +1253,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           onStartFocusedPractice={handleStartFocusedPractice}
           onNavigate={onNavigate}
           onResetAnalytics={handleResetAnalytics}
+          onImportAnalytics={handleImportAnalytics}
         />
       )}
 
@@ -2201,7 +2203,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
         }}
         onViewLeaderboard={() => {
           setIsSummaryModalOpen(false);
-          onNavigate('ranking');
+          setActiveTab('leaderboard');
         }}
         onOpenCaderno={() => {
           setIsSummaryModalOpen(false);

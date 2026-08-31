@@ -9,11 +9,11 @@ import { CommandPalette } from './components/CommandPalette';
 import { CadernoWorkspace } from './components/CadernoWorkspace';
 import { MapaConceitos } from './components/MapaConceitos';
 import { TreinoGamificacao } from './components/TreinoGamificacao';
-import { INITIAL_NOTIFICATIONS } from './data/initialNotifications';
 import { StudyNotification } from './types/notification';
 import { AnimatePresence, motion } from 'motion/react';
 import { Moon, Sun } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
+import { isGameActive } from './utils/gameActivity';
 
 export const App: React.FC = () => {
   const { currentUser, userProfile, logoutUser } = useAuth();
@@ -75,7 +75,7 @@ export const App: React.FC = () => {
     } catch {
       // localStorage indisponivel (ex: Safari private mode)
     }
-    return INITIAL_NOTIFICATIONS;
+    return [];
   });
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -147,7 +147,7 @@ export const App: React.FC = () => {
       }
 
       // Quick jumps when not in an input
-      if (!isInput && authState === 'authenticated' && !isCommandPaletteOpen && !isNotificationsOpen) {
+      if (!isInput && authState === 'authenticated' && !isCommandPaletteOpen && !isNotificationsOpen && !isGameActive()) {
         if (e.key === '1') {
           setCurrentScreen('home');
         } else if (e.key === '2') {

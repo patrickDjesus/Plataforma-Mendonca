@@ -89,12 +89,13 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
 
     // Mapear entradas reais do Supabase
     const list: LeaderboardUser[] = supabaseEntries.map((fe, index) => {
-      const isMe = fe.userId === currentUser?.id;
+      const entryId = fe.userId || fe.id;
+      const isMe = entryId === currentUser?.id;
       const score = isMe ? calculatedUserScore : (fe.score || fe.totalXp || 0);
       const leagueName: 'Diamante' | 'Platina' | 'Ouro' | 'Prata' = 
         score > 8000 ? 'Diamante' : score > 4000 ? 'Platina' : score > 1500 ? 'Ouro' : 'Prata';
       return {
-        id: fe.userId || `fs-${index}`,
+        id: entryId || `fs-${index}`,
         rank: index + 1,
         name: isMe ? `${displayName} (Você)` : (fe.displayName || fe.name || 'Estudante Mendonça'),
         handle: fe.handle || `@${(fe.displayName || fe.name || 'aluno').toLowerCase().replace(/\s+/g, '')}`,

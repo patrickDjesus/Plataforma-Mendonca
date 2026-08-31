@@ -12,7 +12,7 @@ export const TARGET_EXAMS: TargetExam[] = [
     id: 'enem-dia-1',
     name: 'ENEM 2026 • 1º Dia (Linguagens, Humanas & Redação)',
     shortName: 'ENEM 1º Dia',
-    targetDate: '2026-11-01T13:00:00-03:00',
+    targetDate: '2026-11-08T13:30:00-03:00',
     description: '45 questões de Linguagens + 45 questões de Ciências Humanas + Redação Dissertativa.',
     tips: 'Priorize interpretação textual, sociologia crítica e a proposta de intervenção com 5 elementos.'
   },
@@ -20,7 +20,7 @@ export const TARGET_EXAMS: TargetExam[] = [
     id: 'enem-dia-2',
     name: 'ENEM 2026 • 2º Dia (Matemática & Ciências da Natureza)',
     shortName: 'ENEM 2º Dia',
-    targetDate: '2026-11-08T13:00:00-03:00',
+    targetDate: '2026-11-15T13:30:00-03:00',
     description: '45 questões de Matemática + 45 questões de Biologia, Física e Química.',
     tips: 'Domine a TRI resolvendo primeiro as questões fáceis de matemática básica, proporção e ecologia.'
   },
@@ -28,7 +28,7 @@ export const TARGET_EXAMS: TargetExam[] = [
     id: 'fuvest-2027',
     name: 'FUVEST 2027 • 1ª Fase (USP)',
     shortName: 'FUVEST',
-    targetDate: '2026-11-15T13:00:00-03:00',
+    targetDate: '2026-11-01T13:00:00-03:00',
     description: '90 questões de múltipla escolha com alta densidade teórica e leituras obrigatórias.',
     tips: 'Foco nos livros de literatura obrigatória e rigor algébrico nas questões de exatas.'
   },
@@ -36,7 +36,7 @@ export const TARGET_EXAMS: TargetExam[] = [
     id: 'unicamp-2027',
     name: 'UNICAMP 2027 • 1ª Fase',
     shortName: 'UNICAMP',
-    targetDate: '2026-10-25T13:00:00-03:00',
+    targetDate: '2026-10-18T09:00:00-03:00',
     description: '72 questões interdisciplinares e contextualizadas.',
     tips: 'Atenção para questões de análise de gráficos científicos e divulgação cultural.'
   }

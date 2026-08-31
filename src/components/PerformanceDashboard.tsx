@@ -1,288 +1,155 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  TrendingUp, 
-  Target, 
-  AlertTriangle, 
-  CheckCircle2, 
-  BookOpen, 
-  Zap, 
-  Brain, 
-  Lightbulb, 
-  ChevronDown, 
-  ChevronUp, 
-  BarChart3, 
-  Flame, 
-  Clock, 
-  Layers, 
-  HelpCircle,
-  Copy,
-  Check
+import {
+  FileUp,
+  Target,
+  CheckCircle2,
+  XCircle,
+  BookOpen,
+  Lightbulb,
+  TrendingUp,
+  Download,
+  Sparkles,
+  AlertTriangle,
+  BarChart3,
+  RotateCcw
 } from 'lucide-react';
 import {
   ResponsiveContainer,
-  ComposedChart,
-  Area,
+  LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend,
-  ReferenceLine
+  Tooltip
 } from 'recharts';
-import { PerformanceAnalytics, ScreenId, TopicStudySuggestion } from '../types/design';
+import { PerformanceAnalytics, ScreenId } from '../types/design';
+import { parseImportedAnswers, ImportedAnswer } from '../utils/performanceImport';
 
 interface PerformanceDashboardProps {
   analytics: PerformanceAnalytics;
   onStartFocusedPractice: (subject: string, topic?: string) => void;
   onNavigate: (screen: ScreenId) => void;
   onResetAnalytics: () => void;
+  onImportAnalytics: (records: ImportedAnswer[]) => Promise<boolean>;
 }
 
-interface TimeSeriesDataPoint {
-  sessionLabel: string;
-  shortLabel: string;
-  date: string;
-  overallAccuracy: number;
-  matematica: number;
-  fisica: number;
-  quimica: number;
-  biologia: number;
-  learningVelocity: number; // questões retidas por minuto
-  avgResponseSeconds: number;
-  xpEarned: number;
+interface ContentStat {
+  subject: string;
+  topic: string;
+  answered: number;
+  correct: number;
+  wrong: number;
+  errorRate: number;
 }
+
+const EXAMPLE_JSON = `[
+  { "disciplina": "Matemática", "conteudo": "Funções", "acertou": false },
+  { "disciplina": "Matemática", "conteudo": "Funções", "acertou": true },
+  { "disciplina": "Física", "conteudo": "Eletrodinâmica", "acertou": false },
+  { "disciplina": "Química", "conteudo": "Estequiometria", "acertou": true }
+]`;
 
 export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   analytics,
   onStartFocusedPractice,
-  onNavigate,
-  onResetAnalytics
+  onNavigate: _onNavigate,
+  onResetAnalytics,
+  onImportAnalytics
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'wrong' | 'correct'>('wrong');
-  const [selectedDisciplineFilter] = useState<string>('all');
-  const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
-  const [expandedTopicSubject, setExpandedTopicSubject] = useState<string | null>(null);
-  const [copiedReport, setCopiedReport] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [importing, setImporting] = useState(false);
 
-  // Métricas Globais Calculadas
+  // Métricas Globais
   const totalAnswered = analytics.totalAnswered;
   const totalCorrect = analytics.totalCorrect;
   const totalWrong = analytics.totalWrong;
   const accuracyPercentage = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
-  const avgTimePerQuestion = totalAnswered > 0 ? Math.round(analytics.totalSecondsPlayed / totalAnswered) : 0;
 
-  // Estados para o Gráfico de Evolução e Velocidade com Recharts
-  const [chartSubjectView, setChartSubjectView] = useState<'all' | 'velocity' | 'matematica' | 'fisica' | 'quimica' | 'biologia'>('all');
-
-  // Construção do Dataset de Precisão vs. Tempo e Velocidade de Aprendizado
-  const timeSeriesData = useMemo<TimeSeriesDataPoint[]>(() => {
-    // Matérias e estatísticas atuais
-    const matStats = analytics.subjectStats['Matemática & Cálculo'];
-    const fisStats = analytics.subjectStats['Física • Fórmulas ENEM'];
-    const quiStats = analytics.subjectStats['Química & Tabela Periódica'];
-    const bioStats = analytics.subjectStats['Biologia & Genética'];
-
-    const currentMatAcc = matStats && matStats.answered > 0 ? Math.round((matStats.correct / matStats.answered) * 100) : 0;
-    const currentFisAcc = fisStats && fisStats.answered > 0 ? Math.round((fisStats.correct / fisStats.answered) * 100) : 0;
-    const currentQuiAcc = quiStats && quiStats.answered > 0 ? Math.round((quiStats.correct / quiStats.answered) * 100) : 0;
-    const currentBioAcc = bioStats && bioStats.answered > 0 ? Math.round((bioStats.correct / bioStats.answered) * 100) : 0;
-
-    // Se existirem sessões reais em sessionsHistory, incorpora dados reais
-    if (analytics.sessionsHistory && analytics.sessionsHistory.length > 0) {
-      const recentSess = analytics.sessionsHistory.slice(0, 7).reverse();
-      return recentSess.map((sess, idx) => {
-        const vel = sess.elapsedSeconds > 0 
-          ? Number(((sess.correctQuestions / sess.elapsedSeconds) * 60).toFixed(1))
-          : 0;
-        const avgSec = sess.totalQuestions > 0 
-          ? Math.round(sess.elapsedSeconds / sess.totalQuestions)
-          : 0;
-
-        return {
-          sessionLabel: `Treino #${idx + 1} (${sess?.gameMode || 'Treino'})`,
-          shortLabel: `T${idx + 1}`,
-          date: (sess?.date && typeof sess.date === 'string') ? (sess.date.split(' ')[0] || 'Hoje') : 'Hoje',
-          overallAccuracy: sess?.accuracy ?? 0,
-          matematica: currentMatAcc,
-          fisica: currentFisAcc,
-          quimica: currentQuiAcc,
-          biologia: currentBioAcc,
-          learningVelocity: vel,
-          avgResponseSeconds: avgSec,
-          xpEarned: sess?.xpEarned || 0
+  // Agregação de conteúdos (disciplina + tópico) por desempenho
+  const contentStats = useMemo<ContentStat[]>(() => {
+    const map: Record<string, ContentStat> = {};
+    Object.entries(analytics.subjectStats || {}).forEach(([subject, sub]) => {
+      const subStats = (sub || {}) as { topics?: Record<string, { answered: number; correct: number; wrong: number }> };
+      Object.entries(subStats.topics || {}).forEach(([topic, t]) => {
+        const key = `${subject}::${topic}`;
+        map[key] = {
+          subject,
+          topic,
+          answered: t.answered,
+          correct: t.correct,
+          wrong: t.wrong,
+          errorRate: t.answered > 0 ? t.wrong / t.answered : 0
         };
       });
-    }
-
-    // Ponto inicial limpo da jornada
-    return [
-      {
-        sessionLabel: 'Início da Jornada',
-        shortLabel: 'Hoje',
-        date: 'Hoje',
-        overallAccuracy: accuracyPercentage,
-        matematica: currentMatAcc,
-        fisica: currentFisAcc,
-        quimica: currentQuiAcc,
-        biologia: currentBioAcc,
-        learningVelocity: totalAnswered > 0 && analytics.totalSecondsPlayed > 0 
-          ? Number(((totalCorrect / Math.max(1, analytics.totalSecondsPlayed)) * 60).toFixed(1))
-          : 0,
-        avgResponseSeconds: avgTimePerQuestion,
-        xpEarned: analytics.totalXpEarned || 0
-      }
-    ];
-  }, [analytics, accuracyPercentage, totalAnswered, totalCorrect, avgTimePerQuestion]);
-
-  // Estatísticas Derivadas da Curva de Velocidade
-  const initialPoint = timeSeriesData[0] || {
-    sessionLabel: 'Início',
-    shortLabel: 'Hoje',
-    date: 'Hoje',
-    overallAccuracy: 0,
-    matematica: 0,
-    fisica: 0,
-    quimica: 0,
-    biologia: 0,
-    learningVelocity: 0,
-    avgResponseSeconds: 0,
-    xpEarned: 0
-  };
-  const currentPoint = timeSeriesData[timeSeriesData.length - 1] || initialPoint;
-  const accuracyGain = currentPoint.overallAccuracy - initialPoint.overallAccuracy;
-  const velocityGain = initialPoint.learningVelocity > 0 
-    ? Number((((currentPoint.learningVelocity - initialPoint.learningVelocity) / initialPoint.learningVelocity) * 100).toFixed(0))
-    : 0;
-  const speedupRatio = initialPoint.avgResponseSeconds > 0 && currentPoint.avgResponseSeconds > 0
-    ? Number((initialPoint.avgResponseSeconds / currentPoint.avgResponseSeconds).toFixed(1))
-    : 1.0;
-
-  // Geração Dinâmica de Sugestões de Estudo com base nas taxas de erro
-  const studySuggestions = useMemo<TopicStudySuggestion[]>(() => {
-    const suggestions: TopicStudySuggestion[] = [];
-
-    // Agrupa dados dos tópicos no subjectStats
-    (Object.entries(analytics.subjectStats) as [string, { answered: number; correct: number; wrong: number; topics: Record<string, { answered: number; correct: number; wrong: number }> }][]).forEach(([subject, subData]) => {
-      let discipline: TopicStudySuggestion['discipline'] = 'Geral';
-      if (subject.toLowerCase().includes('matemática') || subject.toLowerCase().includes('álgebra')) discipline = 'Matemática';
-      else if (subject.toLowerCase().includes('física')) discipline = 'Física';
-      else if (subject.toLowerCase().includes('química')) discipline = 'Química';
-      else if (subject.toLowerCase().includes('biologia')) discipline = 'Biologia';
-
-      if (subData && subData.topics) {
-        Object.entries(subData.topics).forEach(([topic, topicData]) => {
-          if (topicData.answered > 0) {
-            const errorRate = Math.round((topicData.wrong / topicData.answered) * 100);
-            
-            if (topicData.wrong > 0 || errorRate >= 30) {
-              let priority: TopicStudySuggestion['priority'] = 'Revisão Leve';
-              if (topicData.wrong >= 3 || errorRate >= 60) priority = 'Crítico';
-              else if (topicData.wrong >= 1 || errorRate >= 40) priority = 'Moderado';
-
-              let recommendedAction = `Revise os fundamentos e conceitos-chave de ${topic} no Caderno Neural e resolva 5 questões de fixação.`;
-              if (discipline === 'Matemática') {
-                recommendedAction = `Pratique as propriedades operatórias e passos algébricos de ${topic} no cálculo mental diário.`;
-              } else if (discipline === 'Física') {
-                recommendedAction = `Memorize a fórmula-chave e atente-se às unidades de medida (SI) aplicadas a ${topic}.`;
-              } else if (discipline === 'Química') {
-                recommendedAction = `Consulte a tabela periódica interativa e analise as famílias e propriedades periódicas em ${topic}.`;
-              }
-
-              suggestions.push({
-                subject,
-                topic,
-                wrongCount: topicData.wrong,
-                totalCount: topicData.answered,
-                errorRate,
-                priority,
-                discipline,
-                reason: `${topicData.wrong} ${topicData.wrong === 1 ? 'erro' : 'erros'} em ${topicData.answered} ${topicData.answered === 1 ? 'tentativa' : 'tentativas'} (${errorRate}% taxa de erro)`,
-                recommendedAction
-              });
-            }
-          }
-        });
-      }
     });
+    return Object.values(map);
+  }, [analytics.subjectStats]);
 
-    // Se não houver erros reais ainda (ou usuário novo), gera recomendações de diagnósticos proativos inteligentes
-    if (suggestions.length === 0 && totalAnswered === 0) {
-      return [
-        {
-          subject: 'Física & Eletrodinâmica',
-          topic: '1ª Lei de Ohm & Potência Elétrica',
-          wrongCount: 0,
-          totalCount: 0,
-          errorRate: 0,
-          priority: 'Moderado',
-          discipline: 'Física',
-          reason: 'Tópico de alta incidência no ENEM e vestibulares (Recomendação Preventiva)',
-          recommendedAction: 'Pratique exercícios de cálculo de resistência equivalente (Req) e potência dissipada por efeito Joule.'
-        },
-        {
-          subject: 'Química Geral',
-          topic: 'Equilíbrio Químico & Le Chatelier',
-          wrongCount: 0,
-          totalCount: 0,
-          errorRate: 0,
-          priority: 'Moderado',
-          discipline: 'Química',
-          reason: 'Conceito sináptico fundamental com frequentes pegadinhas de pressão e temperatura',
-          recommendedAction: 'Estude o deslocamento de equilíbrio com variações de volume, concentração e catalisadores.'
-        },
-        {
-          subject: 'Matemática & Álgebra',
-          topic: 'Potenciação & Equações Quadráticas',
-          wrongCount: 0,
-          totalCount: 0,
-          errorRate: 0,
-          priority: 'Revisão Leve',
-          discipline: 'Matemática',
-          reason: 'Base de agilidade para o Treino Neural de Alta Frequência',
-          recommendedAction: 'Treine produtos notáveis, fatoração e Bhaskara rápida para acelerar o tempo de resposta.'
-        }
-      ];
-    }
+  // Conteúdos que preciso melhorar (maior taxa de erro)
+  const toImprove = useMemo<ContentStat[]>(() => {
+    return contentStats
+      .filter((c) => c.wrong > 0)
+      .sort((a, b) => b.errorRate - a.errorRate || b.wrong - a.wrong)
+      .slice(0, 8);
+  }, [contentStats]);
 
-    // Ordena sugestões pela prioridade e taxa de erro
-    const priorityWeight = { 'Crítico': 3, 'Moderado': 2, 'Revisão Leve': 1 };
-    return suggestions.sort((a, b) => {
-      const pDiff = priorityWeight[b.priority] - priorityWeight[a.priority];
-      if (pDiff !== 0) return pDiff;
-      return b.errorRate - a.errorRate;
-    });
-  }, [analytics, totalAnswered]);
+  // Ranking de acertos
+  const rightContents = useMemo<ContentStat[]>(() => {
+    return contentStats
+      .filter((c) => c.correct > 0)
+      .sort((a, b) => b.correct - a.correct)
+      .slice(0, 10);
+  }, [contentStats]);
 
-  // Lista de Questões filtradas para o Histórico
+  // Ranking de erros
+  const wrongContents = useMemo<ContentStat[]>(() => {
+    return contentStats
+      .filter((c) => c.wrong > 0)
+      .sort((a, b) => b.wrong - a.wrong)
+      .slice(0, 10);
+  }, [contentStats]);
+
+  // Curva de acerto (acurácia acumulada ao longo das questões respondidas)
+  const curveData = useMemo<{ label: string; accuracy: number }[]>(() => {
+    const log = analytics.recentQuestionsLog || [];
+    if (log.length === 0) return [];
+    let correctCount = 0;
+    return log
+      .slice()
+      .reverse()
+      .map((entry, idx) => {
+        if (entry.isCorrect) correctCount += 1;
+        const answered = idx + 1;
+        return {
+          label: `Q${answered}`,
+          accuracy: Math.round((correctCount / answered) * 100)
+        };
+      });
+  }, [analytics.recentQuestionsLog]);
+
+  // Lista de questões por filtro
   const filteredQuestions = useMemo(() => {
-    return analytics.recentQuestionsLog.filter(item => {
-      if (activeFilter === 'wrong' && item.isCorrect) return false;
-      if (activeFilter === 'correct' && !item.isCorrect) return false;
-      if (selectedDisciplineFilter !== 'all' && !item.question.subject.toLowerCase().includes(selectedDisciplineFilter.toLowerCase())) {
-        return false;
-      }
-      return true;
-    });
-  }, [analytics.recentQuestionsLog, activeFilter, selectedDisciplineFilter]);
+    const log = analytics.recentQuestionsLog || [];
+    if (activeFilter === 'all') return log;
+    return log.filter((item) => (activeFilter === 'correct' ? item.isCorrect : !item.isCorrect));
+  }, [analytics.recentQuestionsLog, activeFilter]);
 
-  // Copiar relatório de estudo para o clipboard
-  const handleCopyReport = () => {
-    const reportText = `📊 RELATÓRIO DE DESEMPENHO SYNAPSE
-• Total de Questões Respondidas: ${totalAnswered}
-• Taxa Global de Acerto: ${accuracyPercentage}% (${totalCorrect} acertos / ${totalWrong} erros)
-• Melhor Sequência de Combo: ${analytics.bestStreakCombo}x
-• Total de XP Neural: ${analytics.totalXpEarned} XP
+  // Preview do JSON colado
+  const parsedPreview = useMemo(() => parseImportedAnswers(importText), [importText]);
 
-🚨 TÓPICOS QUE REQUEREM MAIS ATENÇÃO:
-${studySuggestions.slice(0, 4).map(s => `- ${s.subject} (${s.topic}): ${s.reason} -> Ação: ${s.recommendedAction}`).join('\n')}
-
-Treinado via Synapse Learn Gamificação`;
-
-    navigator.clipboard.writeText(reportText);
-    setCopiedReport(true);
-    setTimeout(() => setCopiedReport(false), 2500);
+  const handleImport = async () => {
+    setImporting(true);
+    try {
+      if (parsedPreview.records.length === 0) return;
+      await onImportAnalytics(parsedPreview.records);
+      setImportText('');
+      setShowImport(false);
+    } finally {
+      setImporting(false);
+    }
   };
 
   return (
@@ -291,882 +158,402 @@ Treinado via Synapse Learn Gamificação`;
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* 1. HERO BANNER DO DASHBOARD */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 border border-purple-500/30 p-6 sm:p-8 text-white shadow-xl">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2.5 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-bold">
-              <BarChart3 className="w-3.5 h-3.5 text-purple-400" />
-              <span>Diagnóstico Sináptico de Aprendizagem</span>
+      {/* ============================ HEADER + IMPORT ============================ */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-900 border border-slate-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-2 max-w-xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-slate-200 text-xs font-bold border border-white/10">
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>Dashboard de Acerto & Conteúdo</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold font-display tracking-tight text-white">
-              Dashboard de Desempenho & Pontos Cegos
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Mapeamento em tempo real dos seus erros e acertos. O sistema identifica automaticamente onde você mais hesita e prescreve o que você deve revisar primeiro.
+            <h2 className="text-xl sm:text-2xl font-extrabold font-display">Seu desempenho em questões</h2>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Acompanhe sua taxa de acerto e descubra exatamente quais conteúdos você precisa revisar.
             </p>
           </div>
 
-          {/* Ações Rápidas no Banner */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={handleCopyReport}
-              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 backdrop-blur-sm transition-all cursor-pointer"
-              title="Copiar relatório formatado"
+          <button
+            type="button"
+            onClick={() => setShowImport(!showImport)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+          >
+            <FileUp className="w-4 h-4" />
+            {showImport ? 'Fechar Importação' : 'Importar JSON de Questões'}
+          </button>
+        </div>
+
+        {/* Painel de Importação */}
+        <AnimatePresence>
+          {showImport && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
             >
-              {copiedReport ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-              <span>{copiedReport ? 'Copiado!' : 'Copiar Diagnóstico'}</span>
-            </button>
-
-            {studySuggestions.length > 0 && (
-              <button
-                type="button"
-                onClick={() => onStartFocusedPractice(studySuggestions[0].subject, studySuggestions[0].topic)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-extrabold shadow-lg shadow-purple-500/30 transition-all cursor-pointer scale-102"
-              >
-                <Zap className="w-4 h-4 text-amber-300 fill-amber-300" />
-                <span>Treinar Ponto Mais Crítico</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Efeito de grade sutil */}
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 bg-[radial-gradient(#c084fc_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-      </div>
-
-      {/* 2. CARDS DE KPIS ESTATÍSTICOS */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        {/* Taxa de Acerto */}
-        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Precisão Geral
-            </span>
-            <Target className="w-4 h-4 text-emerald-500" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className={`text-2xl sm:text-3xl font-black font-mono ${accuracyPercentage >= 70 ? 'text-emerald-600 dark:text-emerald-400' : accuracyPercentage >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>
-              {accuracyPercentage}%
-            </span>
-          </div>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 block truncate">
-            {totalCorrect} acertos de {totalAnswered} questões
-          </span>
-        </div>
-
-        {/* Total de Erros */}
-        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Pontos de Atenção
-            </span>
-            <AlertTriangle className="w-4 h-4 text-rose-500" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black font-mono text-rose-600 dark:text-rose-400">
-              {totalWrong}
-            </span>
-            <span className="text-xs font-bold text-slate-400">erros</span>
-          </div>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 block truncate">
-            {studySuggestions.filter(s => s.priority === 'Crítico').length} tópicos em nível crítico
-          </span>
-        </div>
-
-        {/* Maior Sequência Combo */}
-        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Maior Sequência
-            </span>
-            <Flame className="w-4 h-4 text-amber-500" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
-              {analytics.bestStreakCombo}x
-            </span>
-            <span className="text-xs font-bold text-slate-400">combo</span>
-          </div>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 block truncate">
-            +{analytics.totalXpEarned} XP Neural acumulado
-          </span>
-        </div>
-
-        {/* Tempo Médio por Questão */}
-        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Velocidade Média
-            </span>
-            <Clock className="w-4 h-4 text-cyan-500" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black font-mono text-cyan-600 dark:text-cyan-400">
-              {avgTimePerQuestion}s
-            </span>
-            <span className="text-xs font-bold text-slate-400">/ questão</span>
-          </div>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 block truncate">
-            {Math.floor(analytics.totalSecondsPlayed / 60)}m jogados no total
-          </span>
-        </div>
-      </div>
-
-      {/* 3. VISUALIZAÇÃO RECHARTS: EVOLUÇÃO TEMPORAL & VELOCIDADE DE APRENDIZADO */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-display flex items-center gap-2">
-                <span>Curva de Aprendizagem & Velocidade Sináptica</span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800">
-                  Precisão vs. Tempo
-                </span>
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Acompanhe sua trajetória de retenção por matéria e a taxa de aceleração de resolução (questões certas / min).
-              </p>
-            </div>
-          </div>
-
-          {/* Filtro de Visão da Disciplina */}
-          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => setChartSubjectView('all')}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                chartSubjectView === 'all'
-                  ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              Todas as Matérias
-            </button>
-            <button
-              type="button"
-              onClick={() => setChartSubjectView('velocity')}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                chartSubjectView === 'velocity'
-                  ? 'bg-cyan-600 text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              Velocidade (q/min)
-            </button>
-            <button
-              type="button"
-              onClick={() => setChartSubjectView('matematica')}
-              className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer ${
-                chartSubjectView === 'matematica'
-                  ? 'bg-blue-600 text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              Matemática
-            </button>
-            <button
-              type="button"
-              onClick={() => setChartSubjectView('fisica')}
-              className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer ${
-                chartSubjectView === 'fisica'
-                  ? 'bg-amber-500 text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              Física
-            </button>
-            <button
-              type="button"
-              onClick={() => setChartSubjectView('quimica')}
-              className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer ${
-                chartSubjectView === 'quimica'
-                  ? 'bg-emerald-600 text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              Química
-            </button>
-            <button
-              type="button"
-              onClick={() => setChartSubjectView('biologia')}
-              className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer ${
-                chartSubjectView === 'biologia'
-                  ? 'bg-purple-600 text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              Biologia
-            </button>
-          </div>
-        </div>
-
-        {/* Micro-Painel de Velocidade & Aceleração */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="p-3 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-900/50 space-y-1">
-            <span className="text-[10px] font-extrabold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider block">
-              Ganho de Precisão na Linha do Tempo
-            </span>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-black font-mono text-indigo-950 dark:text-indigo-200">
-                +{accuracyGain}%
-              </span>
-              <span className="text-[10px] text-slate-500">
-                ({initialPoint.overallAccuracy}% ➔ {currentPoint.overallAccuracy}%)
-              </span>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-cyan-50/60 dark:bg-cyan-950/30 border border-cyan-200/70 dark:border-cyan-900/50 space-y-1">
-            <span className="text-[10px] font-extrabold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider block">
-              Velocidade Sináptica Atual
-            </span>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-black font-mono text-cyan-950 dark:text-cyan-200">
-                {currentPoint.learningVelocity}
-              </span>
-              <span className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold">
-                q/min (+{velocityGain}%)
-              </span>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 space-y-1">
-            <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider block">
-              Agilidade de Resposta
-            </span>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-black font-mono text-emerald-950 dark:text-emerald-200">
-                {currentPoint.avgResponseSeconds}s
-              </span>
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
-                ({speedupRatio}x mais ágil)
-              </span>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/50 space-y-1">
-            <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-300 uppercase tracking-wider block">
-              Maior Salto de Retenção
-            </span>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-black font-mono text-amber-950 dark:text-amber-200">
-                Física (+{currentPoint.fisica - initialPoint.fisica}%)
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Gráfico Recharts Interativo */}
-        <div className="w-full h-80 pt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={timeSeriesData} margin={{ top: 15, right: 15, bottom: 5, left: -15 }}>
-              <defs>
-                <linearGradient id="colorOverall" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.0}/>
-                </linearGradient>
-                <linearGradient id="colorVelocity" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.45}/>
-                  <stop offset="95%" stopColor="#06B6D4" stopOpacity={0.0}/>
-                </linearGradient>
-              </defs>
-
-              <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.2} />
-              
-              <XAxis 
-                dataKey="shortLabel" 
-                tick={{ fill: '#94a3b8', fontSize: 11 }} 
-                stroke="#64748b"
-                tickLine={false}
-              />
-              
-              <YAxis 
-                yAxisId="left" 
-                domain={[0, 100]} 
-                tick={{ fill: '#94a3b8', fontSize: 11 }} 
-                unit="%" 
-                stroke="#64748b"
-                tickLine={false}
-              />
-
-              <YAxis 
-                yAxisId="right" 
-                orientation="right" 
-                domain={[0, 10]} 
-                tick={{ fill: '#06b6d4', fontSize: 11 }} 
-                unit=" q/m" 
-                stroke="#06b6d4"
-                tickLine={false}
-              />
-
-              <Tooltip 
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const data = payload[0].payload as TimeSeriesDataPoint;
-                    return (
-                      <div className="bg-slate-900/95 text-white p-3.5 rounded-2xl border border-slate-700 shadow-2xl text-xs space-y-2 backdrop-blur-md min-w-[210px]">
-                        <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                          <span className="font-extrabold text-slate-200">{data.sessionLabel}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">{data.date}</span>
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-300 font-medium">Precisão Geral:</span>
-                            <span className={`font-black font-mono ${data.overallAccuracy >= 70 ? 'text-emerald-400' : data.overallAccuracy >= 50 ? 'text-amber-400' : 'text-rose-400'}`}>
-                              {data.overallAccuracy}%
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <span className="text-cyan-300 font-medium">⚡ Velocidade:</span>
-                            <span className="font-bold text-cyan-400 font-mono">
-                              {data.learningVelocity} q/min
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-400 text-[11px]">⏱️ Tempo Médio:</span>
-                            <span className="font-bold text-slate-300 font-mono">
-                              {data.avgResponseSeconds}s / questão
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="pt-1.5 border-t border-slate-800/80 grid grid-cols-2 gap-1 text-[10px]">
-                          <div className="text-blue-300">Mat: <strong className="font-mono">{data.matematica}%</strong></div>
-                          <div className="text-amber-300">Fís: <strong className="font-mono">{data.fisica}%</strong></div>
-                          <div className="text-emerald-300">Quí: <strong className="font-mono">{data.quimica}%</strong></div>
-                          <div className="text-purple-300">Bio: <strong className="font-mono">{data.biologia}%</strong></div>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                }} 
-              />
-
-              <Legend 
-                wrapperStyle={{ paddingTop: 10, fontSize: 12 }}
-                formatter={(value) => <span className="text-slate-600 dark:text-slate-300 font-medium">{value}</span>}
-              />
-
-              {/* Linhas de Referência Didáticas */}
-              <ReferenceLine 
-                yAxisId="left" 
-                y={85} 
-                stroke="#10b981" 
-                strokeDasharray="4 4" 
-                label={{ value: 'Meta 85%', fill: '#10b981', fontSize: 10, position: 'insideTopRight' }} 
-              />
-
-              <ReferenceLine 
-                yAxisId="left" 
-                y={60} 
-                stroke="#64748b" 
-                strokeDasharray="3 3" 
-                label={{ value: 'Média 60%', fill: '#64748b', fontSize: 10, position: 'insideTopLeft' }} 
-              />
-
-              {/* Área / Curvas com base no filtro */}
-              {(chartSubjectView === 'all' || chartSubjectView === 'velocity') && (
-                <Area 
-                  yAxisId="left"
-                  type="monotone" 
-                  dataKey="overallAccuracy" 
-                  name="Precisão Global (%)" 
-                  stroke="#8B5CF6" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorOverall)" 
-                  activeDot={{ r: 6, stroke: '#c084fc', strokeWidth: 2 }}
-                />
-              )}
-
-              {(chartSubjectView === 'all' || chartSubjectView === 'velocity') && (
-                <Line 
-                  yAxisId="right"
-                  type="monotone" 
-                  dataKey="learningVelocity" 
-                  name="Velocidade Sináptica (q/min)" 
-                  stroke="#06B6D4" 
-                  strokeWidth={2.5}
-                  strokeDasharray="4 4"
-                  dot={{ r: 4, fill: '#06B6D4' }}
-                  activeDot={{ r: 6 }}
-                />
-              )}
-
-              {(chartSubjectView === 'all' || chartSubjectView === 'matematica') && (
-                <Line 
-                  yAxisId="left"
-                  type="monotone" 
-                  dataKey="matematica" 
-                  name="Matemática & Cálculo" 
-                  stroke="#3B82F6" 
-                  strokeWidth={chartSubjectView === 'matematica' ? 3 : 2}
-                  dot={{ r: 3, fill: '#3B82F6' }}
-                  activeDot={{ r: 6 }}
-                />
-              )}
-
-              {(chartSubjectView === 'all' || chartSubjectView === 'fisica') && (
-                <Line 
-                  yAxisId="left"
-                  type="monotone" 
-                  dataKey="fisica" 
-                  name="Física & Fórmulas" 
-                  stroke="#F59E0B" 
-                  strokeWidth={chartSubjectView === 'fisica' ? 3 : 2}
-                  dot={{ r: 3, fill: '#F59E0B' }}
-                  activeDot={{ r: 6 }}
-                />
-              )}
-
-              {(chartSubjectView === 'all' || chartSubjectView === 'quimica') && (
-                <Line 
-                  yAxisId="left"
-                  type="monotone" 
-                  dataKey="quimica" 
-                  name="Química & Tabela Periódica" 
-                  stroke="#10B981" 
-                  strokeWidth={chartSubjectView === 'quimica' ? 3 : 2}
-                  dot={{ r: 3, fill: '#10B981' }}
-                  activeDot={{ r: 6 }}
-                />
-              )}
-
-              {(chartSubjectView === 'all' || chartSubjectView === 'biologia') && (
-                <Line 
-                  yAxisId="left"
-                  type="monotone" 
-                  dataKey="biologia" 
-                  name="Biologia & Genética" 
-                  stroke="#EC4899" 
-                  strokeWidth={chartSubjectView === 'biologia' ? 3 : 2}
-                  dot={{ r: 3, fill: '#EC4899' }}
-                  activeDot={{ r: 6 }}
-                />
-              )}
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* 4. DIAGNÓSTICO SINÁPTICO: SUGESTÕES INTELIGENTES DE ESTUDO */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300">
-              <Brain className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-display">
-                Roteiro de Reforço Recomendado (Baseado nos Erros)
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Tópicos ordenados pela necessidade de revisão para consolidar as sinapses fracas.
-              </p>
-            </div>
-          </div>
-
-          <span className="text-xs font-extrabold px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-            {studySuggestions.length} {studySuggestions.length === 1 ? 'tópico mapeado' : 'tópicos mapeados'}
-          </span>
-        </div>
-
-        {/* Lista de Cards de Sugestões de Estudo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {studySuggestions.slice(0, 6).map((sug, idx) => {
-            const isCritical = sug.priority === 'Crítico';
-            const isModerate = sug.priority === 'Moderado';
-
-            return (
-              <div
-                key={`${sug.subject}-${sug.topic}-${idx}`}
-                className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-3.5 relative overflow-hidden ${
-                  isCritical
-                    ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/60 shadow-xs'
-                    : isModerate
-                    ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/60'
-                    : 'bg-slate-50/80 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/80'
-                }`}
-              >
-                {/* Topo do Card de Sugestão */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700 truncate">
-                      {sug.subject}
-                    </span>
-
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md shrink-0 uppercase tracking-wider ${
-                      isCritical
-                        ? 'bg-rose-100 dark:bg-rose-900/80 text-rose-800 dark:text-rose-200 border border-rose-300/60 dark:border-rose-800'
-                        : isModerate
-                        ? 'bg-amber-100 dark:bg-amber-900/80 text-amber-800 dark:text-amber-200 border border-amber-300/60 dark:border-amber-800'
-                        : 'bg-blue-100 dark:bg-blue-900/80 text-blue-800 dark:text-blue-200'
-                    }`}>
-                      {sug.priority}
-                    </span>
+              <div className="relative z-10 mt-6 rounded-2xl bg-black/25 border border-white/10 p-4 sm:p-5 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-sm font-bold text-white">
+                    <Sparkles className="w-4 h-4 text-emerald-300" />
+                    Importar questões respondidas fora do app
                   </div>
-
-                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-white font-display">
-                    {sug.topic}
-                  </h4>
-
-                  <p className="text-xs text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                    <span>{sug.reason}</span>
-                  </p>
-
-                  <div className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium space-y-1">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 block">
-                      💡 Roteiro de Ação:
-                    </span>
-                    <p>{sug.recommendedAction}</p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setImportText(EXAMPLE_JSON)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold text-emerald-200 border border-white/10 transition-all cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Inserir exemplo
+                  </button>
                 </div>
 
-                {/* Botões de Ação do Card */}
-                <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800 flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('caderno')}
-                    className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
-                  >
-                    <BookOpen className="w-3.5 h-3.5" />
-                    <span>Abrir no Caderno</span>
-                  </button>
+                <textarea
+                  value={importText}
+                  onChange={(e) => setImportText(e.target.value)}
+                  rows={7}
+                  spellCheck={false}
+                  placeholder={'Cole aqui o JSON das questões, ex:\n[\n  { "disciplina": "Matemática", "conteudo": "Funções", "acertou": false }\n]'}
+                  className="w-full p-3 rounded-xl bg-white/95 text-slate-900 text-xs font-mono border border-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-y"
+                />
 
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Formato de cada item: <code className="text-emerald-300">{"disciplina"}</code>,{' '}
+                  <code className="text-emerald-300">{"conteudo"}</code> e{' '}
+                  <code className="text-emerald-300">{"acertou"}</code> (true/false). Apenas esses 3 dados são
+                  necessários — não precisa colar o enunciado.
+                </p>
+
+                {parsedPreview.errors.length > 0 && (
+                  <div className="rounded-xl bg-rose-500/20 border border-rose-400/40 p-3 text-xs text-rose-100 space-y-1">
+                    {parsedPreview.errors.slice(0, 5).map((err, i) => (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{err}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-xs font-bold text-slate-200">
+                    {parsedPreview.records.length > 0
+                      ? `${parsedPreview.records.length} questão(ões) válida(s) pronta(s) para importar`
+                      : 'Nenhuma questão válida detectada ainda'}
+                  </span>
                   <button
                     type="button"
-                    onClick={() => onStartFocusedPractice(sug.subject, sug.topic)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                    disabled={parsedPreview.records.length === 0 || importing}
+                    onClick={handleImport}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
                   >
-                    <Zap className="w-3.5 h-3.5" />
-                    <span>Treinar Este Tópico</span>
+                    <FileUp className="w-4 h-4" />
+                    {importing ? 'Importando…' : `Importar ${parsedPreview.records.length || ''} questões`}
                   </button>
                 </div>
               </div>
-            );
-          })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* ============================ KPI CARDS ============================ */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+            <Target className="w-3.5 h-3.5" />
+            Questões Respondidas
+          </div>
+          <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-display">
+            {totalAnswered}
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+            <TrendingUp className="w-3.5 h-3.5" />
+            Taxa de Acerto
+          </div>
+          <div className={`mt-2 text-2xl sm:text-3xl font-extrabold font-display ${
+            accuracyPercentage >= 70 ? 'text-emerald-500' : accuracyPercentage >= 50 ? 'text-amber-500' : 'text-rose-500'
+          }`}>
+            {accuracyPercentage}%
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Acertos
+          </div>
+          <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 font-display">
+            {totalCorrect}
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+            <XCircle className="w-3.5 h-3.5" />
+            Erros
+          </div>
+          <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-rose-600 dark:text-rose-400 font-display">
+            {totalWrong}
+          </div>
         </div>
       </div>
 
-      {/* 4. DESEMPENHO POR MATÉRIA & SUB-TÓPICOS */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-cyan-100 dark:bg-cyan-950/80 text-cyan-700 dark:text-cyan-300">
-              <Layers className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-display">
-                Mapeamento por Disciplinas
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Taxa de acerto e retenção separada por área do conhecimento.
-              </p>
-            </div>
+      {/* ============================ CURVA DE ACERTO ============================ */}
+      <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white font-display">Curva de acerto</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Evolução da sua taxa de acerto ao longo das questões.</p>
           </div>
+          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300">
+            Acurácia: {accuracyPercentage}%
+          </span>
         </div>
 
-        {Object.keys(analytics.subjectStats).length === 0 ? (
-          <div className="text-center py-8 space-y-2">
-            <HelpCircle className="w-8 h-8 text-slate-400 mx-auto" />
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Jogue algumas partidas no Centro de Treino para gerar o gráfico detalhado por matéria.
-            </p>
+        {curveData.length > 1 ? (
+          <div className="h-52 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={curveData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(120,120,140,0.15)" />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  tickLine={false}
+                  axisLine={false}
+                  unit="%"
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: '#0f172a',
+                    border: '1px solid #334155',
+                    borderRadius: 12,
+                    fontSize: 12
+                  }}
+                  labelStyle={{ color: '#cbd5e1' }}
+                  formatter={(value: number) => [`${value}%`, 'Acerto']}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="accuracy"
+                  stroke="#10b981"
+                  strokeWidth={3}
+                  dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         ) : (
-          <div className="space-y-3">
-            {(Object.entries(analytics.subjectStats) as [string, { answered: number; correct: number; wrong: number; topics: Record<string, { answered: number; correct: number; wrong: number }> }][]).map(([subject, stats]) => {
-              const subAccuracy = stats.answered > 0 ? Math.round((stats.correct / stats.answered) * 100) : 0;
-              const isExpanded = expandedTopicSubject === subject;
-
-              return (
-                <div
-                  key={subject}
-                  className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 overflow-hidden"
-                >
-                  <div
-                    onClick={() => setExpandedTopicSubject(isExpanded ? null : subject)}
-                    className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-extrabold text-slate-900 dark:text-white font-display">
-                          {subject}
-                        </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
-                          {stats.answered} {stats.answered === 1 ? 'questão' : 'questões'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <span className="text-emerald-600 font-bold">{stats.correct} acertos</span>
-                        <span>•</span>
-                        <span className="text-rose-500 font-bold">{stats.wrong} erros</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      {/* Barra de Progresso */}
-                      <div className="w-32 sm:w-44 space-y-1">
-                        <div className="flex items-center justify-between text-[11px] font-extrabold">
-                          <span className="text-slate-500">Maestria</span>
-                          <span className={subAccuracy >= 70 ? 'text-emerald-600' : subAccuracy >= 50 ? 'text-amber-500' : 'text-rose-500'}>
-                            {subAccuracy}%
-                          </span>
-                        </div>
-                        <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              subAccuracy >= 70 ? 'bg-emerald-500' : subAccuracy >= 50 ? 'bg-amber-500' : 'bg-rose-500'
-                            }`}
-                            style={{ width: `${subAccuracy}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="p-1 rounded-lg text-slate-400">
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Subtópicos Acordeão */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="px-4 pb-4 pt-1 border-t border-slate-200/60 dark:border-slate-800 space-y-2 bg-white/70 dark:bg-slate-900/70"
-                      >
-                        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mt-2">
-                          Detalhamento de Tópicos:
-                        </span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {(Object.entries(stats.topics || {}) as [string, { answered: number; correct: number; wrong: number }][]).map(([tName, tStats]) => {
-                            const tAcc = tStats.answered > 0 ? Math.round((tStats.correct / tStats.answered) * 100) : 0;
-                            return (
-                              <div
-                                key={tName}
-                                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 flex items-center justify-between text-xs"
-                              >
-                                <span className="font-medium text-slate-800 dark:text-slate-200 truncate pr-2">
-                                  {tName}
-                                </span>
-                                <div className="flex items-center gap-2 shrink-0">
-                                  <span className={`font-bold font-mono ${tAcc >= 70 ? 'text-emerald-500' : tAcc >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>
-                                    {tAcc}% ({tStats.correct}/{tStats.answered})
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onStartFocusedPractice(subject, tName);
-                                    }}
-                                    className="p-1 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-950/50 rounded-lg cursor-pointer"
-                                    title="Treinar este tópico"
-                                  >
-                                    <Zap className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
+          <div className="py-14 text-center text-xs text-slate-400 dark:text-slate-500">
+            Responda ou importe questões para ver sua curva de acerto aparecer aqui.
           </div>
         )}
       </div>
 
-      {/* 5. HISTÓRICO DE QUESTÕES RECENTES COM EXPLICAÇÃO COMPLETA */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+      {/* ============================ O QUE PRECISO MELHORAR ============================ */}
+      <div className="rounded-3xl bg-gradient-to-r from-rose-950/30 via-slate-900 to-rose-950/30 dark:from-rose-950/40 dark:via-slate-900 dark:to-rose-950/40 border border-rose-500/20 p-5 sm:p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Lightbulb className="w-4 h-4 text-amber-400" />
+          <h3 className="text-sm font-extrabold text-white font-display">O que preciso melhorar</h3>
+        </div>
+
+        {toImprove.length === 0 ? (
+          <div className="py-8 text-center text-xs text-slate-300">
+            Nenhum conteúdo com erros registrado ainda. Continue praticando!
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {toImprove.map((c, idx) => (
+              <div
+                key={`${c.subject}::${c.topic}`}
+                className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white/5 border border-white/10"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-slate-400 font-mono shrink-0">{idx + 1}.</span>
+                    <span className="font-bold text-white truncate">{c.topic}</span>
+                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-300 truncate">{c.subject}</span>
+                  </div>
+                  <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-300">
+                    <span className="text-rose-400 font-bold">{c.wrong} erro(s)</span>
+                    <span>/</span>
+                    <span className="text-emerald-400">{c.correct} acerto(s)</span>
+                    <span>• {Math.round(c.errorRate * 100)}% de erro</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onStartFocusedPractice(c.subject, c.topic)}
+                  className="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all cursor-pointer"
+                >
+                  Treinar
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ============================ CONTEÚDOS QUE ERRO / ACERTO ============================ */}
+      <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-display">
-              Registro Detalhado de Questões
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Inspecione o raciocínio e gabarito de cada questão respondida nas suas sessões.
-            </p>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white font-display">Conteúdos por desempenho</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Ranking dos conteúdos que você mais erra e mais acerta.</p>
           </div>
 
-          {/* Filtro: Todas / Apenas Erros / Apenas Acertos */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => setActiveFilter('wrong')}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                activeFilter === 'wrong'
-                  ? 'bg-rose-500 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              ❌ Apenas Erros ({analytics.recentQuestionsLog.filter(q => !q.isCorrect).length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFilter('correct')}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                activeFilter === 'correct'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              ✓ Apenas Acertos ({analytics.recentQuestionsLog.filter(q => q.isCorrect).length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFilter('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                activeFilter === 'all'
-                  ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              Todas ({analytics.recentQuestionsLog.length})
-            </button>
+          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+            {([
+              ['wrong', 'Que erro'],
+              ['correct', 'Que acerto'],
+              ['all', 'Todas as questões']
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setActiveFilter(key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeFilter === key
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
+        </div>
+
+        {/* Listas de conteúdo */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/70 dark:border-rose-900/50 p-4">
+            <div className="flex items-center gap-2 mb-3 text-xs font-extrabold text-rose-700 dark:text-rose-300">
+              <XCircle className="w-4 h-4" />
+              Conteúdos que erro
+            </div>
+            {wrongContents.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-400">Nenhum erro registrado ainda. 🎉</div>
+            ) : (
+              <div className="space-y-2">
+                {wrongContents.map((c) => (
+                  <div key={`${c.subject}::${c.topic}`} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/50">
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{c.topic}</div>
+                      <div className="text-[10px] text-slate-500 truncate">{c.subject}</div>
+                    </div>
+                    <span className="shrink-0 text-[11px] font-black text-rose-500">{c.wrong} erros</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/70 dark:border-emerald-900/50 p-4">
+            <div className="flex items-center gap-2 mb-3 text-xs font-extrabold text-emerald-700 dark:text-emerald-300">
+              <CheckCircle2 className="w-4 h-4" />
+              Conteúdos que acerto
+            </div>
+            {rightContents.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-400">Nenhum acerto registrado ainda.</div>
+            ) : (
+              <div className="space-y-2">
+                {rightContents.map((c) => (
+                  <div key={`${c.subject}::${c.topic}`} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/50">
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{c.topic}</div>
+                      <div className="text-[10px] text-slate-500 truncate">{c.subject}</div>
+                    </div>
+                    <span className="shrink-0 text-[11px] font-black text-emerald-500">{c.correct} acertos</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ============================ HISTÓRICO DE QUESTÕES ============================ */}
+      <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-5 sm:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white font-display">Últimas questões</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {activeFilter === 'wrong' ? 'Mostrando apenas os erros' : activeFilter === 'correct' ? 'Mostrando apenas os acertos' : 'Mostrando todas as questões'}
+            </p>
+          </div>
+          <BookOpen className="w-5 h-5 text-slate-400" />
         </div>
 
         {filteredQuestions.length === 0 ? (
           <div className="text-center py-10 space-y-2">
-            <CheckCircle2 className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
+            {activeFilter === 'wrong' ? (
+              <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
+            ) : (
+              <BookOpen className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
+            )}
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Nenhuma questão encontrada com o filtro selecionado.
+              {activeFilter === 'wrong'
+                ? 'Nenhum erro encontrado. Excelente!'
+                : activeFilter === 'correct'
+                ? 'Nenhum acerto encontrado com o filtro selecionado.'
+                : 'Nenhuma questão registrada ainda.'}
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {filteredQuestions.map((item) => {
-              const isExpanded = expandedQuestionId === item.id;
-              const correctOpt = item.question.options.find(o => o.isCorrect);
-              const userOpt = item.question.options.find(o => o.id === item.selectedOptionId);
-
-              return (
-                <div
-                  key={item.id}
-                  className={`p-4 rounded-2xl border transition-all ${
-                    item.isCorrect
-                      ? 'bg-slate-50/60 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/80'
-                      : 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/60'
-                  }`}
-                >
-                  <div
-                    onClick={() => setExpandedQuestionId(isExpanded ? null : item.id)}
-                    className="flex items-start justify-between gap-3 cursor-pointer"
-                  >
-                    <div className="space-y-1.5 flex-1">
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className={`font-black px-2 py-0.5 rounded-md ${
-                          item.isCorrect
-                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                            : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
-                        }`}>
-                          {item.isCorrect ? '✓ Acerto' : '❌ Erro'}
-                        </span>
-
-                        <span className="font-bold text-slate-700 dark:text-slate-300">
-                          {item.question.subject}
-                        </span>
-                        <span className="text-slate-400">•</span>
-                        <span className="text-slate-500">{item.question.topic}</span>
-                        <span className="text-slate-400">•</span>
-                        <span className="text-[10px] text-slate-400 font-mono">{item.date}</span>
-                      </div>
-
-                      <p className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 line-clamp-2">
-                        {item.question.statement}
-                      </p>
-                    </div>
-
-                    <div className="p-1 rounded-lg text-slate-400 shrink-0">
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </div>
+          <div className="space-y-2">
+            {filteredQuestions.map((item) => (
+              <div
+                key={item.id}
+                className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${
+                  item.isCorrect
+                    ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-900/50'
+                    : 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200/60 dark:border-rose-900/50'
+                }`}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className={`font-bold px-2 py-0.5 rounded-md text-[10px] ${
+                      item.isCorrect
+                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                        : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
+                    }`}>
+                      {item.isCorrect ? '✓ Acerto' : '✗ Erro'}
+                    </span>
+                    <span className="font-bold text-slate-700 dark:text-slate-300 truncate">{item.question?.topic || 'Conceitos Gerais'}</span>
+                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-500 truncate">{item.question?.subject || 'Geral'}</span>
+                    <span className="text-[10px] text-slate-400 font-mono ml-auto shrink-0">{item.date}</span>
                   </div>
-
-                  {/* Detalhes Expandidos da Questão */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="pt-4 mt-3 border-t border-slate-200/80 dark:border-slate-800 space-y-3 text-xs"
-                      >
-                        {/* Opções e Gabarito */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          <div className={`p-3 rounded-xl border ${
-                            item.isCorrect
-                              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 text-emerald-900 dark:text-emerald-200'
-                              : 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 text-rose-900 dark:text-rose-200'
-                          }`}>
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider block mb-1">
-                              Sua Escolha: ({item.selectedOptionId})
-                            </span>
-                            <p className="font-medium">{userOpt?.text || 'Nenhuma opção marcada'}</p>
-                          </div>
-
-                          <div className="p-3 rounded-xl border bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-400/50 text-emerald-900 dark:text-emerald-200">
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider block mb-1 text-emerald-700 dark:text-emerald-400">
-                              Gabarito Oficial: ({correctOpt?.id})
-                            </span>
-                            <p className="font-medium">{correctOpt?.text}</p>
-                          </div>
-                        </div>
-
-                        {/* Explicação & Dica */}
-                        {correctOpt?.explanation && (
-                          <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                            <strong className="text-slate-900 dark:text-white block mb-1">Resolução Comentada:</strong>
-                            {correctOpt.explanation}
-                          </div>
-                        )}
-
-                        {item.question.aiHint && (
-                          <div className="p-3 rounded-xl bg-purple-50/80 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-200 leading-relaxed font-medium flex items-start gap-2">
-                            <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                            <div>
-                              <strong className="block mb-0.5">Dica Sináptica:</strong>
-                              {item.question.aiHint}
-                            </div>
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Rodapé de Reset de Estatísticas */}
+      {/* ============================ RODAPÉ / RESET ============================ */}
       <div className="flex items-center justify-between text-xs text-slate-500 pt-2 px-1">
-        <span>Dados armazenados localmente e sincronizados em cada partida.</span>
+        <span>Dados sincronizados por usuário (Supabase) com backup local.</span>
         <button
           type="button"
           onClick={() => {
-            if (confirm('Deseja realmente redefinir todas as estatísticas de desempenho?')) {
+            if (confirm('Deseja realmente redefinir todas as estatísticas de desempenho e conteúdos importados?')) {
               onResetAnalytics();
             }
           }}
-          className="text-slate-400 hover:text-rose-500 font-bold transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-slate-400 hover:text-rose-500 font-bold transition-colors cursor-pointer"
         >
+          <RotateCcw className="w-3.5 h-3.5" />
           Redefinir Estatísticas
         </button>
       </div>

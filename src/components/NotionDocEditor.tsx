@@ -25,7 +25,7 @@ import {
   Clock,
   FileText,
   Layers,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react';
 import { DocSection, GlossaryDefinition } from '../data/disciplinesData';
 import { NotionToolbar, FormattingState } from './NotionToolbar';
@@ -345,10 +345,19 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   // Refs for focusing
   const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
   const typingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const imageResizeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const imageDragRef = useRef<{
+    blockIdx: number;
+    pointerId: number;
+    startX: number;
+    startPct: number;
+    containerWidth: number;
+  } | null>(null);
 
   useEffect(() => {
     return () => {
       if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
+      if (imageResizeDebounceRef.current) clearTimeout(imageResizeDebounceRef.current);
     };
   }, []);
 
@@ -982,6 +991,16 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     if (e.button !== 0) return;
     const t = e.target as HTMLElement;
 
+    // Imagens: interações sobre o corpo/controles da imagem NUNCA disparam marquee ou
+    // reordenação de bloco (evita fantasma do navegador e movimentos acidentais).
+    // Para mover a imagem use a alcinha da esquerda do bloco (segurador) ou Ctrl+clique + arraste de outro bloco.
+    if (t.closest(
+      '[data-block-type="image"] img, ' +
+      '[data-block-type="image"] .image-resize-handle, ' +
+      '[data-block-type="image"] .image-resize-controls, ' +
+      '[data-block-type="image"] .img-error-fallback'
+    )) return;
+
     // Se começar sobre um bloco JÁ selecionado e houver seleção => arrastar para mover
     const blockEl = t.closest('[data-block-id]') as HTMLElement | null;
     const blockId = blockEl?.getAttribute('data-block-id') || '';
@@ -1164,6 +1183,72 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     };
     pushToHistory(updated);
   };
+  // Live resize preview + single debounced undo entry
+  const handleImageResize = (blockIdx: number, size: number) => {
+    const clamped = Math.min(100, Math.max(10, size));
+    const updated = [...sections];
+    updated[blockIdx] = { ...updated[blockIdx], imageSize: clamped };
+    onUpdateSections(updated);
+    if (imageResizeDebounceRef.current) clearTimeout(imageResizeDebounceRef.current);
+    imageResizeDebounceRef.current = setTimeout(() => pushToHistory(updated), 600);
+  };
+
+  // Drag-to-resize (like Word): grab the corner handle and pull sideways
+  const handleImageResizePointerDown = (e: React.PointerEvent<HTMLSpanElement>, blockIdx: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const container = blockListRef.current;
+    if (!container) return;
+    const current = sections[blockIdx];
+    imageDragRef.current = {
+      blockIdx,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startPct: current?.imageSize ?? 100,
+      containerWidth: container.clientWidth,
+    };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handleImageResizePointerMove = (e: React.PointerEvent<HTMLSpanElement>) => {
+    const drag = imageDragRef.current;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    e.preventDefault();
+    const dx = e.clientX - drag.startX;
+    const newPct = Math.round(drag.startPct + (dx / drag.containerWidth) * 100);
+    handleImageResize(drag.blockIdx, newPct);
+  };
+
+  const finishImageResizeDrag = (e: React.PointerEvent<HTMLSpanElement>) => {
+    const drag = imageDragRef.current;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    e.preventDefault();
+    if (imageResizeDebounceRef.current) clearTimeout(imageResizeDebounceRef.current);
+    const dx = e.clientX - drag.startX;
+    const clamped = Math.min(100, Math.max(10, Math.round(drag.startPct + (dx / drag.containerWidth) * 100)));
+    const updated = [...sections];
+    updated[drag.blockIdx] = { ...updated[drag.blockIdx], imageSize: clamped };
+    onUpdateSections(updated);
+    pushToHistory(updated);
+    imageDragRef.current = null;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const cancelImageResizeDrag = (e: React.PointerEvent<HTMLSpanElement>) => {
+    if (!imageDragRef.current || imageDragRef.current.pointerId !== e.pointerId) return;
+    imageDragRef.current = null;
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      /* ignore */
+    }
+  };
 
   // Dynamic real-time word counter and statistics
   const totalStats = useMemo(() => {
@@ -1276,11 +1361,14 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
             }
           }
 
+          const imagePct = section.type === 'image' ? (section.imageSize ?? 100) : 100;
+
           return (
             <motion.div
               key={section.id || idx}
               id={`doc-block-${idx}`}
               data-block-id={section.id}
+              data-block-type={section.type || 'paragraph'}
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.15 }}
@@ -1731,84 +1819,122 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
                 {/* 12. LINHA DIVISÓRIA (DIVIDER) */}
                 {section.type === 'divider' && (
-                  <div className="my-4 py-2 flex items-center justify-center">
+                  <div className="my-4 py-2 flex items-center justify-center clear-both">
                     <div className="w-full h-px bg-slate-200 dark:border-slate-800 dark:bg-slate-800" />
                   </div>
                 )}
 
                 {/* 13. IMAGEM POR URL */}
                 {section.type === 'image' && (
-                  <div className={`my-4 w-full flex flex-col ${
-                    section.align === 'center' ? 'items-center' : section.align === 'right' ? 'items-end' : 'items-start'
-                  }`}>
+                  <div className="my-4 w-full">
                     {section.imageUrl ? (
-                      <div className="relative group/img max-w-full rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm bg-slate-50 dark:bg-slate-900/50">
-                        <img
-                          src={section.imageUrl}
-                          alt={section.imageCaption || section.imageAlt || 'Imagem do documento'}
-                          className="max-h-[460px] w-auto max-w-full object-contain rounded-2xl transition-transform hover:scale-[1.005]"
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            target.style.display = 'none';
-                            const fallback = target.parentElement?.querySelector('.img-error-fallback') as HTMLElement;
-                            if (fallback) fallback.style.display = 'flex';
-                          }}
-                        />
+                      <figure
+                        className="relative group/img max-w-full"
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
+                        data-block-type="image"
+                        style={{
+                          width: `${imagePct}%`,
+                          ...(section.align === 'center'
+                            ? { marginLeft: 'auto', marginRight: 'auto' }
+                            : section.align === 'right'
+                              ? { marginLeft: 'auto', marginRight: 0 }
+                              : {}),
+                        }}
+                      >
+                        <div className="w-full rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm bg-slate-50 dark:bg-slate-900/50">
+                          <img
+                            src={section.imageUrl}
+                            alt={section.imageCaption || section.imageAlt || 'Imagem do documento'}
+                            draggable={false}
+                            onDragStart={(e) => e.preventDefault()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            className="w-auto max-w-full object-contain rounded-2xl select-none"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              target.style.display = 'none';
+                              const fallback = target.parentElement?.querySelector('.img-error-fallback') as HTMLElement;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
 
-                        {/* Fallback de Erro de URL */}
-                        <div className="img-error-fallback hidden p-6 flex-col items-center justify-center gap-2 text-center text-red-500 bg-red-50/50 dark:bg-red-950/20">
-                          <AlertTriangle className="w-6 h-6 text-red-500" />
-                          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Não foi possível carregar a imagem do link fornecido.</p>
-                          <span className="text-[11px] text-slate-400 font-mono break-all max-w-sm">{section.imageUrl}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newUrl = prompt('Atualizar link da imagem (URL):', section.imageUrl);
-                              if (newUrl !== null) {
-                                handleUpdateImageBlock(idx, newUrl.trim(), section.imageCaption);
-                              }
-                            }}
-                            className="mt-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors shadow-2xs"
-                          >
-                            Editar Link da Imagem
-                          </button>
-                        </div>
+                          {/* Fallback de Erro de URL */}
+                          <div className="img-error-fallback hidden p-6 flex-col items-center justify-center gap-2 text-center text-red-500 bg-red-50/50 dark:bg-red-950/20">
+                            <AlertTriangle className="w-6 h-6 text-red-500" />
+                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Não foi possível carregar a imagem do link fornecido.</p>
+                            <span className="text-[11px] text-slate-400 font-mono break-all max-w-sm">{section.imageUrl}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newUrl = prompt('Atualizar link da imagem (URL):', section.imageUrl);
+                                if (newUrl !== null) {
+                                  handleUpdateImageBlock(idx, newUrl.trim(), section.imageCaption);
+                                }
+                              }}
+                              className="mt-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors shadow-2xs"
+                            >
+                              Editar Link da Imagem
+                            </button>
+                          </div>
 
-                        {/* Controles Flutuantes da Imagem ao passar o mouse */}
-                        <div className="absolute top-2 right-2 opacity-0 group-hover/img:opacity-100 transition-opacity bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl p-1 flex items-center gap-1 shadow-lg z-10">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newUrl = prompt('Alterar URL da imagem:', section.imageUrl);
-                              if (newUrl !== null && newUrl.trim()) {
-                                handleUpdateImageBlock(idx, newUrl.trim(), section.imageCaption);
-                              }
-                            }}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                            title="Alterar URL da Imagem"
+                          {/* Controles Flutuantes da Imagem ao passar o mouse */}
+                          <div className="absolute top-2 right-2 opacity-0 group-hover/img:opacity-100 transition-opacity bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl p-1 flex items-center gap-1 shadow-lg z-10">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newUrl = prompt('Alterar URL da imagem:', section.imageUrl);
+                                if (newUrl !== null && newUrl.trim()) {
+                                  handleUpdateImageBlock(idx, newUrl.trim(), section.imageCaption);
+                                }
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                              title="Alterar URL da Imagem"
+                            >
+                              <Link className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                window.open(section.imageUrl, '_blank');
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                              title="Abrir imagem original"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteBlock(idx)}
+                              className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 text-red-500 transition-colors cursor-pointer"
+                              title="Remover Imagem"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          {/* Alça de redimensionar (arrastar como no Word) */}
+                          <span
+                            role="slider"
+                            aria-label="Redimensionar imagem arrastando"
+                            aria-valuemin={10}
+                            aria-valuemax={100}
+                            aria-valuenow={imagePct}
+                            onPointerDown={(e) => handleImageResizePointerDown(e, idx)}
+                            onPointerMove={handleImageResizePointerMove}
+                            onPointerUp={finishImageResizeDrag}
+                            onPointerCancel={cancelImageResizeDrag}
+                            onLostPointerCapture={cancelImageResizeDrag}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            className={`image-resize-handle absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-white dark:bg-slate-800 border border-pink-400/80 shadow-md cursor-nwse-resize touch-none select-none flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity z-10 ${
+                              isFocused || isHovered ? 'opacity-100' : ''
+                            }`}
+                            title="Arraste para aumentar ou diminuir a imagem"
                           >
-                            <Link className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              window.open(section.imageUrl, '_blank');
-                            }}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                            title="Abrir imagem original"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteBlock(idx)}
-                            className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 text-red-500 transition-colors cursor-pointer"
-                            title="Remover Imagem"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                            <span className="w-2.5 h-2.5 rounded-[3px] border-b-2 border-r-2 border-pink-500 pointer-events-none" />
+                          </span>
                         </div>
-                      </div>
+                      </figure>
                     ) : (
                       /* Card Inline para Inserir URL quando vazio */
                       <div className="w-full p-4 border-2 border-dashed border-pink-300/80 dark:border-pink-900/60 rounded-2xl bg-pink-50/40 dark:bg-pink-950/20 flex flex-col gap-2.5">
@@ -1844,22 +1970,6 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         </div>
                       </div>
                     )}
-
-                    {/* Legenda Editável da Imagem */}
-                    <div className="w-full max-w-xl mt-1.5 px-2">
-                      <TextEditable
-                        inputRef={el => (blockRefs.current[idx] = el)}
-                        value={{ ...section, content: section.imageCaption || section.content, contentHtml: section.imageCaption ? escapeHtml(section.imageCaption) : undefined }}
-                        placeholder="Escreva uma legenda ou fonte para a imagem..."
-                        onChange={(text, html) => {
-                          const updated = [...sections];
-                          updated[idx] = { ...updated[idx], imageCaption: text, content: text, contentHtml: html };
-                          pushToHistory(updated);
-                        }}
-                        onFocus={() => setActiveBlockIndex(idx)}
-                        className="text-center text-xs text-slate-500 dark:text-slate-400 italic"
-                      />
-                    </div>
                   </div>
                 )}
 

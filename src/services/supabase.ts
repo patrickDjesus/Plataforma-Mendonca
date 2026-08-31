@@ -183,14 +183,11 @@ export const signInWithGoogle = async (): Promise<void> => {
 };
 
 export const signInWithEmail = async (email: string, password?: string) => {
-  if (isSupabaseConfigured && password) {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      return data.user;
-    } catch (error) {
-      console.warn('Login Email Supabase falhou, usando fallback local:', error);
-    }
+  if (isSupabaseConfigured) {
+    if (!password) throw new Error('Senha obrigatória.');
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data.user;
   }
 
   const existingLocal = getLocalUser();
@@ -211,19 +208,21 @@ export const signInWithEmail = async (email: string, password?: string) => {
   return user;
 };
 
-export const signUpWithEmail = async (email: string, password?: string, displayName?: string) => {
-  if (isSupabaseConfigured && password) {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { display_name: displayName } },
-      });
-      if (error) throw error;
-      return data.user;
-    } catch (error) {
-      console.warn('SignUp Email Supabase falhou, usando fallback local:', error);
-    }
+export const signUpWithEmail = async (
+  email: string,
+  password?: string,
+  displayName?: string
+): Promise<{ user: User | null; session: Session | null }> => {
+  if (isSupabaseConfigured) {
+    if (!password) throw new Error('Senha obrigatória.');
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { display_name: displayName } },
+    });
+    if (error) throw error;
+    // Com "Confirm email" habilitado, o Supabase devolve user sem session.
+    return { user: data.user, session: data.session };
   }
 
   const user = createMockUser(email, displayName);
@@ -237,7 +236,7 @@ export const signUpWithEmail = async (email: string, password?: string, displayN
     user,
   };
   notifyAuthChange('SIGNED_IN', mockSession);
-  return user;
+  return { user, session: mockSession };
 };
 
 export const logout = async (): Promise<void> => {
@@ -649,6 +648,118 @@ export const recordQuestionAnswer = async (
   return newAnalytics;
 };
 
+// Merges a batch of user-reported answers (e.g. imported from a JSON list) into
+// the same per-user analytics structure used by the in-app game. Each record
+// only carries subject + topic + whether the user got it right (no full question).
+export const mergeImportedQuestions = async (
+  userId: string,
+  prevAnalytics: PerformanceAnalytics,
+  records: { subject: string; topic: string; isCorrect: boolean }[]
+): Promise<PerformanceAnalytics> => {
+  if (!records || records.length === 0) return prevAnalytics;
+
+  const base = prevAnalytics || {
+    totalAnswered: 0,
+    totalCorrect: 0,
+    totalWrong: 0,
+    totalXpEarned: 0,
+    bestStreakCombo: 1,
+    totalSecondsPlayed: 0,
+    subjectStats: {},
+    recentQuestionsLog: [],
+    sessionsHistory: [],
+  };
+
+  let totalAnswered = base.totalAnswered || 0;
+  let totalCorrect = base.totalCorrect || 0;
+  let totalWrong = base.totalWrong || 0;
+  const subjectStats: PerformanceAnalytics['subjectStats'] = JSON.parse(JSON.stringify(base.subjectStats || {}));
+  const logEntries: PerformanceAnalytics['recentQuestionsLog'] = [];
+
+  const now = new Date();
+  const dateStr = `Hoje as ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+  records.forEach((record, i) => {
+    const subject = record.subject || 'Geral';
+    const topic = record.topic || 'Conceitos Gerais';
+    const isCorrect = !!record.isCorrect;
+
+    const existingSub = subjectStats[subject];
+    const existingTop = existingSub?.topics?.[topic] || { answered: 0, correct: 0, wrong: 0 };
+
+    subjectStats[subject] = existingSub
+      ? {
+          ...existingSub,
+          answered: existingSub.answered + 1,
+          correct: existingSub.correct + (isCorrect ? 1 : 0),
+          wrong: existingSub.wrong + (isCorrect ? 0 : 1),
+          topics: {
+            ...existingSub.topics,
+            [topic]: {
+              answered: existingTop.answered + 1,
+              correct: existingTop.correct + (isCorrect ? 1 : 0),
+              wrong: existingTop.wrong + (isCorrect ? 0 : 1),
+            },
+          },
+        }
+      : {
+          answered: 1,
+          correct: isCorrect ? 1 : 0,
+          wrong: isCorrect ? 0 : 1,
+          topics: {
+            [topic]: {
+              answered: 1,
+              correct: isCorrect ? 1 : 0,
+              wrong: isCorrect ? 0 : 1,
+            },
+          },
+        };
+
+    totalAnswered += 1;
+    if (isCorrect) totalCorrect += 1;
+    else totalWrong += 1;
+
+    logEntries.push({
+      id: `import-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 6)}`,
+      date: dateStr,
+      question: {
+        id: Date.now() + i,
+        subject,
+        topic,
+        difficulty: 'Médio',
+        statement: `[Importado] Questão de ${subject} — ${topic}`,
+        options: [
+          { id: 'A', text: 'Opção A', isCorrect, explanation: '' },
+          { id: 'B', text: 'Opção B', isCorrect: false, explanation: '' },
+        ],
+        aiHint: '',
+      } as PerformanceAnalytics['recentQuestionsLog'][number]['question'],
+      selectedOptionId: isCorrect ? 'A' : 'B',
+      isCorrect,
+    });
+  });
+
+  const newAnalytics: PerformanceAnalytics = {
+    ...base,
+    totalAnswered,
+    totalCorrect,
+    totalWrong,
+    subjectStats,
+    recentQuestionsLog: [...logEntries, ...(base.recentQuestionsLog || [])].slice(0, 60),
+    sessionsHistory: base.sessionsHistory || [],
+  };
+
+  if (userId) {
+    try {
+      await saveUserPerformance(userId, newAnalytics);
+    } catch (err) {
+      console.warn('Erro ao persistir import no Supabase:', err);
+    }
+  }
+
+  return newAnalytics;
+};
+
 export const recordSessionCompleted = async (
   userId: string,
   session: PerformanceSessionHistory,
@@ -710,63 +821,6 @@ export const resetUserPerformance = async (userId: string): Promise<PerformanceA
 // 3. LEADERBOARD (Ranking Global Competitivo)
 // ============================================================================
 
-const DEFAULT_LEADERBOARD: LeaderboardUser[] = [
-  {
-    id: 'user-top-1',
-    rank: 1,
-    name: 'Ana Beatriz Souza',
-    handle: '@anabeatriz',
-    avatarBg: 'from-amber-400 to-orange-500',
-    avatarEmoji: '👑',
-    schoolOrGoal: 'Medicina USP / UNICAMP',
-    score: 8450,
-    weeklyXp: 2150,
-    streakDays: 42,
-    accuracy: 94,
-    totalQuestions: 480,
-    league: 'Diamante',
-    status: 'online',
-    favoriteSubject: 'Biologia Celular',
-    enduranceRecordSecs: 480,
-  },
-  {
-    id: 'user-top-2',
-    rank: 2,
-    name: 'Lucas Mendonça',
-    handle: '@lucasmendonca',
-    avatarBg: 'from-blue-500 to-indigo-600',
-    avatarEmoji: '⚡',
-    schoolOrGoal: 'Engenharia Aeronáutica ITA',
-    score: 7920,
-    weeklyXp: 1820,
-    streakDays: 28,
-    accuracy: 91,
-    totalQuestions: 410,
-    league: 'Diamante',
-    status: 'jogando',
-    favoriteSubject: 'Física Clássica',
-    enduranceRecordSecs: 420,
-  },
-  {
-    id: 'user-top-3',
-    rank: 3,
-    name: 'Mariana Lima',
-    handle: '@mari_lima',
-    avatarBg: 'from-emerald-400 to-teal-600',
-    avatarEmoji: '🔥',
-    schoolOrGoal: 'Direito SanFran USP',
-    score: 7200,
-    weeklyXp: 1650,
-    streakDays: 21,
-    accuracy: 89,
-    totalQuestions: 350,
-    league: 'Ouro',
-    status: 'online',
-    favoriteSubject: 'História Geral',
-    enduranceRecordSecs: 360,
-  }
-];
-
 const mapLeaderboardRow = (row: any, index: number): LeaderboardUser => ({
   id: row.user_id || `row-${index}`,
   rank: index + 1,
@@ -813,7 +867,7 @@ export const getLeaderboard = async (): Promise<LeaderboardUser[]> => {
     // ignore
   }
 
-  return DEFAULT_LEADERBOARD;
+  return [];
 };
 
 export const subscribeToLeaderboard = (callback: (users: LeaderboardUser[]) => void): (() => void) => {

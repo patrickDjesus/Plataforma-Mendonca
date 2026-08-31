@@ -44,10 +44,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
       .toUpperCase() || 'EM';
 
     try {
-      if (authMode === 'login') {
-        await loginWithEmail(email.trim(), password);
-      } else {
-        await registerWithEmail(userName, email.trim(), password);
+      const success = authMode === 'login'
+        ? await loginWithEmail(email.trim(), password)
+        : await registerWithEmail(userName, email.trim(), password);
+
+      if (!success) {
+        setAuthError('Quase lá! Enviamos um link de confirmação para o seu e-mail. Verifique sua caixa de entrada e, depois de confirmar, faça login.');
+        return;
       }
 
       onLoginSuccess({

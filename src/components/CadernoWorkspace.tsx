@@ -37,6 +37,7 @@ import {
   BookmarkPlus,
   MousePointer2,
   Smile,
+  Play,
   X
 } from 'lucide-react';
 import { CreateDocModal } from './CreateDocModal';
@@ -45,6 +46,8 @@ import { DocInsightSidebar } from './DocInsightSidebar';
 import { DocAiChatDrawer } from './DocAiChatDrawer';
 import { NotionDocEditor } from './NotionDocEditor';
 import { EmojiQuickPicker } from './EmojiQuickPicker';
+import { CorpoHumanoSimulator } from '../corpoHumano/CorpoHumanoSimulator';
+import { SIMULATOR_DOC_ID, simulatorDoc } from '../corpoHumano/simulatorDoc';
 
 interface CadernoWorkspaceProps {
   onNavigate?: (screen: ScreenId) => void;
@@ -76,10 +79,18 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
           prev.map(d => {
             const userDocs = docs.filter(doc => doc.disciplineId === d.id);
             if (userDocs.length === 0) return d;
+
+            // Sempre preserva o card do simulador de Biologia na lista,
+            // mesmo quando o usuário carrega seus próprios documentos.
+            let documents = userDocs.map(doc => ({ ...doc, disciplineId: d.id }));
+            if (d.id === 'biologia' && !documents.some(doc => doc.id === SIMULATOR_DOC_ID)) {
+              documents = [simulatorDoc, ...documents];
+            }
+
             return {
               ...d,
-              docCount: userDocs.length,
-              documents: userDocs.map(doc => ({ ...doc, disciplineId: d.id }))
+              docCount: documents.length,
+              documents,
             };
           })
         );
@@ -149,6 +160,13 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
   
   const [copied, setCopied] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
+  const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+    };
+  }, []);
 
   // Smooth Scroll Refs & State
   const galleryContainerRef = useRef<HTMLDivElement>(null);
@@ -199,6 +217,13 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
   // Selected Discipline & Doc
   const selectedDiscipline = allDisciplines.find(d => d.id === selectedDisciplineId);
   const selectedDoc = selectedDiscipline?.documents.find(doc => doc.id === selectedDocId);
+  const isSimulatorDoc = selectedDoc?.id === SIMULATOR_DOC_ID;
+
+  // Ref sempre com o doc mais recente (evita regressão de título no autosave debounce)
+  const selectedDocRef = useRef(selectedDoc);
+  useEffect(() => {
+    selectedDocRef.current = selectedDoc;
+  }, [selectedDoc]);
 
   // Close more menu when clicking outside
   useEffect(() => {
@@ -347,9 +372,12 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
     );
 
     if (userId) {
-      saveDocument(userId, { ...selectedDoc, sections: newSections, wordCount, lastEdited: 'Agora mesmo' }).catch(err =>
-        console.warn('Erro ao salvar documento no Supabase:', err)
-      );
+      if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+      saveDebounceRef.current = setTimeout(() => {
+        saveDocument(userId, { ...selectedDocRef.current, sections: newSections, wordCount, lastEdited: 'Agora mesmo' }).catch(err =>
+          console.warn('Erro ao salvar documento no Supabase:', err)
+        );
+      }, 500);
     }
     setTimeout(() => setSaveStatus('saved'), 400);
   };
@@ -384,6 +412,10 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
 
   const handleDeleteCurrentDoc = () => {
     if (!selectedDisciplineId || !selectedDocId) return;
+    if (saveDebounceRef.current) {
+      clearTimeout(saveDebounceRef.current);
+      saveDebounceRef.current = null;
+    }
     setAllDisciplines(prev =>
       prev.map(d => {
         if (d.id === selectedDisciplineId) {
@@ -478,7 +510,8 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
 
   const handleBulkDelete = () => {
     if (!selectedDisciplineId || selectedDocIds.length === 0) return;
-    const ids = new Set<string>(selectedDocIds);
+    const ids = new Set<string>(selectedDocIds.filter(id => id !== SIMULATOR_DOC_ID));
+    if (ids.size === 0) { handleClearSelection(); return; }
     setAllDisciplines(prev => prev.map(d => {
       if (d.id === selectedDisciplineId) {
         const removed = d.documents.filter(doc => ids.has(doc.id)).length;
@@ -499,8 +532,11 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
 
   const handleBulkVisibility = () => {
     if (!selectedDisciplineId || selectedDocs.length === 0) return;
-    const newPublic = selectedDocs.some(doc => doc.isPublic !== false) ? false : true;
-    const ids = new Set(selectedDocIds);
+    // Sempre ignora o simulador: ele é um card local e não deve ser persistido no Supabase.
+    const targetDocs = selectedDocs.filter(doc => doc.id !== SIMULATOR_DOC_ID);
+    if (targetDocs.length === 0) return;
+    const newPublic = targetDocs.some(doc => doc.isPublic !== false) ? false : true;
+    const ids = new Set(selectedDocIds.filter(id => id !== SIMULATOR_DOC_ID));
     setAllDisciplines(prev => prev.map(d => {
       if (d.id === selectedDisciplineId) {
         return {
@@ -511,7 +547,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
       return d;
     }));
     if (userId) {
-      selectedDocs.forEach(doc => saveDocument(userId, { ...doc, isPublic: newPublic }).catch(err =>
+      targetDocs.forEach(doc => saveDocument(userId, { ...doc, isPublic: newPublic }).catch(err =>
         console.warn('Erro ao salvar visibilidade no Supabase:', err)));
     }
   };
@@ -1043,6 +1079,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
             >
               {filteredDocs.map((doc) => {
                 const sel = isSelected(doc.id);
+                const isSim = doc.id === SIMULATOR_DOC_ID;
                 return (
                   <motion.div
                     key={doc.id}
@@ -1053,10 +1090,12 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                       if (selectionMode) { toggleSelect(doc.id); return; }
                       setSelectedDocId(doc.id);
                     }}
-                    className={`group relative bg-white dark:bg-slate-900 rounded-[28px] p-6 border shadow-2xs transition-all flex flex-col justify-between cursor-pointer ${
-                      sel
+                    className={`group relative rounded-[28px] p-6 border shadow-2xs transition-all flex flex-col justify-between cursor-pointer ${
+                      isSim
+                        ? 'bg-gradient-to-br from-emerald-50 to-sky-50 dark:from-emerald-950/30 dark:to-sky-950/20 border-emerald-200 dark:border-emerald-900/60 hover:shadow-xl hover:shadow-emerald-500/15'
+                        : sel
                         ? 'border-blue-500 ring-2 ring-blue-400/70 dark:ring-blue-500/60 bg-blue-50/60 dark:bg-blue-950/40 shadow-lg shadow-blue-500/20'
-                        : 'border-slate-200/80 dark:border-slate-800 hover:shadow-xl hover:shadow-blue-500/10'
+                        : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:shadow-xl hover:shadow-blue-500/10'
                     }`}
                   >
                     {/* Indicador de seleção (canto superior direito) */}
@@ -1072,22 +1111,32 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                     <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300">
-                          {doc.readTime}
-                        </span>
+                        {isSim ? (
+                          <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-xl bg-emerald-600 text-white flex items-center gap-1 shadow-md shadow-emerald-500/25">
+                            <Play className="w-3 h-3" /> Simulador Interativo
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300">
+                            {doc.readTime}
+                          </span>
+                        )}
                       </div>
 
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${
-                        doc.isPublic !== false 
+                        isSim
+                          ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300'
+                          : doc.isPublic !== false 
                           ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
                           : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
                       }`}>
-                        {doc.isPublic !== false ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
-                        {doc.isPublic !== false ? 'Público' : 'Privado'}
+                        {isSim ? <Sparkles className="w-3 h-3" /> : doc.isPublic !== false ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                        {isSim ? 'Interativo' : doc.isPublic !== false ? 'Público' : 'Privado'}
                       </span>
                     </div>
 
-                    <h3 className="font-display font-extrabold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
+                    <h3 className={`font-display font-extrabold text-base transition-colors leading-snug ${
+                      isSim ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                    }`}>
                       {doc.title}
                     </h3>
 
@@ -1099,7 +1148,9 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                     {doc.tags && doc.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 pt-1">
                         {doc.tags.map(t => (
-                          <span key={t} className="px-2 py-0.5 rounded-lg text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                          <span key={t} className={`px-2 py-0.5 rounded-lg text-[10px] font-medium ${
+                            isSim ? 'bg-white/70 dark:bg-slate-800/80 text-emerald-700 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                          }`}>
                             #{t}
                           </span>
                         ))}
@@ -1107,10 +1158,14 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                     )}
                   </div>
 
-                  <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                  <div className={`pt-4 mt-4 border-t flex items-center justify-between text-[11px] ${
+                    isSim ? 'border-emerald-200/70 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400' : 'border-slate-100 dark:border-slate-800 text-slate-400'
+                  }`}>
                     <span>{doc.lastEdited}</span>
-                    <span className={`font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1 ${sel ? 'text-blue-600 dark:text-blue-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                      {selectionMode ? (sel ? 'Selecionado' : 'Selecionar') : 'Abrir e Editar'} <ChevronRight className="w-3.5 h-3.5" />
+                    <span className={`font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1 ${
+                      isSim ? 'text-emerald-600 dark:text-emerald-400' : sel ? 'text-blue-600 dark:text-blue-400' : 'text-blue-600 dark:text-blue-400'
+                    }`}>
+                      {selectionMode ? (sel ? 'Selecionado' : 'Selecionar') : isSim ? 'Abrir Simulador' : 'Abrir e Editar'} <ChevronRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
                 </motion.div>
@@ -1147,34 +1202,51 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredDocs.map((doc) => (
+                  {filteredDocs.map((doc) => {
+                    const isSim = doc.id === SIMULATOR_DOC_ID;
+                    return (
                     <tr
                       key={doc.id}
                       onClick={() => setSelectedDocId(doc.id)}
-                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                      className={`transition-colors cursor-pointer group ${
+                        isSim
+                          ? 'bg-gradient-to-r from-emerald-50 to-sky-50 dark:from-emerald-950/25 dark:to-sky-950/15 hover:bg-emerald-50/90 dark:hover:bg-emerald-950/30'
+                          : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50'
+                      }`}
                     >
                       <td className="p-4">
-                        <span className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                        <span className={`font-bold transition-colors ${
+                          isSim ? 'text-emerald-800 dark:text-emerald-300 group-hover:text-emerald-600' : 'text-slate-900 dark:text-white group-hover:text-blue-600'
+                        }`}>
                           {doc.title}
                         </span>
                         <p className="text-[11px] text-slate-400 truncate max-w-sm">{doc.summary}</p>
                       </td>
                       <td className="p-4 hidden sm:table-cell">
+                        {isSim ? (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center gap-1 w-fit">
+                            <Sparkles className="w-3 h-3" /> Interativo
+                          </span>
+                        ) : (
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                           doc.isPublic !== false ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'
                         }`}>
                           {doc.isPublic !== false ? '🌐 Público' : '🔒 Privado'}
                         </span>
+                        )}
                       </td>
-                      <td className="p-4 text-slate-500 hidden md:table-cell">{doc.readTime}</td>
-                      <td className="p-4 text-slate-400 hidden lg:table-cell">{doc.lastEdited}</td>
+                      <td className={`p-4 hidden md:table-cell ${isSim ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-slate-500'}`}>{doc.readTime}</td>
+                      <td className={`p-4 hidden lg:table-cell ${isSim ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400'}`}>{doc.lastEdited}</td>
                       <td className="p-4 text-right">
-                        <span className="text-blue-600 dark:text-blue-400 font-bold group-hover:underline flex items-center justify-end gap-0.5">
-                          Abrir <ChevronRight className="w-3.5 h-3.5" />
+                        <span className={`font-bold group-hover:underline flex items-center justify-end gap-0.5 ${
+                          isSim ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'
+                        }`}>
+                          {isSim ? 'Abrir Simulador' : 'Abrir'} <ChevronRight className="w-3.5 h-3.5" />
                         </span>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1283,9 +1355,13 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               </div>
             </div>
 
-            {/* Centro: Indicador Discreto de Salvamento */}
-            <div className="text-[11px] text-slate-400 font-medium hidden md:flex items-center gap-1.5">
-              {saveStatus === 'saving' ? (
+            {/* Centro: Indicador Discreto de Salvamento (ou modo simulador) */}
+            <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium hidden md:flex items-center gap-1.5">
+              {isSimulatorDoc ? (
+                <span className="flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-emerald-500" /> Simulador interativo
+                </span>
+              ) : saveStatus === 'saving' ? (
                 <span className="text-amber-500 flex items-center gap-1 animate-pulse">
                   <Clock className="w-3 h-3" /> Salvando alterações...
                 </span>
@@ -1299,6 +1375,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
             {/* Lado Direito: Ações Discretas (Emojis Rápidos + Quiz + Menu Dropdown ...) */}
             <div className="flex items-center gap-2 relative">
               {/* Botão de Painel Rápido de Emojis */}
+              {!isSimulatorDoc && (
               <div className="relative">
                 <button
                   onClick={() => {
@@ -1331,8 +1408,10 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                   </div>
                 )}
               </div>
+              )}
 
               {/* Botão Discreto de Auto-Teste / Quiz AI */}
+              {!isSimulatorDoc && (
               <button
                 onClick={() => setShowInsightSidebar(!showInsightSidebar)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
@@ -1345,8 +1424,10 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                 <Sparkles className="w-3.5 h-3.5 text-purple-400" />
                 <span>Auto-Teste AI</span>
               </button>
+              )}
 
               {/* Menu Mais Opções (...) onde ficam os botões discretos */}
+              {!isSimulatorDoc && (
               <div className="relative">
                 <button
                   onClick={(e) => {
@@ -1469,17 +1550,23 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                   </div>
                 )}
               </div>
+              )}
             </div>
           </div>
 
-          {/* Área Principal: Document Canvas Imersivo (Estilo Notion / Word) + Sidebar */}
+          {/* Área Principal: Canvas do Documento OU Simulador Interativo */}
+          {isSimulatorDoc ? (
+            <div className="flex-1 overflow-hidden pt-3">
+              <CorpoHumanoSimulator onBack={() => setSelectedDocId(null)} />
+            </div>
+          ) : (
           <div className="flex-1 flex gap-4 overflow-hidden pt-3">
             
             {/* FOLHA DE ESCRITA LIMPA (CANVAS NOTION / WORD COM AUTO-WRAP E CONTADOR) */}
             <div 
               ref={docContainerRef}
               onScroll={handleDocScroll}
-              className="flex-1 overflow-y-auto pr-1 flex justify-center pb-28 scroll-smooth"
+              className="flex-1 overflow-y-auto pr-1 flex items-start justify-center pb-28 scroll-smooth"
             >
               <div 
                 className={`w-full max-w-4xl min-h-[700px] transition-all rounded-[28px] p-6 sm:p-12 shadow-xs relative ${
@@ -1561,24 +1648,28 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               )}
             </AnimatePresence>
           </div>
+          )}
 
-          {/* Botão Flutuante Discreto da IA Lumina no Canto Esquerdo */}
-          <div className="fixed bottom-6 left-6 z-40">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsAiChatOpen(true)}
-              className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40 cursor-pointer transition-all border border-purple-400/30"
-            >
-              <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                <Sparkles className="w-3.5 h-3.5 text-white" />
-              </div>
-              <span>Lumina AI Tutor</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            </motion.button>
-          </div>
+          {/* Botão Flutuante Discreto da IA Lumina no Canto Esquerdo (oculto no simulador) */}
+          {!isSimulatorDoc && (
+            <div className="fixed bottom-6 left-6 z-40">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsAiChatOpen(true)}
+                className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40 cursor-pointer transition-all border border-purple-400/30"
+              >
+                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                  <Sparkles className="w-3.5 h-3.5 text-white" />
+                </div>
+                <span>Lumina AI Tutor</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </motion.button>
+            </div>
+          )}
 
           {/* Gaveta de Chat da IA */}
+          {!isSimulatorDoc && (
           <DocAiChatDrawer
             isOpen={isAiChatOpen}
             onClose={() => setIsAiChatOpen(false)}
@@ -1586,6 +1677,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
             discipline={selectedDiscipline}
             onInsertTextIntoDoc={handleInsertAiTextIntoDoc}
           />
+          )}
         </div>
       )}
 
@@ -1679,8 +1771,16 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                     if (s.type === 'callout') return <div key={idx} className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-900/60 text-amber-950 dark:text-amber-100 text-sm"><RichText html={s.contentHtml} text={s.content} /></div>;
                     if (s.type === 'quote') return <blockquote key={idx} className="pl-3 border-l-4 border-purple-500 italic text-slate-600 dark:text-slate-300 text-sm"><RichText html={s.contentHtml} text={s.content} /></blockquote>;
                     if (s.type === 'code') return <pre key={idx} className="p-3 rounded-xl bg-slate-950 text-cyan-300 font-mono text-xs overflow-x-auto border border-slate-800">{s.formula || s.content}</pre>;
-                    if (s.type === 'divider') return <hr key={idx} className="my-4 border-slate-200 dark:border-slate-800" />;
-                    if (s.type === 'image' && s.imageUrl) return <img key={idx} src={s.imageUrl} alt={s.imageCaption || ''} className="max-h-[460px] w-auto max-w-full object-contain rounded-2xl mx-auto my-3" />;
+                    if (s.type === 'divider') return <hr key={idx} className="my-4 border-slate-200 dark:border-slate-800 clear-both" />;
+                    if (s.type === 'image' && s.imageUrl) {
+                      const imgPct = s.imageSize ?? 100;
+                      const imgStyle: React.CSSProperties = { width: `${imgPct}%`, margin: '12px auto' };
+                      return (
+                        <figure key={idx} className="max-w-full" style={imgStyle}>
+                          <img src={s.imageUrl} alt={s.imageCaption || s.imageAlt || ''} draggable={false} onDragStart={(e) => e.preventDefault()} className="w-auto max-w-full object-contain rounded-2xl select-none" />
+                        </figure>
+                      );
+                    }
                     return <p key={idx} className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed py-1"><RichText html={s.contentHtml} text={s.content} /></p>;
                   })}
                 </div>

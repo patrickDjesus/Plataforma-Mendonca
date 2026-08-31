@@ -65,17 +65,34 @@ export const StudyTimeSummaryCard: React.FC<StudyTimeSummaryCardProps> = ({
     let todaySeconds = 0;
     let sessions7DaysCount = 0;
 
+    // Suporta formato pt-BR "29/08 às 14:30" além do ISO
+    const parseSessionTime = (dateStr?: string): number => {
+      if (!dateStr) return NaN;
+      const iso = Date.parse(dateStr);
+      if (!isNaN(iso)) return iso;
+      const m = /^(\d{1,2})\/(\d{1,2})\s+(?:às\s+)?(\d{1,2}):(\d{2})/.exec(dateStr);
+      if (m) {
+        const day = Number(m[1]);
+        const month = Number(m[2]);
+        const hour = Number(m[3]);
+        const minute = Number(m[4]);
+        const nowDate = new Date();
+        const parsed = new Date(nowDate.getFullYear(), month - 1, day, hour, minute, 0, 0);
+        if (parsed.getTime() > nowDate.getTime()) {
+          parsed.setFullYear(parsed.getFullYear() - 1);
+        }
+        return parsed.getTime();
+      }
+      return NaN;
+    };
+
     const sessions = analytics?.sessionsHistory || [];
 
     if (sessions.length > 0) {
       sessions.forEach((s: PerformanceSessionHistory) => {
         let sessionTime = now;
-        try {
-          const parsed = Date.parse(s.date);
-          if (!isNaN(parsed)) sessionTime = parsed;
-        } catch {
-          // ignore
-        }
+        const parsed = parseSessionTime(s.date);
+        if (!isNaN(parsed)) sessionTime = parsed;
 
         const sec = s.elapsedSeconds || 0;
 
