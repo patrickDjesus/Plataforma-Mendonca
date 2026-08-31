@@ -1262,10 +1262,6 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       {/* ========================================================================= */}
       {activeTab === 'leaderboard' && (
         <GlobalLeaderboard
-          userStreak={streakCount}
-          userHighScore={highScore}
-          userTotalXp={analytics.totalXpEarned}
-          userAccuracy={analytics.totalAnswered > 0 ? Math.round((analytics.totalCorrect / analytics.totalAnswered) * 100) : 80}
           onStartChallenge={(mode) => {
             playSound('click');
             if (mode === 'endurance') {

@@ -1,4 +1,4 @@
-import { createClient, User, Session, AuthChangeEvent } from '@supabase/supabase-js';
+import { createClient, User, Session } from '@supabase/supabase-js';
 import { QuizQuestion, PerformanceAnalytics, PerformanceSessionHistory } from '../types/design';
 import { LeaderboardUser } from '../components/GlobalLeaderboard';
 import { NotebookDoc } from '../data/disciplinesData';
@@ -37,7 +37,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // ============================================================================
 
 const LOCAL_STORAGE_KEYS = {
-  USER: 'mendonca_auth_user',
   QUESTIONS: 'mendonca_custom_questions',
   PERFORMANCE: 'mendonca_user_performance',
   LEADERBOARD: 'mendonca_leaderboard_data',
@@ -45,167 +44,29 @@ const LOCAL_STORAGE_KEYS = {
   PROFILES: 'mendonca_user_profiles',
 };
 
-const authListeners = new Set<(event: AuthChangeEvent, session: Session | null) => void>();
-
-function notifyAuthChange(event: AuthChangeEvent, session: Session | null) {
-  authListeners.forEach(listener => {
-    try {
-      listener(event, session);
-    } catch (e) {
-      console.warn('Auth listener error:', e);
-    }
-  });
-}
-
-function getLocalUser(): User | null {
-  try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.USER);
-    if (!raw) return null;
-    return JSON.parse(raw) as User;
-  } catch {
-    return null;
-  }
-}
-
-function setLocalUser(user: User | null): void {
-  try {
-    if (user) {
-      localStorage.setItem(LOCAL_STORAGE_KEYS.USER, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(LOCAL_STORAGE_KEYS.USER);
-    }
-  } catch {
-    // ignore
-  }
-}
-
-function createMockUser(email: string, displayName?: string): User {
-  const id = `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-  return {
-    id,
-    app_metadata: { provider: 'email', providers: ['email'] },
-    user_metadata: {
-      full_name: displayName || email.split('@')[0] || 'Estudante',
-      display_name: displayName || email.split('@')[0] || 'Estudante',
-    },
-    aud: 'authenticated',
-    confirmation_sent_at: new Date().toISOString(),
-    confirmed_at: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    email: email,
-    email_confirmed_at: new Date().toISOString(),
-    phone: '',
-    role: 'authenticated',
-    updated_at: new Date().toISOString(),
-  } as unknown as User;
-}
-
-// Override auth listener if in fallback mode
-if (!isSupabaseConfigured) {
-  supabase.auth.onAuthStateChange = ((callback: (event: AuthChangeEvent, session: Session | null) => void) => {
-    authListeners.add(callback);
-    const localUser = getLocalUser();
-    if (localUser) {
-      const mockSession: Session = {
-        access_token: 'mock-token',
-        token_type: 'bearer',
-        expires_in: 3600,
-        expires_at: Math.floor(Date.now() / 1000) + 3600,
-        refresh_token: 'mock-refresh-token',
-        user: localUser,
-      };
-      setTimeout(() => callback('INITIAL_SESSION', mockSession), 10);
-    }
-    return {
-      data: {
-        subscription: {
-          id: `mock-sub-${Math.random()}`,
-          callback,
-          unsubscribe: () => {
-            authListeners.delete(callback);
-          },
-        },
-      },
-    };
-  }) as any;
-
-  supabase.auth.getSession = (async () => {
-    const localUser = getLocalUser();
-    if (!localUser) return { data: { session: null }, error: null };
-    const mockSession: Session = {
-      access_token: 'mock-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      expires_at: Math.floor(Date.now() / 1000) + 3600,
-      refresh_token: 'mock-refresh-token',
-      user: localUser,
-    };
-    return { data: { session: mockSession }, error: null };
-  }) as any;
-
-  supabase.auth.getUser = (async () => {
-    const localUser = getLocalUser();
-    return { data: { user: localUser }, error: null };
-  }) as any;
-}
-
 // ============================================================================
 // AUTH
 // ============================================================================
 
 export const signInWithGoogle = async (): Promise<void> => {
-  if (isSupabaseConfigured) {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin },
-      });
-      if (error) throw error;
-      return;
-    } catch (error) {
-      console.warn('Login Google Supabase falhou, usando fallback local:', error);
-    }
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
   }
-
-  // Fallback demo user
-  const mockGoogleUser = createMockUser('estudante@mendonca.edu.br', 'Estudante Mendonça');
-  mockGoogleUser.app_metadata = { provider: 'google', providers: ['google'] };
-  setLocalUser(mockGoogleUser);
-  const mockSession: Session = {
-    access_token: 'mock-google-token',
-    token_type: 'bearer',
-    expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
-    refresh_token: 'mock-refresh-token',
-    user: mockGoogleUser,
-  };
-  notifyAuthChange('SIGNED_IN', mockSession);
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin },
+  });
+  if (error) throw error;
 };
 
 export const signInWithEmail = async (email: string, password?: string) => {
-  if (isSupabaseConfigured) {
-    if (!password) throw new Error('Senha obrigatória.');
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data.user;
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
   }
-
-  const existingLocal = getLocalUser();
-  const user = (existingLocal && existingLocal.email === email)
-    ? existingLocal
-    : createMockUser(email, email.split('@')[0]);
-
-  setLocalUser(user);
-  const mockSession: Session = {
-    access_token: 'mock-token',
-    token_type: 'bearer',
-    expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
-    refresh_token: 'mock-refresh-token',
-    user,
-  };
-  notifyAuthChange('SIGNED_IN', mockSession);
-  return user;
+  if (!password) throw new Error('Senha obrigatória.');
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data.user;
 };
 
 export const signUpWithEmail = async (
@@ -213,43 +74,27 @@ export const signUpWithEmail = async (
   password?: string,
   displayName?: string
 ): Promise<{ user: User | null; session: Session | null }> => {
-  if (isSupabaseConfigured) {
-    if (!password) throw new Error('Senha obrigatória.');
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { display_name: displayName } },
-    });
-    if (error) throw error;
-    // Com "Confirm email" habilitado, o Supabase devolve user sem session.
-    return { user: data.user, session: data.session };
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
   }
-
-  const user = createMockUser(email, displayName);
-  setLocalUser(user);
-  const mockSession: Session = {
-    access_token: 'mock-token',
-    token_type: 'bearer',
-    expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
-    refresh_token: 'mock-refresh-token',
-    user,
-  };
-  notifyAuthChange('SIGNED_IN', mockSession);
-  return { user, session: mockSession };
+  if (!password) throw new Error('Senha obrigatória.');
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { display_name: displayName } },
+  });
+  if (error) throw error;
+  return { user: data.user, session: data.session };
 };
 
 export const logout = async (): Promise<void> => {
-  if (isSupabaseConfigured) {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) console.warn('Supabase signOut error:', error);
-    } catch (error) {
-      console.warn('Erro ao deslogar do Supabase:', error);
-    }
+  if (!isSupabaseConfigured) return;
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.warn('Supabase signOut error:', error);
+  } catch (error) {
+    console.warn('Erro ao deslogar do Supabase:', error);
   }
-  setLocalUser(null);
-  notifyAuthChange('SIGNED_OUT', null);
 };
 
 export const getCurrentUser = () => supabase.auth.getUser();

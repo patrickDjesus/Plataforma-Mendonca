@@ -20,7 +20,7 @@ export const App: React.FC = () => {
   const [authState, setAuthState] = useState<'unauthenticated' | 'loading' | 'authenticated'>('loading');
   const [user, setUser] = useState({
     name: 'Estudante',
-    email: 'estudante@mendonca.edu.br',
+    email: '',
     avatar: 'EM',
   });
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
@@ -40,7 +40,7 @@ export const App: React.FC = () => {
 
       setUser({
         name: displayName,
-        email: currentUser.email || 'estudante@mendonca.edu.br',
+        email: currentUser.email || '',
         avatar: initials || 'EM'
       });
       setStreakCount(userProfile?.streak ?? 1);

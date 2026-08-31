@@ -36,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentScreen,
   setCurrentScreen,
   streakCount,
-  user = { name: 'Lucas Mendes', email: 'lucas.mendes@mendonca.edu.br', avatar: 'LM' },
+  user = { name: 'Estudante', email: '', avatar: 'EM' },
   onLogout,
   theme,
   toggleTheme,

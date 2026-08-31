@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const userId = user.id;
     const now = new Date().toISOString();
     const resolvedDisplayName = fallbackMeta?.displayName || user.user_metadata?.display_name || user.user_metadata?.full_name || fallbackMeta?.email?.split('@')[0] || user.email?.split('@')[0] || 'Estudante';
-    const resolvedEmail = fallbackMeta?.email || user.email || 'estudante@mendonca.edu.br';
+    const resolvedEmail = fallbackMeta?.email || user.email || '';
     const photoURL = user.user_metadata?.avatar_url || '';
 
     try {

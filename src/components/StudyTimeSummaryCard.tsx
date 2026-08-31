@@ -114,13 +114,6 @@ export const StudyTimeSummaryCard: React.FC<StudyTimeSummaryCardProps> = ({
       sessions7DaysCount = Math.max(1, Math.round(totalSeconds7Days / 300));
     }
 
-    // Caso de novo usuário com dados iniciais de demonstração produtiva
-    if (totalSeconds7Days === 0) {
-      totalSeconds7Days = 145 * 60; // 2h 25m inicial
-      todaySeconds = 30 * 60;       // 30 min hoje
-      sessions7DaysCount = 5;
-    }
-
     const totalMinutes7Days = Math.round(totalSeconds7Days / 60);
     const hours7Days = Math.floor(totalMinutes7Days / 60);
     const remMin7Days = totalMinutes7Days % 60;

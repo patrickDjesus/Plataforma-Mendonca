@@ -41,19 +41,11 @@ export interface LeaderboardUser {
 }
 
 interface GlobalLeaderboardProps {
-  userStreak: number;
-  userHighScore: number;
-  userTotalXp: number;
-  userAccuracy: number;
   onStartChallenge: (mode?: string) => void;
   onNavigate: (screen: ScreenId) => void;
 }
 
 export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
-  userStreak,
-  userHighScore,
-  userTotalXp,
-  userAccuracy,
   onStartChallenge,
   onNavigate: _onNavigate
 }) => {
@@ -79,33 +71,29 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
     setTimeout(() => setActionToast(null), 3000);
   };
 
-    // Base de competidores reais e integrados via Supabase + Usuario Ativo
-  const mockCompetitors: LeaderboardUser[] = useMemo(() => {
-    const effectiveXp = userProfile?.totalXp || userTotalXp || 0;
-    const calculatedUserScore = Math.max((userProfile?.highScore || userHighScore || 0) * 2, effectiveXp);
-    const calculatedUserStreak = userProfile?.streak || userStreak || 1;
-    const calculatedUserAcc = userProfile?.accuracy ?? (userAccuracy > 0 ? userAccuracy : 0);
-    const displayName = userProfile?.displayName || currentUser?.displayName || 'Você (Estudante Synapse)';
+    // Competidores reais vindos do Supabase (ranking global)
+  const competitors: LeaderboardUser[] = useMemo(() => {
+    const displayName = userProfile?.displayName || currentUser?.displayName || 'Você';
 
-    // Mapear entradas reais do Supabase
     const list: LeaderboardUser[] = supabaseEntries.map((fe, index) => {
       const entryId = fe.userId || fe.id;
       const isMe = entryId === currentUser?.id;
-      const score = isMe ? calculatedUserScore : (fe.score || fe.totalXp || 0);
-      const leagueName: 'Diamante' | 'Platina' | 'Ouro' | 'Prata' = 
+      const name = isMe ? `${displayName} (Você)` : (fe.displayName || fe.name || 'Estudante');
+      const score = fe.score || fe.totalXp || 0;
+      const leagueName: 'Diamante' | 'Platina' | 'Ouro' | 'Prata' =
         score > 8000 ? 'Diamante' : score > 4000 ? 'Platina' : score > 1500 ? 'Ouro' : 'Prata';
       return {
         id: entryId || `fs-${index}`,
         rank: index + 1,
-        name: isMe ? `${displayName} (Você)` : (fe.displayName || fe.name || 'Estudante Mendonça'),
-        handle: fe.handle || `@${(fe.displayName || fe.name || 'aluno').toLowerCase().replace(/\s+/g, '')}`,
+        name,
+        handle: fe.handle || `@${name.toLowerCase().replace(/\s+/g, '')}`,
         avatarBg: isMe ? 'from-emerald-400 to-teal-600' : (fe.avatarBg || 'from-indigo-400 to-purple-600'),
         avatarEmoji: isMe ? '🔥' : (fe.avatarEmoji || '⭐'),
         schoolOrGoal: fe.schoolOrGoal || fe.goal || 'Preparação ENEM & Vestibulares',
-        score: score,
-        weeklyXp: isMe ? Math.round(score * 0.45) : (fe.weeklyXp || Math.round(score * 0.4)),
-        streakDays: isMe ? calculatedUserStreak : (fe.streak || fe.streakDays || 1),
-        accuracy: isMe ? calculatedUserAcc : (fe.accuracy ?? 0),
+        score,
+        weeklyXp: fe.weeklyXp || 0,
+        streakDays: fe.streak || fe.streakDays || 1,
+        accuracy: fe.accuracy ?? 0,
         totalQuestions: fe.totalAnswered || fe.totalQuestions || 0,
         league: leagueName,
         isCurrentUser: isMe,
@@ -116,31 +104,6 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
       };
     });
 
-    // Se o usuario atual nao estiver no Supabase ainda, adiciona-o como competidor ativo
-    if (!list.some(u => u.isCurrentUser || u.id === currentUser?.id)) {
-      list.push({
-        id: currentUser?.id || 'user-current',
-        rank: list.length + 1,
-        name: `${displayName} (Você)`,
-        handle: `@${displayName.toLowerCase().replace(/\s+/g, '')}`,
-        avatarBg: 'from-emerald-400 to-teal-600',
-        avatarEmoji: '🔥',
-        schoolOrGoal: userProfile?.targetCourse || 'ENEM 2026 • Nota 900+',
-        score: calculatedUserScore,
-        weeklyXp: Math.round(calculatedUserScore * 0.45),
-        streakDays: calculatedUserStreak,
-        accuracy: calculatedUserAcc,
-        totalQuestions: userProfile?.totalAnswered || 0,
-        league: calculatedUserScore > 8000 ? 'Diamante' : calculatedUserScore > 4000 ? 'Platina' : 'Ouro',
-        isCurrentUser: true,
-        isFriend: false,
-        status: 'online',
-        favoriteSubject: userProfile?.favoriteDiscipline || 'Física & Eletrodinâmica',
-        enduranceRecordSecs: 240
-      });
-    }
-
-    // Ordenação dinâmica pelo critério selecionado
     const sorted = [...list].sort((a, b) => {
       if (period === 'weekly') {
         return b.weeklyXp - a.weeklyXp;
@@ -151,16 +114,15 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
       }
     });
 
-    // Reatribui posições
     return sorted.map((u, idx) => ({
       ...u,
       rank: idx + 1
     }));
-  }, [supabaseEntries, currentUser, userProfile, userHighScore, userTotalXp, userStreak, userAccuracy, period]);
+  }, [supabaseEntries, currentUser, userProfile, period]);
 
   // Lista filtrada por busca e escopo
   const filteredUsers = useMemo(() => {
-    return mockCompetitors.filter(user => {
+    return competitors.filter(user => {
       if (scope === 'friends' && !user.isFriend && !user.isCurrentUser) return false;
       if (scope === 'league' && user.league !== 'Diamante') return false;
       if (searchQuery.trim() !== '') {
@@ -173,9 +135,9 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
       }
       return true;
     });
-  }, [mockCompetitors, scope, searchQuery]);
+  }, [competitors, scope, searchQuery]);
 
-  const currentUserData = mockCompetitors.find(u => u.isCurrentUser);
+  const currentUserData = competitors.find(u => u.isCurrentUser);
   const top3 = filteredUsers.slice(0, 3);
 
   const handleCheerFriend = (user: LeaderboardUser) => {
@@ -297,7 +259,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
               }`}
             >
               <Users className="w-3.5 h-3.5 text-purple-500" />
-              <span>Amigos & Turma ({mockCompetitors.filter(u => u.isFriend || u.isCurrentUser).length})</span>
+              <span>Amigos & Turma ({competitors.filter(u => u.isFriend || u.isCurrentUser).length})</span>
             </button>
 
             <button
