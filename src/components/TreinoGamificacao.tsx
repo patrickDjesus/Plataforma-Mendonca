@@ -25,7 +25,11 @@ import {
   Eye,
   BookOpen,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  Upload,
+  FileJson,
+  Clipboard,
+  X
 } from 'lucide-react';
 import { QUIZ_QUESTIONS } from '../data/mockData';
 import { QuizQuestion, ScreenId, PerformanceAnalytics, PerformanceSessionHistory } from '../types/design';
@@ -822,6 +826,12 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   const [teacherSubjectFilter, setTeacherSubjectFilter] = useState('all');
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
 
+  // Modal de Importação JSON
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importJsonText, setImportJsonText] = useState('');
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccessCount, setImportSuccessCount] = useState<number | null>(null);
+
   // Estados do Wizard Multietapas do Professor
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3 | 4>(1);
   const [previewRole, setPreviewRole] = useState<'student' | 'teacher'>('student');
@@ -1033,6 +1043,113 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       return matchSearch && matchSub;
     });
   }, [customQuestions, teacherSearch, teacherSubjectFilter]);
+
+  const handleImportQuestions = async () => {
+    setImportError(null);
+    setImportSuccessCount(null);
+    try {
+      const parsed = JSON.parse(importJsonText);
+      const rawList: unknown[] = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.questions) ? parsed.questions : null;
+      if (!rawList || rawList.length === 0) {
+        setImportError('O JSON deve conter um array de questões (ou um objeto com a chave "questions").');
+        return;
+      }
+
+      const imported: QuizQuestion[] = [];
+      for (const raw of rawList) {
+        if (!raw || typeof raw !== 'object') continue;
+        const r = raw as Record<string, any>;
+
+        const statement = String(r.statement || r.enunciado || r.pergunta || r.question || '').trim();
+        if (!statement) continue;
+
+        const difficultyRaw = String(r.difficulty || r.dificuldade || 'Médio').trim();
+        const difficulty = (['Fácil', 'Médio', 'Difícil'].includes(difficultyRaw) ? difficultyRaw : 'Médio') as QuizQuestion['difficulty'];
+
+        const rawOptions = Array.isArray(r.options) ? r.options : Array.isArray(r.alternativas) ? r.alternativas : [];
+        if (rawOptions.length < 2) continue;
+
+        const options: QuizQuestion['options'] = rawOptions.map((o: any, idx: number) => {
+          const letter = ['A', 'B', 'C', 'D', 'E'][idx] || `O${idx}`;
+          const isCorrectObj = typeof o === 'object' && o !== null;
+          const text = String(isCorrectObj ? (o.text || o.texto || '') : o).trim();
+          const isCorrect = isCorrectObj
+            ? !!(o.isCorrect || o.correct || o.correto)
+            : idx === 0;
+          const explanation = String(isCorrectObj ? (o.explanation || o.explicacao || '') : '').trim();
+          return {
+            id: letter,
+            text,
+            isCorrect,
+            explanation: explanation || (isCorrect ? 'Resposta correta!' : 'Alternativa incorreta.')
+          };
+        }).filter(o => o.text);
+
+        if (options.length < 2) continue;
+
+        imported.push({
+          id: Date.now() + Math.random(),
+          subject: String(r.subject || r.disciplina || r.materia || 'Matemática & Cálculo').trim(),
+          topic: String(r.topic || r.topicos || r.assunto || r.topico || 'Geral').trim(),
+          difficulty,
+          statement,
+          imageUrl: r.imageUrl || r.imagemUrl || r.image_url || undefined,
+          imageCaption: r.imageCaption || r.caption || undefined,
+          codeSnippet: r.codeSnippet || r.codigo || r.formula || undefined,
+          options,
+          aiHint: String(r.aiHint || r.dica || r.hint || 'Analise a teoria fundamental e as relações lógicas da questão.').trim(),
+          gameType: 'standard'
+        });
+      }
+
+      if (imported.length === 0) {
+        setImportError('Nenhuma questão válida encontrada no JSON. Verifique o formato.');
+        return;
+      }
+
+      for (const q of imported) {
+        createQuestion(q, {
+          id: currentUser?.id || 'professor-anon',
+          displayName: userProfile?.displayName || 'Professor Mendonça',
+          email: currentUser?.email || ''
+        }).catch(console.warn);
+      }
+
+      setCustomQuestions(prev => [...imported, ...prev]);
+      setImportSuccessCount(imported.length);
+      setImportJsonText('');
+    } catch {
+      setImportError('JSON inválido. Verifique a sintaxe e tente novamente.');
+    }
+  };
+
+  const importJsonExample = `[
+  {
+    "subject": "Matemática & Cálculo",
+    "topic": "Funções do 2º Grau",
+    "difficulty": "Médio",
+    "statement": "Qual é a soma das raízes da equação x² - 5x + 6 = 0?",
+    "options": [
+      { "text": "5", "isCorrect": true, "explanation": "Pela soma das raízes: -b/a = 5." },
+      { "text": "6", "isCorrect": false, "explanation": "6 é o produto das raízes (c/a)." },
+      { "text": "2", "isCorrect": false },
+      { "text": "3", "isCorrect": false }
+    ],
+    "aiHint": "Use a relações de Girard: soma = -b/a e produto = c/a."
+  },
+  {
+    "subject": "Física Clássica & Moderna",
+    "topic": "Cinemática",
+    "difficulty": "Fácil",
+    "statement": "Um corpo em MRU percorre 100 m em 20 s. Qual sua velocidade média?",
+    "options": [
+      { "text": "5 m/s", "isCorrect": true, "explanation": "v = Δs/Δt = 100/20 = 5 m/s." },
+      { "text": "10 m/s", "isCorrect": false },
+      { "text": "2 m/s", "isCorrect": false },
+      { "text": "20 m/s", "isCorrect": false }
+    ]
+  }
+]`;
 
   return (
     <div className="h-full overflow-y-auto max-w-5xl mx-auto pb-24 pr-1 relative select-none">
@@ -1332,6 +1449,21 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                 >
                   <FlaskConical className="w-3.5 h-3.5 text-emerald-300" />
                   <span>Exemplo Química</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImportError(null);
+                    setImportSuccessCount(null);
+                    setImportJsonText('');
+                    setShowImportModal(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/30 text-xs font-bold transition-all cursor-pointer"
+                  title="Importar questões em massa via JSON (pode colar o JSON gerado pela IA)"
+                >
+                  <Upload className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Importar JSON</span>
                 </button>
 
                 <button
@@ -2184,6 +2316,102 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           </div>
         </motion.div>
       )}
+
+      {/* Modal de Importação JSON de Questões */}
+      <AnimatePresence>
+        {showImportModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowImportModal(false)}
+            className="fixed inset-0 z-[400000] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.94, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.94, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6 sm:p-8"
+            >
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-500/15 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <FileJson className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-slate-100 font-display">
+                      Importar Questões via JSON
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Cole o JSON com suas questões (ideal para colar o que a IA gerou).
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowImportModal(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer"
+                  aria-label="Fechar"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <textarea
+                value={importJsonText}
+                onChange={(e) => setImportJsonText(e.target.value)}
+                spellCheck={false}
+                placeholder='Cole aqui o JSON de questões, ex: [{"subject": "...", "statement": "...", "options": [{"text": "...", "isCorrect": true, "explanation": "..."}]}]'
+                className="w-full h-56 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-xs font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:focus:ring-amber-400/30 focus:border-amber-500 resize-y"
+              />
+
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setImportJsonText(importJsonExample)}
+                  className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 px-2 py-1 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-all cursor-pointer"
+                >
+                  <Clipboard className="w-3.5 h-3.5" />
+                  Preencher com exemplo
+                </button>
+              </div>
+
+              {importError && (
+                <div className="mt-3 p-3 rounded-xl bg-rose-50 dark:bg-rose-950 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{importError}</span>
+                </div>
+              )}
+
+              {importSuccessCount !== null && (
+                <div className="mt-3 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{importSuccessCount} questão(ões) importada(s) com sucesso!</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 mt-5">
+                <button
+                  type="button"
+                  onClick={() => setShowImportModal(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleImportQuestions}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 shadow-md shadow-amber-500/20 flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  Importar questões
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modal de Resumo de Desempenho Pós-Treino com Donut Chart Recharts */}
       <PostTrainingSummaryModal
