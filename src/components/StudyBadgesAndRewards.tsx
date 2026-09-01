@@ -461,12 +461,17 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                     <img
                       src={BADGE_IMAGES[badge.id]}
                       alt={badge.title}
-                      className={`w-28 h-28 object-cover rounded-2xl border-2 transition-all duration-300 hover:scale-125 hover:z-10 ${
+                      className={`w-28 h-28 object-cover rounded-2xl border-2 transition-all duration-300 ${
                         badge.unlocked
                           ? 'border-amber-300/80 dark:border-amber-500/60 shadow-lg'
-                          : 'grayscale hover:grayscale-0 opacity-70 hover:opacity-100 border-slate-300/70 dark:border-slate-600'
+                          : 'grayscale opacity-70 border-slate-300/70 dark:border-slate-600'
                       }`}
                     />
+                    {!badge.unlocked && (
+                      <span className="absolute bottom-1.5 right-1.5 bg-slate-900/80 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border border-white/20">
+                        {badge.currentValue}/{badge.targetValue}
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <div className="text-3xl mt-1 filter drop-shadow-sm">
@@ -614,12 +619,17 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                                 <img
                                   src={BADGE_IMAGES[badge.id]}
                                   alt={badge.title}
-                                  className={`w-20 h-20 object-cover rounded-2xl border-2 transition-all duration-300 hover:scale-125 hover:z-10 ${
+                                  className={`w-20 h-20 object-cover rounded-2xl border-2 transition-all duration-300 ${
                                     badge.unlocked
                                       ? 'border-amber-300/80 dark:border-amber-500/60 shadow-lg'
-                                      : 'grayscale hover:grayscale-0 opacity-70 hover:opacity-100 border-slate-300/70 dark:border-slate-600'
+                                      : 'grayscale opacity-70 border-slate-300/70 dark:border-slate-600'
                                   }`}
                                 />
+                                {!badge.unlocked && (
+                                  <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border border-white/20">
+                                    {badge.currentValue}/{badge.targetValue}
+                                  </span>
+                                )}
                               </div>
                             ) : (
                               <span className="text-3xl filter drop-shadow-sm shrink-0">{badge.icon}</span>
@@ -724,10 +734,10 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                   <img
                     src={BADGE_IMAGES[selectedBadge.id]}
                     alt={selectedBadge.title}
-                    className={`w-44 h-44 object-cover rounded-3xl border-2 shadow-xl mx-auto transition-all duration-300 hover:scale-110 ${
+                    className={`w-44 h-44 object-cover rounded-3xl border-2 shadow-xl mx-auto transition-all duration-300 ${
                       selectedBadge.unlocked
                         ? 'border-amber-300 dark:border-amber-500/60 shadow-amber-400/20'
-                        : 'grayscale hover:grayscale-0 opacity-65 hover:opacity-100 border-slate-300 dark:border-slate-600'
+                        : 'grayscale opacity-65 border-slate-300 dark:border-slate-600'
                     }`}
                   />
                 </div>
