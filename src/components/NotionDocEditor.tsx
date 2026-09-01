@@ -133,7 +133,8 @@ const applyGlossaryHighlights = (html: string, glossary?: Record<string, Glossar
       const span = document.createElement('span');
       span.className = GLOSSARY_SPAN_CLASS;
       span.dataset.glossaryTerm = definition.term || matched;
-      span.style.cssText = 'background-color:rgba(59,130,246,0.14);border-bottom:2px solid rgba(59,130,246,0.45);border-radius:4px;padding:0 2px;cursor:pointer;';
+      span.setAttribute('contenteditable', 'false');
+      span.style.cssText = 'background-color:rgba(59,130,246,0.14);border-bottom:2px solid rgba(59,130,246,0.45);border-radius:4px;padding:0 2px;cursor:pointer;user-select:none;-webkit-user-select:none;-moz-user-select:none;';
       span.textContent = matched;
       fragment.appendChild(span);
 
