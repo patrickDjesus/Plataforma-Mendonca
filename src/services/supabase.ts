@@ -1062,6 +1062,10 @@ export const getUserConcepts = async (userId: string): Promise<ConceptNode[]> =>
         .select('*')
         .eq('user_id', userId);
 
+      if (error) {
+        console.warn('Supabase concept_nodes (tabela pode não existir):', error.message);
+      }
+
       if (!error && data && data.length > 0) {
         return data.map(mapConceptRow);
       }
@@ -1083,12 +1087,15 @@ export const saveConcept = async (userId: string, node: ConceptNode): Promise<vo
   if (!userId) return;
 
   try {
-    const current = await getUserConcepts(userId);
+    const key = `${LOCAL_STORAGE_KEYS.CONCEPTS}_${userId}`;
+    let current: ConceptNode[] = [];
+    const saved = localStorage.getItem(key);
+    if (saved) current = JSON.parse(saved);
     const existingIdx = current.findIndex(c => c.id === node.id);
     const updated = existingIdx >= 0
       ? current.map(c => c.id === node.id ? node : c)
       : [...current, node];
-    localStorage.setItem(`${LOCAL_STORAGE_KEYS.CONCEPTS}_${userId}`, JSON.stringify(updated));
+    localStorage.setItem(key, JSON.stringify(updated));
   } catch {
     // ignore
   }
@@ -1113,7 +1120,8 @@ export const saveConcept = async (userId: string, node: ConceptNode): Promise<vo
     };
 
     try {
-      await supabase.from('concept_nodes').upsert(payload, { onConflict: 'id,user_id' });
+      const { error } = await supabase.from('concept_nodes').upsert(payload, { onConflict: 'id,user_id' });
+      if (error) console.warn('Erro do Supabase ao salvar conceito:', error.message);
     } catch (e) {
       console.warn('Erro ao salvar conceito no Supabase:', e);
     }

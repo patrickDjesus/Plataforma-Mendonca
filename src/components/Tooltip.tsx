@@ -5,9 +5,10 @@ import definitionsData from '../data/definitions.json';
 
 export interface DefinitionItem {
   term: string;
-  definition: string;
+  definition?: string;
   example?: string;
   category?: string;
+  imageUrl?: string;
 }
 
 export type DefinitionsMap = Record<string, DefinitionItem>;
@@ -108,24 +109,42 @@ export const Tooltip: React.FC<TooltipProps> = ({
               )}
             </div>
 
-            {/* Corpo da Definição */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
-                Significado Acadêmico:
-              </span>
-              <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
-                {definition.definition}
-              </p>
-            </div>
+            {/* Imagem Conceitual */}
+            {definition.imageUrl && (
+              <img
+                src={definition.imageUrl}
+                alt={definition.term}
+                className="w-full h-36 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-md mb-2.5"
+                onError={e => {
+                  (e.currentTarget.style.display = 'none');
+                }}
+              />
+            )}
 
-            {/* Exemplo / Aplicação Prática */}
-            {definition.example && (
-              <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-start gap-2 text-[11px] text-slate-600 dark:text-slate-300 bg-blue-50/60 dark:bg-blue-950/30 p-2 rounded-xl border border-blue-100/50 dark:border-blue-900/40">
-                <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                <p className="italic leading-snug">
-                  <strong className="not-italic text-slate-900 dark:text-white font-semibold">Aplicação:</strong> {definition.example}
+            {/* Corpo da Definição */}
+            {(definition.definition || definition.example) && (
+            <div className="space-y-1.5">
+              {definition.definition && (
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
+                  Significado Acadêmico:
+                </span>
+              )}
+              {definition.definition && (
+                <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
+                  {definition.definition}
                 </p>
-              </div>
+              )}
+
+              {/* Exemplo / Aplicação Prática */}
+              {definition.example && (
+                <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-start gap-2 text-[11px] text-slate-600 dark:text-slate-300 bg-blue-50/60 dark:bg-blue-950/30 p-2 rounded-xl border border-blue-100/50 dark:border-blue-900/40">
+                  <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                  <p className="italic leading-snug">
+                    <strong className="not-italic text-slate-900 dark:text-white font-semibold">Aplicação:</strong> {definition.example}
+                  </p>
+                </div>
+              )}
+            </div>
             )}
           </motion.div>
         )}

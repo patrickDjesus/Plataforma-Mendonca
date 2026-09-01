@@ -1696,6 +1696,13 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
         <AddGlossaryTermModal
           isOpen={isAddGlossaryOpen}
           initialTerm={initialGlossaryTerm}
+          initialDefinition={
+            initialGlossaryTerm && selectedDoc.glossary
+              ? (Object.entries(selectedDoc.glossary).find(
+                  ([key]) => key.trim().toLowerCase() === initialGlossaryTerm.trim().toLowerCase()
+                )?.[1] ?? null)
+              : null
+          }
           onClose={() => {
             setIsAddGlossaryOpen(false);
             setInitialGlossaryTerm('');

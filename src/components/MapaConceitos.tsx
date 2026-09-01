@@ -34,7 +34,13 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
   const [isPanning, setIsPanning] = useState(false);
   const [isAddConceptOpen, setIsAddConceptOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [errorToast, setErrorToast] = useState<string | null>(null);
   const startPanRef = useRef({ x: 0, y: 0 });
+
+  const showToast = (msg: string, isError = false) => {
+    (isError ? setErrorToast : setSuccessToast)(msg);
+    setTimeout(() => (isError ? setErrorToast : setSuccessToast)(null), 3000);
+  };
 
   useEffect(() => {
     let active = true;
@@ -46,7 +52,10 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
           setSelectedNodeId(saved[0].id);
         }
       })
-      .catch((err) => console.warn('Erro ao carregar conceitos:', err))
+      .catch((err) => {
+        console.warn('Erro ao carregar conceitos:', err);
+        if (active) showToast('Não foi possível carregar seus conceitos.', true);
+      })
       .finally(() => {
         if (active) setIsLoading(false);
       });
@@ -54,7 +63,10 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
   }, [userId]);
 
   const persistNode = (node: ConceptNode) => {
-    saveConcept(userId, node).catch((err) => console.warn('Erro ao salvar conceito:', err));
+    saveConcept(userId, node).catch((err) => {
+      console.warn('Erro ao salvar conceito:', err);
+      showToast('Falha ao sincronizar o conceito.', true);
+    });
   };
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) || nodes[0];
@@ -99,8 +111,7 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
     setNodes([...updated, newNode]);
 
     setSelectedNodeId(newNode.id);
-    setSuccessToast(`Termo "${newNode.label}" adicionado à rede sináptica!`);
-    setTimeout(() => setSuccessToast(null), 3000);
+    showToast(`Termo "${newNode.label}" adicionado à rede sináptica!`);
   };
 
   const handleDeleteConcept = (id: string) => {
@@ -122,8 +133,7 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
       }
     });
     if (nodeToDelete) {
-      setSuccessToast(`Termo "${nodeToDelete.label}" removido da rede.`);
-      setTimeout(() => setSuccessToast(null), 3000);
+      showToast(`Termo "${nodeToDelete.label}" removido da rede.`);
     }
     setNodes(remaining);
     setSelectedNodeId(remaining[0]?.id || 'node-1');
@@ -158,6 +168,16 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>{successToast}</span>
+          </motion.div>
+        )}
+        {errorToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="absolute top-4 left-1/2 -translate-x-1/2 z-40 px-4 py-2 bg-red-600 text-white rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2"
+          >
+            <span>{errorToast}</span>
           </motion.div>
         )}
       </AnimatePresence>

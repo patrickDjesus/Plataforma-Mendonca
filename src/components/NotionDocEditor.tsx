@@ -30,6 +30,7 @@ import {
 import { DocSection, GlossaryDefinition } from '../data/disciplinesData';
 import { NotionToolbar, FormattingState } from './NotionToolbar';
 import { DocContextMenu } from './DocContextMenu';
+import definitionsData from '../data/definitions.json';
 
 interface NotionDocEditorProps {
   sections: DocSection[];
@@ -53,6 +54,155 @@ const stripHtml = (html: string): string => {
 
 const htmlOf = (section: DocSection): string =>
   section.contentHtml || escapeHtml(section.content || '');
+
+// Glossário global (definitions.json) + glossário personalizado do documento
+const GLOBAL_GLOSSARY = definitionsData as Record<string, GlossaryDefinition>;
+
+// Classe usada nas <span> de destaque dentro do contentEditable (removidas ao salvar)
+const GLOSSARY_SPAN_CLASS = 'doc-glossary-term';
+
+const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const isAlphaNumericChar = (ch: string): boolean => /[\p{L}\p{N}_]/u.test(ch);
+
+// Unifica glossário global e personalizado em um mapa indexado por chave minúscula
+const mergeGlossary = (custom?: Record<string, GlossaryDefinition>): Record<string, GlossaryDefinition> => {
+  const merged: Record<string, GlossaryDefinition> = {};
+  const absorb = (map?: Record<string, GlossaryDefinition>) => {
+    if (!map) return;
+    for (const [key, def] of Object.entries(map)) {
+      merged[key.toLowerCase()] = def;
+      if (def.term) merged[def.term.toLowerCase()] = def;
+    }
+  };
+  absorb(GLOBAL_GLOSSARY);
+  absorb(custom);
+  return merged;
+};
+
+// Envolve cada ocorrência dos termos do glossário com <span> de destaque azul + tooltip nativo.
+// Só atinge nós de texto, preservando a formatação inline (negrito, itálico etc.).
+const applyGlossaryHighlights = (html: string, glossary?: Record<string, GlossaryDefinition>): string => {
+  if (!glossary || Object.keys(glossary).length === 0) return html;
+
+  const terms = Object.keys(glossary).map(t => t.trim()).filter(Boolean);
+  if (terms.length === 0) return html;
+
+  const sorted = terms.sort((a, b) => b.length - a.length).map(escapeRegExp);
+  const pattern = new RegExp(`(?:${sorted.join('|')})`, 'gi');
+
+  const div = document.createElement('div');
+  div.innerHTML = html;
+
+  const walker = document.createTreeWalker(div, NodeFilter.SHOW_TEXT);
+  const textNodes: Text[] = [];
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
+    if (node.parentElement && node.parentElement.closest(`.${GLOSSARY_SPAN_CLASS}`)) continue;
+    textNodes.push(node as Text);
+  }
+
+  const replacements: { node: Text; fragment: DocumentFragment }[] = [];
+
+  for (const textNode of textNodes) {
+    const text = textNode.nodeValue || '';
+    if (!text) continue;
+
+    pattern.lastIndex = 0;
+    if (!pattern.test(text)) continue;
+
+    const fragment = document.createDocumentFragment();
+    let last = 0;
+    let match: RegExpExecArray | null;
+    pattern.lastIndex = 0;
+    while ((match = pattern.exec(text))) {
+      const matched = text.slice(match.index, match.index + match[0].length);
+      const definition = glossary[matched.toLowerCase()];
+
+      const before = match.index > 0 ? text[match.index - 1] : '';
+      const after = match.index + matched.length < text.length ? text[match.index + matched.length] : '';
+
+      if (!definition || isAlphaNumericChar(before) || isAlphaNumericChar(after)) {
+        if (match.index === pattern.lastIndex) pattern.lastIndex++;
+        continue;
+      }
+
+      if (match.index > last) fragment.appendChild(document.createTextNode(text.slice(last, match.index)));
+
+      const span = document.createElement('span');
+      span.className = GLOSSARY_SPAN_CLASS;
+      span.dataset.glossaryTerm = definition.term || matched;
+      span.title = definition.definition || definition.example || definition.term || matched;
+      span.style.cssText = 'background-color:rgba(59,130,246,0.14);border-bottom:2px solid rgba(59,130,246,0.45);border-radius:4px;padding:0 2px;cursor:help;';
+      span.textContent = matched;
+      fragment.appendChild(span);
+
+      last = match.index + matched.length;
+      if (match.index === pattern.lastIndex) pattern.lastIndex++;
+    }
+
+    if (last < text.length) fragment.appendChild(document.createTextNode(text.slice(last)));
+
+    if (fragment.childNodes.length > 0) {
+      replacements.push({ node: textNode, fragment });
+    }
+  }
+
+  for (const { node: textNode, fragment } of replacements) {
+    textNode.parentNode?.replaceChild(fragment, textNode);
+  }
+
+  return div.innerHTML;
+};
+
+// Remove as <span> de destaque do glossário, preservando o texto (usado ao salvar o bloco)
+const unwrapGlossaryHighlights = (html: string): string => {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  const spans = Array.from(div.querySelectorAll(`.${GLOSSARY_SPAN_CLASS}`));
+  for (const span of spans) {
+    const parent = span.parentNode;
+    if (!parent) continue;
+    while (span.firstChild) parent.insertBefore(span.firstChild, span);
+    parent.removeChild(span);
+  }
+  return div.innerHTML;
+};
+
+// HTML exibido no contentEditable: formatação original + destaques do glossário
+const highlightedHtmlOf = (section: DocSection, glossary?: Record<string, GlossaryDefinition>): string =>
+  applyGlossaryHighlights(htmlOf(section), glossary);
+
+// Obtém a palavra única sob o cursor (usada quando o botão direito é clicado sem seleção)
+const getWordAtPoint = (clientX: number, clientY: number): string => {
+  try {
+    const el = document.elementFromPoint(clientX, clientY);
+    const contentEditable = el?.closest('[contenteditable="true"]') as HTMLElement | null;
+    if (!el || !contentEditable) return '';
+
+    const walker = document.createTreeWalker(contentEditable, NodeFilter.SHOW_TEXT);
+    let n: Node | null;
+    while ((n = walker.nextNode())) {
+      const text = (n as Text).nodeValue || '';
+      if (!text) continue;
+      const host = (n as Text).parentElement as HTMLElement;
+      const r = host.getBoundingClientRect();
+      if (clientY >= r.top && clientY <= r.bottom && clientX >= r.left && clientX <= r.right && r.width > 0) {
+        const frac = (clientX - r.left) / r.width;
+        const charOffset = Math.max(0, Math.min(text.length, Math.round(frac * text.length)));
+        let start = charOffset;
+        let end = charOffset;
+        while (start > 0 && /[\p{L}\p{N}_-]/u.test(text[start - 1])) start--;
+        while (end < text.length && /[\p{L}\p{N}_-]/u.test(text[end])) end++;
+        const word = text.slice(start, end).trim();
+        return word.length >= 2 ? word : '';
+      }
+    }
+    return '';
+  } catch {
+    return '';
+  }
+};
 
 // True when the caret is collapsed at the very start of a contentEditable block
 const isCaretAtStart = (el: HTMLElement): boolean => {
@@ -78,8 +228,9 @@ const TextEditable: React.FC<{
   placeholder?: string;
   className?: string;
   style?: React.CSSProperties;
+  glossary?: Record<string, GlossaryDefinition>;
   inputRef?: (el: HTMLDivElement | null) => void;
-}> = ({ value, onChange, onKeyDown, onFocus, onBlur, onSelectionUpdate, placeholder, className = '', style, inputRef }) => {
+}> = ({ value, onChange, onKeyDown, onFocus, onBlur, onSelectionUpdate, placeholder, className = '', style, glossary, inputRef }) => {
   const elRef = useRef<HTMLDivElement | null>(null);
   const focusedRef = useRef(false);
   const lastHtmlRef = useRef<string>('');
@@ -109,29 +260,31 @@ const TextEditable: React.FC<{
   useEffect(() => {
     const el = elRef.current;
     if (!el) return;
-    const nextHtml = htmlOf(value);
+    const nextHtml = highlightedHtmlOf(value, glossary);
     if (!focusedRef.current && nextHtml !== lastHtmlRef.current) {
       el.innerHTML = nextHtml;
       lastHtmlRef.current = nextHtml;
     }
     resize();
-  }, [value, resize]);
+  }, [value, resize, glossary]);
 
   useEffect(() => {
     const el = elRef.current;
     if (el && !el.innerHTML && !lastHtmlRef.current) {
-      el.innerHTML = htmlOf(value);
-      lastHtmlRef.current = htmlOf(value);
+      const h = highlightedHtmlOf(value, glossary);
+      el.innerHTML = h;
+      lastHtmlRef.current = h;
     }
     resize();
-  }, [value, resize]);
+  }, [value, resize, glossary]);
 
   const commit = () => {
     const el = elRef.current;
     if (!el) return;
     const html = el.innerHTML;
     lastHtmlRef.current = html;
-    onChangeRef.current(stripHtml(html), html);
+    const cleanHtml = unwrapGlossaryHighlights(html);
+    onChangeRef.current(stripHtml(cleanHtml), cleanHtml);
     resize();
     if (onSelectionUpdateRef.current) {
       onSelectionUpdateRef.current();
@@ -193,9 +346,12 @@ const TextEditable: React.FC<{
 
 export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   sections,
+  glossary,
   onUpdateSections,
   onOpenAddGlossary = (_initialTerm?: string) => {},
 }) => {
+  // Glossary mergido (global + personalizado), recomputado quando o glossário muda
+  const glossaryMap = useMemo(() => mergeGlossary(glossary), [glossary]);
   // Focus & Selection States
   const [activeBlockIndex, setActiveBlockIndex] = useState<number>(0);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -255,11 +411,13 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     position: { x: number; y: number };
     selectedText: string;
     targetBlockIndex: number;
+    conceptDefined: boolean;
   }>({
     isOpen: false,
     position: { x: 0, y: 0 },
     selectedText: '',
     targetBlockIndex: 0,
+    conceptDefined: false,
   });
 
   const handleContextMenu = (e: React.MouseEvent, blockIndex?: number) => {
@@ -268,18 +426,21 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
     const targetIdx = typeof blockIndex === 'number' ? blockIndex : activeBlockIndex;
 
-    if (!selectedStr && sections[targetIdx]) {
-      selectedStr = sections[targetIdx].content || '';
+    if (!selectedStr) {
+      selectedStr = getWordAtPoint(e.clientX, e.clientY);
     }
 
     e.preventDefault();
     e.stopPropagation();
+
+    const conceptDefined = !!selectedStr && !!glossaryMap[selectedStr.toLowerCase()];
 
     setContextMenu({
       isOpen: true,
       position: { x: e.clientX, y: e.clientY },
       selectedText: selectedStr,
       targetBlockIndex: targetIdx,
+      conceptDefined,
     });
   };
 
@@ -1540,6 +1701,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       }}
                       onSelectionUpdate={updateSelectionFormatting}
                       style={inlineStyle}
+                      glossary={glossaryMap}
                       className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 font-normal ${formatClass}`}
                     />
                   </div>
@@ -1560,6 +1722,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       }}
                       onSelectionUpdate={updateSelectionFormatting}
                       style={inlineStyle}
+                      glossary={glossaryMap}
                       className={`font-display font-black text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight leading-tight ${formatClass}`}
                     />
                   </div>
@@ -1580,6 +1743,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       }}
                       onSelectionUpdate={updateSelectionFormatting}
                       style={inlineStyle}
+                      glossary={glossaryMap}
                       className={`font-display font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white tracking-tight leading-snug ${formatClass}`}
                     />
                   </div>
@@ -1600,6 +1764,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       }}
                       onSelectionUpdate={updateSelectionFormatting}
                       style={inlineStyle}
+                      glossary={glossaryMap}
                       className={`font-display font-bold text-lg sm:text-xl text-slate-800 dark:text-slate-200 tracking-tight leading-normal ${formatClass}`}
                     />
                   </div>
@@ -1622,6 +1787,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         }}
                         onSelectionUpdate={updateSelectionFormatting}
                         style={inlineStyle}
+                        glossary={glossaryMap}
                         className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 ${formatClass}`}
                       />
                     </div>
@@ -1647,6 +1813,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         }}
                         onSelectionUpdate={updateSelectionFormatting}
                         style={inlineStyle}
+                        glossary={glossaryMap}
                         className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 ${formatClass}`}
                       />
                     </div>
@@ -1680,6 +1847,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         }}
                         onSelectionUpdate={updateSelectionFormatting}
                         style={inlineStyle}
+                        glossary={glossaryMap}
                         className={`text-sm sm:text-base leading-relaxed transition-all ${
                           section.checked
                             ? 'line-through text-slate-400 dark:text-slate-500'
@@ -1725,6 +1893,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         }}
                         onSelectionUpdate={updateSelectionFormatting}
                         style={inlineStyle}
+                        glossary={glossaryMap}
                         className={`text-xs sm:text-sm font-medium leading-relaxed ${formatClass}`}
                       />
                     </div>
@@ -1746,6 +1915,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       }}
                       onSelectionUpdate={updateSelectionFormatting}
                       style={inlineStyle}
+                      glossary={glossaryMap}
                       className={`text-sm sm:text-base font-serif italic ${formatClass}`}
                     />
                   </div>
@@ -2070,6 +2240,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
         isOpen={contextMenu.isOpen}
         position={contextMenu.position}
         selectedText={contextMenu.selectedText}
+        conceptExists={contextMenu.conceptDefined}
         onClose={() => setContextMenu(prev => ({ ...prev, isOpen: false }))}
         onPaste={handleContextMenuPaste}
         onDefineConcept={handleContextMenuDefine}

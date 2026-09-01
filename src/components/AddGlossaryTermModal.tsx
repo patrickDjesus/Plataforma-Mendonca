@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, BookOpen, Plus, Lightbulb } from 'lucide-react';
+import { X, BookOpen, Plus, Lightbulb, Image as ImageIcon } from 'lucide-react';
 import { GlossaryDefinition } from '../data/disciplinesData';
 
 interface AddGlossaryTermModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialTerm?: string;
+  initialDefinition?: GlossaryDefinition | null;
   onSaveTerm?: (definition: GlossaryDefinition) => void;
   onAddTerm?: (term: string, definition: GlossaryDefinition) => void;
 }
@@ -15,6 +16,7 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
   isOpen,
   onClose,
   initialTerm = '',
+  initialDefinition,
   onSaveTerm,
   onAddTerm
 }) => {
@@ -22,23 +24,33 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
   const [definition, setDefinition] = useState('');
   const [example, setExample] = useState('');
   const [category, setCategory] = useState('Conceito');
+  const [imageUrl, setImageUrl] = useState('');
 
-  // Sync initialTerm when prop changes
+  // Sync initialTerm / initialDefinition when prop changes
   React.useEffect(() => {
     if (initialTerm) setTerm(initialTerm);
-  }, [initialTerm]);
+    if (initialDefinition) {
+      setDefinition(initialDefinition.definition || '');
+      setExample(initialDefinition.example || '');
+      setCategory(initialDefinition.category || 'Conceito');
+      setImageUrl(initialDefinition.imageUrl || '');
+    }
+  }, [initialTerm, initialDefinition]);
 
   if (!isOpen) return null;
 
+  const canSubmit = term.trim() && (definition.trim() || imageUrl.trim());
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!term.trim() || !definition.trim()) return;
+    if (!canSubmit) return;
 
     const def: GlossaryDefinition = {
       term: term.trim(),
-      definition: definition.trim(),
+      definition: definition.trim() || undefined,
       example: example.trim() || undefined,
-      category: category.trim() || 'Conceito'
+      category: category.trim() || 'Conceito',
+      imageUrl: imageUrl.trim() || undefined
     };
 
     if (onSaveTerm) onSaveTerm(def);
@@ -47,6 +59,7 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
     setTerm('');
     setDefinition('');
     setExample('');
+    setImageUrl('');
     onClose();
   };
 
@@ -127,16 +140,40 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
             {/* Significado / Definição */}
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                Significado / Definição Conceitual *
+                Significado / Definição Conceitual (ou insira a imagem)
               </label>
               <textarea
                 rows={3}
-                required
                 value={definition}
                 onChange={(e) => setDefinition(e.target.value)}
                 placeholder="Explique com clareza o que esta palavra significa neste contexto..."
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none leading-relaxed"
               />
+            </div>
+
+            {/* Imagem do Conceito */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1">
+                <ImageIcon className="w-3.5 h-3.5 text-blue-500" />
+                Imagem do Conceito (Opcional)
+              </label>
+              <input
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://exemplo.com/diagrama.png"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              {imageUrl.trim() && (
+                <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                  <img
+                    src={imageUrl.trim()}
+                    alt="Pré-visualização"
+                    className="w-full h-28 object-cover"
+                    onError={e => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none'; }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Exemplo Prático */}
@@ -165,7 +202,8 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
               </button>
               <button
                 type="submit"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                disabled={!canSubmit}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 Salvar Significado

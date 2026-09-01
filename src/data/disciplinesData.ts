@@ -31,9 +31,10 @@ export interface DocSection {
 
 export interface GlossaryDefinition {
   term: string;
-  definition: string;
+  definition?: string;
   example?: string;
   category?: string;
+  imageUrl?: string;
 }
 
 export interface NotebookDoc {

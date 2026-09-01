@@ -22,6 +22,7 @@ interface DocContextMenuProps {
   onPaste?: () => void;
   onDefineConcept?: (term: string) => void;
   onApplyCorrection?: (originalWord: string, replacement: string) => void;
+  conceptExists?: boolean;
 }
 
 export const DocContextMenu: React.FC<DocContextMenuProps> = ({
@@ -32,7 +33,8 @@ export const DocContextMenu: React.FC<DocContextMenuProps> = ({
   onCopy,
   onPaste,
   onDefineConcept,
-  onApplyCorrection
+  onApplyCorrection,
+  conceptExists = false
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
@@ -212,7 +214,9 @@ export const DocContextMenu: React.FC<DocContextMenuProps> = ({
                   <BookOpen className="w-3.5 h-3.5" />
                 </div>
                 <div className="truncate text-left">
-                  <div className="truncate">Definir Conceito</div>
+                  <div className="truncate">
+                    {conceptExists ? 'Conceito Definido' : 'Definir Conceito'}
+                  </div>
                   {cleanSelection && (
                     <div className="text-[10px] font-normal text-blue-600 dark:text-blue-400 truncate max-w-[150px]">
                       &quot;{cleanSelection}&quot;
@@ -221,7 +225,7 @@ export const DocContextMenu: React.FC<DocContextMenuProps> = ({
                 </div>
               </div>
               <span className="text-[10px] bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-md font-medium shrink-0">
-                Glossário
+                {conceptExists ? 'Editar' : 'Glossário'}
               </span>
             </button>
           </div>
