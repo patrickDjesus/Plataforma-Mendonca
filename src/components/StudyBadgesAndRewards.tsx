@@ -410,10 +410,10 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                 <img
                   src={BADGE_IMAGES[nextBadge.id]}
                   alt={nextBadge.title}
-                  className="w-9 h-9 object-cover rounded-lg border border-slate-200 dark:border-slate-700 grayscale opacity-75 shrink-0"
+                  className="w-14 h-14 object-cover rounded-xl border border-slate-200 dark:border-slate-700 grayscale opacity-75 shrink-0"
                 />
               ) : (
-                <span className="text-xl shrink-0">{nextBadge.icon}</span>
+                <span className="text-3xl shrink-0">{nextBadge.icon}</span>
               )}
               <div className="text-left">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Próxima Conquista:</span>
@@ -440,7 +440,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                 whileHover={{ y: -3, scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handleOpenBadgeDetails(badge)}
-                className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-between text-center relative overflow-hidden min-h-[118px] select-none ${
+                className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-between text-center relative overflow-hidden min-h-[160px] select-none ${
                   badge.unlocked
                     ? `bg-gradient-to-b ${colors.bg} ${colors.border} shadow-sm ${colors.glow}`
                     : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-700/60 opacity-65 hover:opacity-100'
@@ -461,20 +461,15 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                     <img
                       src={BADGE_IMAGES[badge.id]}
                       alt={badge.title}
-                      className={`w-14 h-14 object-cover rounded-xl border transition-all duration-300 ${
+                      className={`w-28 h-28 object-cover rounded-2xl border-2 transition-all duration-300 ${
                         badge.unlocked
-                          ? 'border-amber-300/70 dark:border-amber-500/50 shadow-md'
-                          : 'grayscale opacity-70 border-slate-300/60 dark:border-slate-600'
+                          ? 'border-amber-300/80 dark:border-amber-500/60 shadow-lg'
+                          : 'grayscale opacity-70 border-slate-300/70 dark:border-slate-600'
                       }`}
                     />
-                    {!badge.unlocked && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-slate-900/30 rounded-xl">
-                        <Lock className="w-4 h-4 text-slate-200 drop-shadow-md" fill="currentColor" />
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  <div className="text-2xl mt-1 filter drop-shadow-sm">
+                  <div className="text-3xl mt-1 filter drop-shadow-sm">
                     {badge.icon}
                   </div>
                 )}
@@ -619,17 +614,12 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                                 <img
                                   src={BADGE_IMAGES[badge.id]}
                                   alt={badge.title}
-                                  className={`w-12 h-12 object-cover rounded-xl border transition-all duration-300 ${
+                                  className={`w-20 h-20 object-cover rounded-2xl border-2 transition-all duration-300 ${
                                     badge.unlocked
-                                      ? 'border-amber-300/70 dark:border-amber-500/50 shadow-md'
-                                      : 'grayscale opacity-70 border-slate-300/60 dark:border-slate-600'
+                                      ? 'border-amber-300/80 dark:border-amber-500/60 shadow-lg'
+                                      : 'grayscale opacity-70 border-slate-300/70 dark:border-slate-600'
                                   }`}
                                 />
-                                {!badge.unlocked && (
-                                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/30 rounded-xl">
-                                    <Lock className="w-3.5 h-3.5 text-slate-200 drop-shadow-md" fill="currentColor" />
-                                  </div>
-                                )}
                               </div>
                             ) : (
                               <span className="text-3xl filter drop-shadow-sm shrink-0">{badge.icon}</span>
@@ -734,17 +724,12 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                   <img
                     src={BADGE_IMAGES[selectedBadge.id]}
                     alt={selectedBadge.title}
-                    className={`w-24 h-24 object-cover rounded-2xl border-2 shadow-lg mx-auto transition-all duration-300 ${
+                    className={`w-44 h-44 object-cover rounded-3xl border-2 shadow-xl mx-auto transition-all duration-300 ${
                       selectedBadge.unlocked
                         ? 'border-amber-300 dark:border-amber-500/60 shadow-amber-400/20'
                         : 'grayscale opacity-65 border-slate-300 dark:border-slate-600'
                     }`}
                   />
-                  {!selectedBadge.unlocked && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900/35 rounded-2xl">
-                      <Lock className="w-7 h-7 text-slate-200 drop-shadow-lg" fill="currentColor" />
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="text-5xl my-2 filter drop-shadow-md">
