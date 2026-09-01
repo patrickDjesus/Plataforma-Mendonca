@@ -12,6 +12,22 @@ import {
   Crown 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import badgeChamaInicial from '../assets/images/badges/chama_inicial.png';
+import badgeRitmoInabalavel from '../assets/images/badges/ritmo_inabalavel.png';
+import badgeMenteDeTitanio from '../assets/images/badges/mente_de_titanio.png';
+import badgeLendaDaConstancia from '../assets/images/badges/lenda_da_constancia.png';
+import badgePrimeiroPasso from '../assets/images/badges/primeiro_passo.png';
+import badgeCenturiaoAnalitico from '../assets/images/badges/centuriao_analitico.png';
+
+// Imagens "capa" de cada conquista (chave = id da conquista). Faltantes => emoji.
+const BADGE_IMAGES: Record<string, string> = {
+  'streak-3': badgeChamaInicial,
+  'streak-7': badgeRitmoInabalavel,
+  'streak-14': badgeMenteDeTitanio,
+  'streak-30': badgeLendaDaConstancia,
+  'quest-10': badgePrimeiroPasso,
+  'quest-50': badgeCenturiaoAnalitico,
+};
 
 export interface StudyBadge {
   id: string;
@@ -390,7 +406,15 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
 
           {nextBadge && (
             <div className="w-full sm:w-auto flex items-center gap-2.5 bg-white dark:bg-slate-900 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs shrink-0">
-              <span className="text-xl">{nextBadge.icon}</span>
+              {BADGE_IMAGES[nextBadge.id] ? (
+                <img
+                  src={BADGE_IMAGES[nextBadge.id]}
+                  alt={nextBadge.title}
+                  className="w-9 h-9 object-cover rounded-lg border border-slate-200 dark:border-slate-700 grayscale opacity-75 shrink-0"
+                />
+              ) : (
+                <span className="text-xl shrink-0">{nextBadge.icon}</span>
+              )}
               <div className="text-left">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Próxima Conquista:</span>
                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block max-w-[130px]">
@@ -432,9 +456,28 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                   </div>
                 )}
 
-                <div className="text-2xl mt-1 filter drop-shadow-sm">
-                  {badge.icon}
-                </div>
+                {BADGE_IMAGES[badge.id] ? (
+                  <div className="relative w-full flex items-center justify-center my-0.5">
+                    <img
+                      src={BADGE_IMAGES[badge.id]}
+                      alt={badge.title}
+                      className={`w-14 h-14 object-cover rounded-xl border transition-all duration-300 ${
+                        badge.unlocked
+                          ? 'border-amber-300/70 dark:border-amber-500/50 shadow-md'
+                          : 'grayscale opacity-70 border-slate-300/60 dark:border-slate-600'
+                      }`}
+                    />
+                    {!badge.unlocked && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-slate-900/30 rounded-xl">
+                        <Lock className="w-4 h-4 text-slate-200 drop-shadow-md" fill="currentColor" />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-2xl mt-1 filter drop-shadow-sm">
+                    {badge.icon}
+                  </div>
+                )}
 
                 <div className="w-full">
                   <h4 className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">
@@ -571,7 +614,26 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                       >
                         <div className="flex items-start justify-between gap-3 mb-2.5">
                           <div className="flex items-center gap-2.5">
-                            <span className="text-3xl filter drop-shadow-sm">{badge.icon}</span>
+                            {BADGE_IMAGES[badge.id] ? (
+                              <div className="relative shrink-0">
+                                <img
+                                  src={BADGE_IMAGES[badge.id]}
+                                  alt={badge.title}
+                                  className={`w-12 h-12 object-cover rounded-xl border transition-all duration-300 ${
+                                    badge.unlocked
+                                      ? 'border-amber-300/70 dark:border-amber-500/50 shadow-md'
+                                      : 'grayscale opacity-70 border-slate-300/60 dark:border-slate-600'
+                                  }`}
+                                />
+                                {!badge.unlocked && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/30 rounded-xl">
+                                    <Lock className="w-3.5 h-3.5 text-slate-200 drop-shadow-md" fill="currentColor" />
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-3xl filter drop-shadow-sm shrink-0">{badge.icon}</span>
+                            )}
                             <div>
                               <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">
                                 {badge.title}
@@ -667,9 +729,28 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
               exit={{ opacity: 0, scale: 0.9, y: 10 }}
               className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-2xl z-10 text-center space-y-4"
             >
-              <div className="text-5xl my-2 filter drop-shadow-md">
-                {selectedBadge.icon}
-              </div>
+              {BADGE_IMAGES[selectedBadge.id] ? (
+                <div className="relative my-2 inline-block">
+                  <img
+                    src={BADGE_IMAGES[selectedBadge.id]}
+                    alt={selectedBadge.title}
+                    className={`w-24 h-24 object-cover rounded-2xl border-2 shadow-lg mx-auto transition-all duration-300 ${
+                      selectedBadge.unlocked
+                        ? 'border-amber-300 dark:border-amber-500/60 shadow-amber-400/20'
+                        : 'grayscale opacity-65 border-slate-300 dark:border-slate-600'
+                    }`}
+                  />
+                  {!selectedBadge.unlocked && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900/35 rounded-2xl">
+                      <Lock className="w-7 h-7 text-slate-200 drop-shadow-lg" fill="currentColor" />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-5xl my-2 filter drop-shadow-md">
+                  {selectedBadge.icon}
+                </div>
+              )}
 
               <div>
                 <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full inline-block mb-1.5 ${getTierColor(selectedBadge.tier).badge}`}>
