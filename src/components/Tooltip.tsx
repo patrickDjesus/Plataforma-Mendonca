@@ -69,7 +69,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       ref={triggerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
-      className={`relative inline-block cursor-help transition-all ${className}`}
+      className={`relative inline-block cursor-pointer transition-all ${className}`}
     >
       {/* Elemento filho / palavra destacada */}
       {children}

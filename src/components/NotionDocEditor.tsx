@@ -133,7 +133,7 @@ const applyGlossaryHighlights = (html: string, glossary?: Record<string, Glossar
       span.className = GLOSSARY_SPAN_CLASS;
       span.dataset.glossaryTerm = definition.term || matched;
       span.title = definition.definition || definition.example || definition.term || matched;
-      span.style.cssText = 'background-color:rgba(59,130,246,0.14);border-bottom:2px solid rgba(59,130,246,0.45);border-radius:4px;padding:0 2px;cursor:help;';
+      span.style.cssText = 'background-color:rgba(59,130,246,0.14);border-bottom:2px solid rgba(59,130,246,0.45);border-radius:4px;padding:0 2px;cursor:pointer;';
       span.textContent = matched;
       fragment.appendChild(span);
 

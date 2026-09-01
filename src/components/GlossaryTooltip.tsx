@@ -21,7 +21,7 @@ export const GlossaryWord: React.FC<GlossaryWordProps> = ({ term: _term, definit
   return (
     <Tooltip definition={definition} position="top">
       <span
-        className="inline-block relative group/term px-1.5 py-0.5 mx-0.5 rounded-md font-semibold transition-all duration-200 cursor-help bg-blue-100/80 hover:bg-blue-200/90 text-blue-950 dark:bg-blue-950/70 dark:hover:bg-blue-900/90 dark:text-blue-200 border-b-2 border-blue-400/80 dark:border-blue-500 shadow-2xs"
+        className="inline-block relative group/term px-1.5 py-0.5 mx-0.5 rounded-md font-semibold transition-all duration-200 cursor-pointer bg-blue-100/80 hover:bg-blue-200/90 text-blue-950 dark:bg-blue-950/70 dark:hover:bg-blue-900/90 dark:text-blue-200 border-b-2 border-blue-400/80 dark:border-blue-500 shadow-2xs"
         title="Passe o mouse para ver o conceito"
       >
         {children}
