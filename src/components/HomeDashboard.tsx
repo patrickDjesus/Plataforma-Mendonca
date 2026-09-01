@@ -3,13 +3,10 @@ import { ScreenId } from '../types/design';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Sparkles, 
-  ArrowRight, 
   Send, 
   Flame, 
-  BrainCircuit, 
   Clock, 
   Play, 
-  Network,
   Target,
   Trophy,
   CheckCircle2,
@@ -424,61 +421,6 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
             totalXp={userProfile?.totalXp || 0}
             onNavigateToTreino={() => onNavigate('treino')}
           />
-          </ScrollFade>
-
-          {/* ========================================================================= */}
-          {/* 4. MAPA DE CONHECIMENTO WIDGET INTERATIVO */}
-          {/* ========================================================================= */}
-          <ScrollFade container={scrollContainerRef}>
-          <motion.div 
-            whileHover={{ y: -2 }}
-            onClick={() => onNavigate('mapa')}
-            className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200/80 dark:border-slate-800 p-6 flex flex-col relative overflow-hidden shadow-2xs hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-300 cursor-pointer group min-h-[200px]"
-          >
-            <div className="flex items-center justify-between z-10 mb-2">
-              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 font-display flex items-center gap-2">
-                <Network className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                Mapa de Conhecimento Neural
-              </h3>
-              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                Explorar Grafo Completo <ArrowRight className="w-3 h-3" />
-              </span>
-            </div>
-
-            {/* Neural Network Node Simulation */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="relative w-full h-full">
-                <svg className="absolute inset-0 w-full h-full opacity-60 dark:opacity-80">
-                  <line x1="22%" y1="52%" x2="48%" y2="35%" stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="3 3" />
-                  <line x1="48%" y1="35%" x2="78%" y2="48%" stroke="#60A5FA" strokeWidth="2" />
-                  <line x1="32%" y1="72%" x2="48%" y2="35%" stroke="#CBD5E1" strokeWidth="1.5" />
-                  <line x1="48%" y1="35%" x2="62%" y2="75%" stroke="#C084FC" strokeWidth="1.5" />
-                </svg>
-
-                <div className="absolute top-1/2 left-1/4 w-3.5 h-3.5 bg-blue-500 rounded-full ring-4 ring-blue-100 dark:ring-blue-900/40 shadow-sm" />
-                <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-5 h-5 bg-cyan-400 rounded-full ring-8 ring-cyan-50 dark:ring-cyan-950/40 animate-pulse shadow-md flex items-center justify-center text-[8px] font-bold text-white">
-                  ★
-                </div>
-                <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-purple-500 rounded-full ring-2 ring-purple-100 dark:ring-purple-900/40" />
-                <div className="absolute top-1/2 right-1/4 w-5 h-5 bg-purple-600 rounded-full ring-4 ring-purple-100 dark:ring-purple-900/40 shadow-md">
-                  <div className="absolute inset-[-4px] border border-purple-200 dark:border-purple-800 rounded-full scale-150 opacity-30 animate-ping" />
-                </div>
-                <div className="absolute bottom-1/5 right-1/3 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-emerald-100 dark:ring-emerald-900/40" />
-              </div>
-            </div>
-
-            <div className="mt-auto z-10 flex flex-wrap gap-2 pt-14">
-              <span className="bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide flex items-center gap-1 border border-blue-100/60 dark:border-blue-900/40">
-                <BrainCircuit className="w-3 h-3" /> NEURO-REDE ATIVA
-              </span>
-              <span className="bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide flex items-center gap-1 border border-purple-100/60 dark:border-purple-900/40">
-                <Sparkles className="w-3 h-3" /> IA MENDONÇA
-              </span>
-              <span className="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide flex items-center gap-1 border border-emerald-100/60 dark:border-emerald-900/40">
-                84 NÓS CONECTADOS
-              </span>
-            </div>
-          </motion.div>
           </ScrollFade>
         </div>
 

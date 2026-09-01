@@ -15,11 +15,13 @@ export const ScrollFade: FC<ScrollFadeProps> = ({ container, children, className
     container,
     offset: ['start end', 'end start'],
   });
-  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
-  const y = useTransform(scrollYProgress, [0, 0.18, 0.82, 1], [44, 0, 0, -44]);
+
+  // Efeito "esticado": escalado no eixo Y + fade, conforme o card entra/sai da tela
+  const opacity = useTransform(scrollYProgress, [0, 0.18, 0.82, 1], [0, 1, 1, 0]);
+  const scaleY = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.55, 1, 1, 0.55]);
 
   return (
-    <motion.div ref={ref} style={{ opacity, y }} className={className}>
+    <motion.div ref={ref} style={{ opacity, scaleY }} className={className}>
       {children}
     </motion.div>
   );
