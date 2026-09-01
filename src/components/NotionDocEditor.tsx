@@ -12,6 +12,7 @@ import {
   Square,
   Lightbulb,
   AlertTriangle,
+  Sparkles,
   CheckCircle2,
   Info,
   Code,
@@ -132,7 +133,6 @@ const applyGlossaryHighlights = (html: string, glossary?: Record<string, Glossar
       const span = document.createElement('span');
       span.className = GLOSSARY_SPAN_CLASS;
       span.dataset.glossaryTerm = definition.term || matched;
-      span.title = definition.definition || definition.example || definition.term || matched;
       span.style.cssText = 'background-color:rgba(59,130,246,0.14);border-bottom:2px solid rgba(59,130,246,0.45);border-radius:4px;padding:0 2px;cursor:pointer;';
       span.textContent = matched;
       fragment.appendChild(span);
@@ -357,6 +357,13 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [activeMenuBlockIndex, setActiveMenuBlockIndex] = useState<number | null>(null);
 
+  // Tooltip de glossário (popover acima do termo, só no hover)
+  const [glossaryTip, setGlossaryTip] = useState<{
+    definition: GlossaryDefinition | null;
+    x: number;
+    y: number;
+  } | null>(null);
+
   // Multi-seleção de blocos (automática: arraste em qualquer lugar para marcar vários)
   const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([]);
   const blockListRef = useRef<HTMLDivElement>(null);
@@ -444,9 +451,26 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     });
   };
 
+  // Mostra o popover de glossário ao passar o mouse sobre um termo destacado
+  const handleGlossaryTip = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const span = target.closest(`.${GLOSSARY_SPAN_CLASS}`) as HTMLElement | null;
+    if (!span) {
+      setGlossaryTip(prev => (prev ? null : prev));
+      return;
+    }
+    const term = span.dataset.glossaryTerm || span.textContent || '';
+    const definition = glossaryMap[term.toLowerCase()];
+    if (!definition) return;
+    const rect = span.getBoundingClientRect();
+    setGlossaryTip({ definition, x: rect.left + rect.width / 2, y: rect.top });
+  };
+
+  const handleGlossaryTipHide = () => setGlossaryTip(null);
+
   const handleContextMenuPaste = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
+      try {
+        const text = await navigator.clipboard.readText();
       if (!text) return;
       const targetIdx = contextMenu.targetBlockIndex;
       const current = sections[targetIdx];
@@ -1488,7 +1512,12 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
       onMouseDown={onEditorMouseDown}
       onMouseMove={onEditorMouseMove}
       onMouseUp={onEditorMouseUp}
-      onMouseLeave={() => { if (dragModeRef.current) onEditorMouseUp(); }}
+      onMouseOver={handleGlossaryTip}
+      onMouseOut={(e) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest(`.${GLOSSARY_SPAN_CLASS}`)) handleGlossaryTipHide();
+      }}
+      onMouseLeave={() => { handleGlossaryTipHide(); if (dragModeRef.current) onEditorMouseUp(); }}
       onContextMenu={(e) => handleContextMenu(e)}
     >
       
@@ -2234,6 +2263,63 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
           </span>
         </div>
       </motion.div>
+
+      {/* Tooltip Conceitual (popover acima do termo, apenas no hover) */}
+      {glossaryTip && glossaryTip.definition && (
+        <motion.div
+          initial={{ opacity: 0, y: 6, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 4, scale: 0.96 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 350 }}
+          className="fixed z-[99999] w-72 p-3.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-blue-200/80 dark:border-blue-900/80 shadow-2xl text-left pointer-events-none transform -translate-x-1/2 -translate-y-full"
+          style={{ left: glossaryTip.x, top: glossaryTip.y - 10 }}
+        >
+          <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="w-5 h-5 rounded-lg bg-blue-500/10 dark:bg-blue-400/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <Sparkles className="w-3 h-3" />
+              </div>
+              <h4 className="font-display font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
+                {glossaryTip.definition.term}
+              </h4>
+            </div>
+            {glossaryTip.definition.category && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 shrink-0">
+                {glossaryTip.definition.category}
+              </span>
+            )}
+          </div>
+
+          {glossaryTip.definition.imageUrl && (
+            <img
+              src={glossaryTip.definition.imageUrl}
+              alt={glossaryTip.definition.term}
+              className="w-full h-36 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-md mb-2.5"
+              onError={(e) => { (e.currentTarget.style.display = 'none'); }}
+            />
+          )}
+
+          {glossaryTip.definition.definition && (
+            <>
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
+                Significado Acadêmico:
+              </span>
+              <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
+                {glossaryTip.definition.definition}
+              </p>
+            </>
+          )}
+
+          {glossaryTip.definition.example && (
+            <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-start gap-2 text-[11px] text-slate-600 dark:text-slate-300 bg-blue-50/60 dark:bg-blue-950/30 p-2 rounded-xl border border-blue-100/50 dark:border-blue-900/40">
+              <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+              <p className="italic leading-snug">
+                <strong className="not-italic text-slate-900 dark:text-white font-semibold">Aplicação:</strong> {glossaryTip.definition.example}
+              </p>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Menu de Contexto Inteligente ao Clicar com Botão Direito no Documento */}
       <DocContextMenu
