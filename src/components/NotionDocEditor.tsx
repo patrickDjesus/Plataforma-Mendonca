@@ -363,6 +363,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     x: number;
     y: number;
   } | null>(null);
+  const glossaryTipIdRef = useRef<string>('');
 
   // Multi-seleção de blocos (automática: arraste em qualquer lugar para marcar vários)
   const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([]);
@@ -451,22 +452,34 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     });
   };
 
-  // Mostra o popover de glossário ao passar o mouse sobre um termo destacado
+  // Mostra o popover de glossário instantaneamente ao passar o mouse sobre um termo
   const handleGlossaryTip = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    const span = target.closest(`.${GLOSSARY_SPAN_CLASS}`) as HTMLElement | null;
+    const under = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+    const span = under?.closest(`.${GLOSSARY_SPAN_CLASS}`) as HTMLElement | null;
     if (!span) {
-      setGlossaryTip(prev => (prev ? null : prev));
+      if (glossaryTipIdRef.current) {
+        glossaryTipIdRef.current = '';
+        setGlossaryTip(null);
+      }
       return;
     }
     const term = span.dataset.glossaryTerm || span.textContent || '';
+    if (glossaryTipIdRef.current === term) return;
     const definition = glossaryMap[term.toLowerCase()];
     if (!definition) return;
+    glossaryTipIdRef.current = term;
     const rect = span.getBoundingClientRect();
-    setGlossaryTip({ definition, x: rect.left + rect.width / 2, y: rect.top });
+    setGlossaryTip({
+      definition,
+      x: rect.left + rect.width / 2,
+      y: rect.top,
+    });
   };
 
-  const handleGlossaryTipHide = () => setGlossaryTip(null);
+  const handleGlossaryTipHide = () => {
+    glossaryTipIdRef.current = '';
+    setGlossaryTip(null);
+  };
 
   const handleContextMenuPaste = async () => {
       try {
@@ -1510,13 +1523,8 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     <div
       className="w-full space-y-4 relative font-sans select-text"
       onMouseDown={onEditorMouseDown}
-      onMouseMove={onEditorMouseMove}
+      onMouseMove={(e) => { onEditorMouseMove(e); handleGlossaryTip(e); }}
       onMouseUp={onEditorMouseUp}
-      onMouseOver={handleGlossaryTip}
-      onMouseOut={(e) => {
-        const target = e.target as HTMLElement;
-        if (!target.closest(`.${GLOSSARY_SPAN_CLASS}`)) handleGlossaryTipHide();
-      }}
       onMouseLeave={() => { handleGlossaryTipHide(); if (dragModeRef.current) onEditorMouseUp(); }}
       onContextMenu={(e) => handleContextMenu(e)}
     >
@@ -2264,22 +2272,22 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
         </div>
       </motion.div>
 
-      {/* Tooltip Conceitual (popover acima do termo, apenas no hover) */}
+      {/* Tooltip Conceitual (hover bonito, instantâneo, acima do termo) */}
       {glossaryTip && glossaryTip.definition && (
         <motion.div
-          initial={{ opacity: 0, y: 6, scale: 0.95 }}
+          initial={{ opacity: 0, y: 8, scale: 0.92 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 4, scale: 0.96 }}
-          transition={{ type: 'spring', damping: 20, stiffness: 350 }}
-          className="fixed z-[99999] w-72 p-3.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-blue-200/80 dark:border-blue-900/80 shadow-2xl text-left pointer-events-none transform -translate-x-1/2 -translate-y-full"
-          style={{ left: glossaryTip.x, top: glossaryTip.y - 10 }}
+          transition={{ type: 'spring', damping: 26, stiffness: 500, mass: 0.4 }}
+          className="fixed z-[99999] w-72 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-blue-200/80 dark:border-blue-900/80 shadow-2xl text-left pointer-events-none transform -translate-x-1/2 -translate-y-full"
+          style={{ left: glossaryTip.x, top: glossaryTip.y - 14 }}
         >
-          <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <div className="w-5 h-5 rounded-lg bg-blue-500/10 dark:bg-blue-400/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                <Sparkles className="w-3 h-3" />
+          <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30 shrink-0">
+                <Sparkles className="w-3.5 h-3.5" />
               </div>
-              <h4 className="font-display font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
+              <h4 className="font-display font-bold text-sm text-slate-900 dark:text-white truncate">
                 {glossaryTip.definition.term}
               </h4>
             </div>
