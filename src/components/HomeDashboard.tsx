@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ScreenId } from '../types/design';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -9,7 +9,6 @@ import {
   BrainCircuit, 
   Clock, 
   Play, 
-  Zap, 
   Network,
   Target,
   Trophy,
@@ -18,16 +17,12 @@ import {
   Compass,
   ChevronDown,
   Calendar,
-  PenTool,
-  FlaskConical,
-  Calculator
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { DailyLearningGoal } from './DailyLearningGoal';
 import { StudyTimeSummaryCard } from './StudyTimeSummaryCard';
-import { StudyMaterialModal } from './StudyMaterialModal';
 import { StudyBadgesAndRewards } from './StudyBadgesAndRewards';
-import { HIGH_YIELD_STUDY_MATERIALS, HighYieldStudyMaterial } from '../data/highYieldMaterials';
+import { ScrollFade } from './ScrollFade';
 import { TARGET_EXAMS, calculateExamCountdown } from '../utils/examCountdown';
 import { chatWithGroq } from '../services/ai';
 import { Markdown } from './Markdown';
@@ -139,9 +134,8 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
   const [isExamDropdownOpen, setIsExamDropdownOpen] = useState(false);
   const [countdownTick, setCountdownTick] = useState(0);
 
-  // Material de Estudo Aberto no Modal
-  const [selectedStudyMaterial, setSelectedStudyMaterial] = useState<HighYieldStudyMaterial | null>(null);
-  const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
+  // Ref do Container de Rolagem para Efeito de Fade no Scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Chat com IA Tutor
   const [chatInput, setChatInput] = useState('');
@@ -249,11 +243,6 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
     setIsFocusModalOpen(false);
   };
 
-  const handleOpenMaterial = (material: HighYieldStudyMaterial) => {
-    setSelectedStudyMaterial(material);
-    setIsMaterialModalOpen(true);
-  };
-
   // Calcula os dias da semana de forma dinâmica (Seg a Dom)
   const daysOfWeek = useMemo(() => {
     const dayLabels = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
@@ -272,7 +261,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
   }, [streakCount]);
 
   return (
-    <div className="flex-1 flex flex-col gap-6 overflow-y-auto pb-24 pr-1 relative select-none text-slate-900 dark:text-slate-100">
+    <div ref={scrollContainerRef} className="flex-1 flex flex-col gap-6 overflow-y-auto pb-24 pr-1 relative select-none text-slate-900 dark:text-slate-100">
       
       {/* Grid Principal do Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
@@ -283,6 +272,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
           {/* ========================================================================= */}
           {/* 1. BANNER DINÂMICO DE CONTAGEM REGRESSIVA REAL PARA O EXAME */}
           {/* ========================================================================= */}
+          <ScrollFade container={scrollContainerRef}>
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -396,18 +386,22 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
             <div className="absolute right-[-20px] bottom-[-20px] opacity-20 w-64 h-64 border-[30px] border-white rounded-full pointer-events-none" />
             <div className="absolute right-24 top-[-40px] opacity-10 w-48 h-48 border-[20px] border-cyan-200 rounded-full pointer-events-none" />
           </motion.div>
+          </ScrollFade>
 
           {/* ========================================================================= */}
           {/* 1.5 SEÇÃO DE RESUMO: TEMPO TOTAL DE ESTUDO (ÚLTIMOS 7 DIAS) & META DIÁRIA */}
           {/* ========================================================================= */}
+          <ScrollFade container={scrollContainerRef}>
           <StudyTimeSummaryCard
             onStartTraining={() => onNavigate('treino')}
             streakCount={streakCount}
           />
+          </ScrollFade>
 
           {/* ========================================================================= */}
           {/* 2. COMPONENTE RECHARTS: META DIÁRIA DE APRENDIZADO */}
           {/* ========================================================================= */}
+          <ScrollFade container={scrollContainerRef}>
           <DailyLearningGoal
             streakCount={streakCount}
             onStartTraining={() => onNavigate('treino')}
@@ -416,10 +410,12 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
             todayMinutesStudied={0}
             todayXpEarned={userProfile?.totalXp || 0}
           />
+          </ScrollFade>
 
           {/* ========================================================================= */}
           {/* 2.5 SISTEMA DE MEDALHAS & RECOMPENSAS VISUAIS DE ESTUDO */}
           {/* ========================================================================= */}
+          <ScrollFade container={scrollContainerRef}>
           <StudyBadgesAndRewards
             streakCount={userProfile?.streak || streakCount || 1}
             totalAnswered={userProfile?.totalAnswered || 0}
@@ -428,70 +424,12 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
             totalXp={userProfile?.totalXp || 0}
             onNavigateToTreino={() => onNavigate('treino')}
           />
-
-          {/* ========================================================================= */}
-          {/* 3. MATERIAIS RECENTES 100% FUNCIONAIS COM MODAL DE LEITURA & RESUMO */}
-          {/* ========================================================================= */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 font-display">
-                  Materiais de Alto Rendimento & Resumos
-                </h3>
-              </div>
-              <button 
-                onClick={() => onNavigate('caderno')}
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 text-xs font-bold cursor-pointer hover:underline flex items-center gap-1"
-              >
-                Ver todo o Caderno <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-              {HIGH_YIELD_STUDY_MATERIALS.map((material) => (
-                <motion.div 
-                  key={material.id}
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleOpenMaterial(material)}
-                  className="bg-white dark:bg-slate-900 p-4 rounded-[22px] border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200 cursor-pointer group flex flex-col justify-between min-h-[170px]"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div 
-                        className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs shadow-xs"
-                        style={{ backgroundColor: material.color }}
-                      >
-                        {material.category === 'Redação' && <PenTool className="w-4 h-4" />}
-                        {material.category === 'Física' && <Zap className="w-4 h-4" />}
-                        {material.category === 'Química' && <FlaskConical className="w-4 h-4" />}
-                        {material.category === 'Matemática' && <Calculator className="w-4 h-4" />}
-                      </div>
-                      <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                        {material.category}
-                      </span>
-                    </div>
-
-                    <h4 className="font-bold text-slate-800 dark:text-slate-100 text-xs leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                      {material.title}
-                    </h4>
-                  </div>
-
-                  <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-                    <span>{material.readTime}</span>
-                    <span className="text-blue-600 dark:text-blue-400 font-bold group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
-                      Ler síntese →
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+          </ScrollFade>
 
           {/* ========================================================================= */}
           {/* 4. MAPA DE CONHECIMENTO WIDGET INTERATIVO */}
           {/* ========================================================================= */}
+          <ScrollFade container={scrollContainerRef}>
           <motion.div 
             whileHover={{ y: -2 }}
             onClick={() => onNavigate('mapa')}
@@ -541,12 +479,14 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
               </span>
             </div>
           </motion.div>
+          </ScrollFade>
         </div>
 
         {/* COLUNA DIREITA: 4 Colunas (Streak & AI Assistant) */}
         <div className="lg:col-span-4 flex flex-col gap-6">
           
           {/* OFENSIVA SEMANAL */}
+          <ScrollFade container={scrollContainerRef}>
           <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200/80 dark:border-slate-800 p-6 shadow-2xs hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700/60 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -580,8 +520,10 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
               <span className="text-emerald-600 dark:text-emerald-400 font-bold">{streakCount} dias seguidos 🔥</span>
             </div>
           </div>
+          </ScrollFade>
 
           {/* AI ASSISTANT CHAT */}
+          <ScrollFade container={scrollContainerRef}>
           <div 
             className="flex-1 rounded-[32px] border border-slate-200/80 dark:border-slate-800 p-6 relative overflow-hidden shadow-xl bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl flex flex-col min-h-[380px] hover:shadow-lg hover:shadow-blue-500/15 hover:border-blue-300 dark:hover:border-blue-700/60 transition-all duration-300"
           >
@@ -649,6 +591,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
               </form>
             </div>
           </div>
+          </ScrollFade>
         </div>
 
       </div>
@@ -807,17 +750,6 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
           </div>
         )}
       </AnimatePresence>
-
-      {/* ========================================================================= */}
-      {/* MODAL INTERATIVO DE LEITURA DO MATERIAL RECENTE SELECIONADO */}
-      {/* ========================================================================= */}
-      <StudyMaterialModal
-        isOpen={isMaterialModalOpen}
-        material={selectedStudyMaterial}
-        onClose={() => setIsMaterialModalOpen(false)}
-        onNavigateToCaderno={() => onNavigate('caderno')}
-        onNavigateToTreino={() => onNavigate('treino')}
-      />
 
     </div>
   );

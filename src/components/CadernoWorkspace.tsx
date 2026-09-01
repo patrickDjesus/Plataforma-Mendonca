@@ -48,6 +48,7 @@ import { NotionDocEditor } from './NotionDocEditor';
 import { EmojiQuickPicker } from './EmojiQuickPicker';
 import { CorpoHumanoSimulator } from '../corpoHumano/CorpoHumanoSimulator';
 import { SIMULATOR_DOC_ID, simulatorDoc } from '../corpoHumano/simulatorDoc';
+import { ScrollFade } from './ScrollFade';
 
 interface CadernoWorkspaceProps {
   onNavigate?: (screen: ScreenId) => void;
@@ -171,6 +172,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
   // Smooth Scroll Refs & State
   const galleryContainerRef = useRef<HTMLDivElement>(null);
   const docContainerRef = useRef<HTMLDivElement>(null);
+  const disciplineContainerRef = useRef<HTMLDivElement>(null);
 
   const [galleryScrolled, setGalleryScrolled] = useState(false);
   const [galleryPercent, setGalleryPercent] = useState(0);
@@ -641,6 +643,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
           className="flex-1 overflow-y-auto pb-24 pr-1 space-y-6 scroll-smooth"
         >
           {/* Header da Galeria com Busca Rápida e Filtros de Categoria */}
+          <ScrollFade container={galleryContainerRef}>
           <div className="bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col gap-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
@@ -693,8 +696,10 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               ))}
             </div>
           </div>
+          </ScrollFade>
 
           {/* Grid de Cards das Matérias com Animação Fluida Framer Motion Stagger */}
+          <ScrollFade container={galleryContainerRef}>
           <motion.div 
             key={selectedCategory + searchQuery}
             initial="hidden"
@@ -868,6 +873,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               );
             })}
           </motion.div>
+          </ScrollFade>
 
           {/* Botão Flutuante Futurista de Rolagem Suave ao Topo da Galeria */}
           <AnimatePresence>
@@ -894,9 +900,10 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
       {/* NÍVEL 2: LISTA DE DOCUMENTOS DA MATÉRIA */}
       {/* ========================================================================= */}
       {selectedDiscipline && !selectedDocId && (
-        <div className="flex-1 overflow-y-auto pb-16 pr-1 space-y-6">
+        <div ref={disciplineContainerRef} className="flex-1 overflow-y-auto pb-16 pr-1 space-y-6">
           
           {/* Header da Disciplina */}
+          <ScrollFade container={disciplineContainerRef}>
           <div className="bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <motion.button
@@ -986,6 +993,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               </motion.button>
             </div>
           </div>
+          </ScrollFade>
 
           {/* Barra de Filtro de Documentos */}
           <div className="relative max-w-md">
@@ -1043,6 +1051,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
           )}
 
           {/* Grid ou Lista de Documentos, ou Empty State */}
+          <ScrollFade container={disciplineContainerRef}>
           {filteredDocs.length === 0 ? (
             <div className="bg-white dark:bg-slate-900 rounded-[28px] p-12 border border-dashed border-slate-300 dark:border-slate-800 text-center flex flex-col items-center justify-center gap-4">
               <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -1316,6 +1325,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               </div>
             </div>
           )}
+          </ScrollFade>
         </div>
       )}
 

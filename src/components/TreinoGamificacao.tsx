@@ -41,6 +41,7 @@ import { PostTrainingSummaryModal, PostTrainingSummaryData } from './PostTrainin
 import { useAuth } from '../context/AuthContext';
 import { GameHUD } from './treino/GameHUD';
 import { GameOver } from './treino/GameOver';
+import { ScrollFade } from './ScrollFade';
 import { 
   subscribeToQuestions, 
   createQuestion, 
@@ -273,6 +274,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gameoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastQuestionIdsRef = useRef<number[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Sorteia uma questão do pool evitando repetições em sequência, deixando a ordem imprevisível.
   const pickRandomFromPool = (pool: QuizQuestion[]): QuizQuestion | null => {
@@ -1217,7 +1219,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 ]`;
 
   return (
-    <div className="h-full overflow-y-auto max-w-5xl mx-auto pb-24 pr-1 relative select-none">
+    <div ref={scrollContainerRef} className="h-full overflow-y-auto max-w-5xl mx-auto pb-24 pr-1 relative select-none">
       
       {/* Toast de Sucesso */}
       <AnimatePresence>
@@ -1263,6 +1265,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
       </AnimatePresence>
 
       {/* 1. SELETOR PRINCIPAL DE ABAS (CENTRO DE TREINO vs DASHBOARD vs ESTÚDIO DO PROFESSOR) */}
+      <ScrollFade container={scrollContainerRef}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
           <button
@@ -1350,11 +1353,13 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           </div>
         </div>
       </div>
+      </ScrollFade>
 
       {/* ========================================================================= */}
       {/* ABA 1: CENTRO DE TREINO SURVIVAL & ENDURANCE                              */}
       {/* ========================================================================= */}
       {activeTab === 'game' && (
+        <ScrollFade container={scrollContainerRef}>
         <div className="space-y-6">
           
           {/* 1.1 TELA LOBBY / MENU DE INÍCIO */}
@@ -1424,12 +1429,14 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             />
           )}
         </div>
+        </ScrollFade>
       )}
 
       {/* ========================================================================= */}
       {/* ABA 2: DASHBOARD DE DESEMPENHO E DIAGNÓSTICO DE ERROS                     */}
       {/* ========================================================================= */}
       {activeTab === 'dashboard' && (
+        <ScrollFade container={scrollContainerRef}>
         <PerformanceDashboard
           analytics={analytics}
           onStartFocusedPractice={handleStartFocusedPractice}
@@ -1437,12 +1444,14 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           onResetAnalytics={handleResetAnalytics}
           onImportAnalytics={handleImportAnalytics}
         />
+        </ScrollFade>
       )}
 
       {/* ========================================================================= */}
       {/* ABA 3: RANKING GLOBAL & COMUNIDADE DE COMPETIDORES                        */}
       {/* ========================================================================= */}
       {activeTab === 'leaderboard' && (
+        <ScrollFade container={scrollContainerRef}>
         <GlobalLeaderboard
           onStartChallenge={(mode) => {
             playSound('click');
@@ -1457,12 +1466,14 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           }}
           onNavigate={onNavigate}
         />
+        </ScrollFade>
       )}
 
       {/* ========================================================================= */}
       {/* ABA 4: ESTÚDIO DE CRIAÇÃO DO PROFESSOR (AUTORIA EMBUTIDA NA PÁGINA)       */}
       {/* ========================================================================= */}
       {activeTab === 'teacher' && (
+        <ScrollFade container={scrollContainerRef}>
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -2452,6 +2463,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             )}
           </div>
         </motion.div>
+        </ScrollFade>
       )}
 
       {/* Modal de Importação JSON de Questões */}
