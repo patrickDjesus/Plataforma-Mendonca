@@ -1,5 +1,4 @@
-import React, { useState, useRef } from 'react';
-import { CONCEPT_NODES } from '../data/mockData';
+import React, { useState, useRef, useEffect } from 'react';
 import { ConceptNode, ScreenId } from '../types/design';
 import { 
   ZoomIn, 
@@ -9,17 +8,23 @@ import {
   ArrowUpRight, 
   Brain,
   Plus,
-  CheckCircle2
+  CheckCircle2,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AddConceptModal } from './AddConceptModal';
+import { useAuth } from '../context/AuthContext';
+import { getUserConcepts, saveConcept, deleteConcept } from '../services/supabase';
 
 interface MapaConceitosProps {
   onNavigate: (screen: ScreenId) => void;
 }
 
 export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
-  const [nodes, setNodes] = useState<ConceptNode[]>(CONCEPT_NODES);
+  const { currentUser } = useAuth();
+  const userId = currentUser?.id || 'guest';
+  const [nodes, setNodes] = useState<ConceptNode[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedNodeId, setSelectedNodeId] = useState<string>('node-1');
   const [, setHoveredNodeId] = useState<string | null>(null);
@@ -30,6 +35,27 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
   const [isAddConceptOpen, setIsAddConceptOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
   const startPanRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    let active = true;
+    getUserConcepts(userId)
+      .then((saved) => {
+        if (!active) return;
+        setNodes(saved);
+        if (saved.length > 0) {
+          setSelectedNodeId(saved[0].id);
+        }
+      })
+      .catch((err) => console.warn('Erro ao carregar conceitos:', err))
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => { active = false; };
+  }, [userId]);
+
+  const persistNode = (node: ConceptNode) => {
+    saveConcept(userId, node).catch((err) => console.warn('Erro ao salvar conceito:', err));
+  };
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) || nodes[0];
 
@@ -53,23 +79,54 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
   const handleMouseUp = () => setIsPanning(false);
 
   const handleAddConcept = (newNode: ConceptNode) => {
-    setNodes(prev => {
-      // Also ensure connected nodes know about this connection
-      const updated = prev.map(existing => {
-        if (newNode.connections.includes(existing.id)) {
-          return {
-            ...existing,
-            connections: Array.from(new Set([...existing.connections, newNode.id]))
-          };
-        }
-        return existing;
-      });
-      return [...updated, newNode];
+    const updated = nodes.map(existing => {
+      if (newNode.connections.includes(existing.id)) {
+        return {
+          ...existing,
+          connections: Array.from(new Set([...existing.connections, newNode.id]))
+        };
+      }
+      return existing;
     });
+
+    persistNode(newNode);
+    updated.forEach(existing => {
+      if (newNode.connections.includes(existing.id)) {
+        persistNode(existing);
+      }
+    });
+
+    setNodes([...updated, newNode]);
 
     setSelectedNodeId(newNode.id);
     setSuccessToast(`Termo "${newNode.label}" adicionado à rede sináptica!`);
     setTimeout(() => setSuccessToast(null), 3000);
+  };
+
+  const handleDeleteConcept = (id: string) => {
+    const nodeToDelete = nodes.find((n) => n.id === id);
+    const remaining = nodes
+      .filter((n) => n.id !== id)
+      .map((n) => ({
+        ...n,
+        connections: n.connections.filter((c) => c !== id),
+      }));
+
+    deleteConcept(userId, id)
+      .catch((err) => console.warn('Erro ao deletar conceito:', err));
+
+    remaining.forEach((n) => {
+      const original = nodes.find((x) => x.id === n.id);
+      if (original && JSON.stringify(original.connections) !== JSON.stringify(n.connections)) {
+        persistNode(n);
+      }
+    });
+    if (nodeToDelete) {
+      setSuccessToast(`Termo "${nodeToDelete.label}" removido da rede.`);
+      setTimeout(() => setSuccessToast(null), 3000);
+    }
+    setNodes(remaining);
+    setSelectedNodeId(remaining[0]?.id || 'node-1');
   };
 
   // Get distinct categories
@@ -259,6 +316,14 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
             >
               <ArrowUpRight className="w-4 h-4" />
             </button>
+            <button
+              onClick={() => handleDeleteConcept(selectedNode.id)}
+              className="py-2.5 px-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 font-semibold text-xs transition-colors cursor-pointer"
+              title="Remover este conceito da rede"
+              aria-label="Remover conceito"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
         </motion.div>
       )}
@@ -426,7 +491,7 @@ export const MapaConceitos: React.FC<MapaConceitosProps> = ({ onNavigate }) => {
       </div>
 
       {/* Empty State quando não há nós neurais */}
-      {nodes.length === 0 && (
+      {!isLoading && nodes.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 p-6">
           <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 rounded-[32px] p-8 max-w-md text-center shadow-2xl pointer-events-auto space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 mx-auto flex items-center justify-center shadow-inner">

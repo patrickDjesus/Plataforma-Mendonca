@@ -1,5 +1,5 @@
 import { createClient, User, Session } from '@supabase/supabase-js';
-import { QuizQuestion, PerformanceAnalytics, PerformanceSessionHistory } from '../types/design';
+import { QuizQuestion, PerformanceAnalytics, PerformanceSessionHistory, ConceptNode } from '../types/design';
 import { LeaderboardUser } from '../components/GlobalLeaderboard';
 import { NotebookDoc } from '../data/disciplinesData';
 
@@ -42,6 +42,7 @@ const LOCAL_STORAGE_KEYS = {
   LEADERBOARD: 'mendonca_leaderboard_data',
   DOCUMENTS: 'mendonca_user_documents',
   PROFILES: 'mendonca_user_profiles',
+  CONCEPTS: 'mendonca_concept_nodes',
 };
 
 // ============================================================================
@@ -1029,4 +1030,151 @@ export const getPublicDocuments = async (excludeUserId: string): Promise<Noteboo
   }
 
   return [];
+};
+
+// ============================================================================
+// 6. CONCEPT NODES (Mapa de Conceitos / Rede Neural)
+// ============================================================================
+
+const mapConceptRow = (row: any): ConceptNode => ({
+  id: row.id,
+  label: row.label || '',
+  category: row.category || '',
+  color: row.color || '#06B6D4',
+  glowColor: row.glow_color || '',
+  x: row.x ?? 500,
+  y: row.y ?? 350,
+  size: row.size ?? 26,
+  mastery: row.mastery ?? 0,
+  description: row.description || '',
+  connections: row.connections || [],
+  synapticStrength: row.synaptic_strength ?? 1,
+  tags: row.tags || [],
+});
+
+export const getUserConcepts = async (userId: string): Promise<ConceptNode[]> => {
+  if (!userId) return [];
+
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('concept_nodes')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (!error && data && data.length > 0) {
+        return data.map(mapConceptRow);
+      }
+    } catch (e) {
+      console.warn('Erro ao buscar conceitos no Supabase:', e);
+    }
+  }
+
+  try {
+    const saved = localStorage.getItem(`${LOCAL_STORAGE_KEYS.CONCEPTS}_${userId}`);
+    if (saved) return JSON.parse(saved);
+  } catch {
+    // ignore
+  }
+  return [];
+};
+
+export const saveConcept = async (userId: string, node: ConceptNode): Promise<void> => {
+  if (!userId) return;
+
+  try {
+    const current = await getUserConcepts(userId);
+    const existingIdx = current.findIndex(c => c.id === node.id);
+    const updated = existingIdx >= 0
+      ? current.map(c => c.id === node.id ? node : c)
+      : [...current, node];
+    localStorage.setItem(`${LOCAL_STORAGE_KEYS.CONCEPTS}_${userId}`, JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
+
+  if (isSupabaseConfigured) {
+    const payload = {
+      id: node.id,
+      user_id: userId,
+      label: node.label,
+      category: node.category,
+      color: node.color,
+      glow_color: node.glowColor,
+      x: node.x,
+      y: node.y,
+      size: node.size,
+      mastery: node.mastery,
+      description: node.description,
+      connections: node.connections,
+      synaptic_strength: node.synapticStrength,
+      tags: node.tags,
+      updated_at: new Date().toISOString(),
+    };
+
+    try {
+      await supabase.from('concept_nodes').upsert(payload, { onConflict: 'id,user_id' });
+    } catch (e) {
+      console.warn('Erro ao salvar conceito no Supabase:', e);
+    }
+  }
+};
+
+export const deleteConcept = async (userId: string, nodeId: string): Promise<void> => {
+  if (!userId) return;
+
+  try {
+    const current = await getUserConcepts(userId);
+    const updated = current.filter(c => c.id !== nodeId);
+    localStorage.setItem(`${LOCAL_STORAGE_KEYS.CONCEPTS}_${userId}`, JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
+
+  if (isSupabaseConfigured) {
+    try {
+      await supabase.from('concept_nodes').delete().eq('id', nodeId).eq('user_id', userId);
+    } catch (e) {
+      console.warn('Erro ao deletar conceito no Supabase:', e);
+    }
+  }
+};
+
+export const saveAllConcepts = async (userId: string, nodes: ConceptNode[]): Promise<void> => {
+  if (!userId) return;
+
+  try {
+    localStorage.setItem(`${LOCAL_STORAGE_KEYS.CONCEPTS}_${userId}`, JSON.stringify(nodes));
+  } catch {
+    // ignore
+  }
+
+  if (isSupabaseConfigured) {
+    try {
+      await supabase.from('concept_nodes').delete().eq('user_id', userId);
+
+      if (nodes.length > 0) {
+        const payload = nodes.map(node => ({
+          id: node.id,
+          user_id: userId,
+          label: node.label,
+          category: node.category,
+          color: node.color,
+          glow_color: node.glowColor,
+          x: node.x,
+          y: node.y,
+          size: node.size,
+          mastery: node.mastery,
+          description: node.description,
+          connections: node.connections,
+          synaptic_strength: node.synapticStrength,
+          tags: node.tags,
+          updated_at: new Date().toISOString(),
+        }));
+        await supabase.from('concept_nodes').upsert(payload, { onConflict: 'id,user_id' });
+      }
+    } catch (e) {
+      console.warn('Erro ao salvar todos os conceitos no Supabase:', e);
+    }
+  }
 };
