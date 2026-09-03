@@ -865,17 +865,27 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     setInlineFormatting(next);
   }, []);
 
-  // Listen to document-wide selection changes
+  // Atualização de seleção discreta (mouseup/keyup dentro de um bloco).
+  // Atualiza a formatação e detecta seleção para o popover de IA. NÃO é
+  // atrelada ao event global `selectionchange` (que dispara a cada tecla/
+  // movimento e causava re-render em loop / crash).
+  const handleBlockSelectionUpdate = useCallback(() => {
+    updateSelectionFormatting();
+    handleSelectionForAi();
+  }, [updateSelectionFormatting, handleSelectionForAi]);
+
+  // Listen to document-wide selection changes (apenas para formatação;
+  // o popover de IA é detectado em eventos discretos via onSelectionUpdate,
+  // para não criar re-render em loop).
   useEffect(() => {
     const handleSelectionChange = () => {
       updateSelectionFormatting();
-      handleSelectionForAi();
     };
     document.addEventListener('selectionchange', handleSelectionChange);
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
     };
-  }, [updateSelectionFormatting, handleSelectionForAi]);
+  }, [updateSelectionFormatting]);
 
   // Current active formatting state based on selected block and active selection
   const currentBlock = sections[activeBlockIndex] || sections[0] || {
@@ -1940,7 +1950,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         setActiveBlockIndex(idx);
                         updateSelectionFormatting();
                       }}
-                      onSelectionUpdate={updateSelectionFormatting}
+                      onSelectionUpdate={handleBlockSelectionUpdate}
                       style={inlineStyle}
                       glossary={glossaryMap}
                       className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 font-normal ${formatClass}`}
@@ -1961,7 +1971,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         setActiveBlockIndex(idx);
                         updateSelectionFormatting();
                       }}
-                      onSelectionUpdate={updateSelectionFormatting}
+                      onSelectionUpdate={handleBlockSelectionUpdate}
                       style={inlineStyle}
                       glossary={glossaryMap}
                       className={`font-display font-black text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight leading-tight ${formatClass}`}
@@ -1982,7 +1992,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         setActiveBlockIndex(idx);
                         updateSelectionFormatting();
                       }}
-                      onSelectionUpdate={updateSelectionFormatting}
+                      onSelectionUpdate={handleBlockSelectionUpdate}
                       style={inlineStyle}
                       glossary={glossaryMap}
                       className={`font-display font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white tracking-tight leading-snug ${formatClass}`}
@@ -2003,7 +2013,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         setActiveBlockIndex(idx);
                         updateSelectionFormatting();
                       }}
-                      onSelectionUpdate={updateSelectionFormatting}
+                      onSelectionUpdate={handleBlockSelectionUpdate}
                       style={inlineStyle}
                       glossary={glossaryMap}
                       className={`font-display font-bold text-lg sm:text-xl text-slate-800 dark:text-slate-200 tracking-tight leading-normal ${formatClass}`}
@@ -2026,7 +2036,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                           setActiveBlockIndex(idx);
                           updateSelectionFormatting();
                         }}
-                        onSelectionUpdate={updateSelectionFormatting}
+                        onSelectionUpdate={handleBlockSelectionUpdate}
                         style={inlineStyle}
                         glossary={glossaryMap}
                         className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 ${formatClass}`}
@@ -2052,7 +2062,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                           setActiveBlockIndex(idx);
                           updateSelectionFormatting();
                         }}
-                        onSelectionUpdate={updateSelectionFormatting}
+                        onSelectionUpdate={handleBlockSelectionUpdate}
                         style={inlineStyle}
                         glossary={glossaryMap}
                         className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 ${formatClass}`}
@@ -2086,7 +2096,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                           setActiveBlockIndex(idx);
                           updateSelectionFormatting();
                         }}
-                        onSelectionUpdate={updateSelectionFormatting}
+                        onSelectionUpdate={handleBlockSelectionUpdate}
                         style={inlineStyle}
                         glossary={glossaryMap}
                         className={`text-sm sm:text-base leading-relaxed transition-all ${
@@ -2132,7 +2142,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                           setActiveBlockIndex(idx);
                           updateSelectionFormatting();
                         }}
-                        onSelectionUpdate={updateSelectionFormatting}
+                        onSelectionUpdate={handleBlockSelectionUpdate}
                         style={inlineStyle}
                         glossary={glossaryMap}
                         className={`text-xs sm:text-sm font-medium leading-relaxed ${formatClass}`}
@@ -2154,7 +2164,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         setActiveBlockIndex(idx);
                         updateSelectionFormatting();
                       }}
-                      onSelectionUpdate={updateSelectionFormatting}
+                      onSelectionUpdate={handleBlockSelectionUpdate}
                       style={inlineStyle}
                       glossary={glossaryMap}
                       className={`text-sm sm:text-base font-serif italic ${formatClass}`}
