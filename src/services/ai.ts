@@ -46,6 +46,7 @@ export async function chatWithGroq(
         ...(anonKey ? { apikey: anonKey } : {}),
       },
       body: JSON.stringify({ messages, systemInstruction }),
+      signal: withTimeout(25000).signal,
     });
 
     if (!res.ok) return null;
@@ -55,6 +56,16 @@ export async function chatWithGroq(
   } catch {
     return null;
   }
+}
+
+/**
+ * Cria um AbortController que aborta a requisição após `ms` milissegundos,
+ * para que uma Edge Function lenta/ausente não deixe o app travado.
+ */
+function withTimeout(ms: number): AbortController & { timeout: ReturnType<typeof setTimeout> } {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+  return Object.assign(controller, { timeout });
 }
 
 export type AiEditAction = 'improve' | 'summarize' | 'expand' | 'fix-grammar' | 'simplify';

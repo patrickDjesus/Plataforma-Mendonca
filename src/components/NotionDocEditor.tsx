@@ -400,6 +400,12 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   });
   const history = historyState.stack;
   const historyIndex = historyState.index;
+  // Keep a ref so we can read the latest history outside of state updaters
+  // (state updaters must be pure: no side effects like setState/timeouts).
+  const historyRef = useRef(historyState);
+  useEffect(() => {
+    historyRef.current = historyState;
+  }, [historyState]);
 
   // Slash menu state
   const [slashMenuIndex, setSlashMenuIndex] = useState<number | null>(null);
@@ -567,37 +573,38 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     };
   }, []);
 
-  // Update history on external change (functional update avoids stale closures)
-  const pushToHistory = useCallback((newSections: DocSection[]) => {
-    setHistoryState(prev => {
-      const updatedStack = prev.stack.slice(0, prev.index + 1);
-      updatedStack.push(newSections);
-      const newIndex = updatedStack.length - 1;
-      setTimeout(() => onUpdateSections(newSections), 0);
-      return { stack: updatedStack, index: newIndex };
-    });
+  // Update history. The state updater stays pure (no setState/timeout/side
+  // effects inside), because React 19 StrictMode double-invokes updaters and
+  // would otherwise fire onUpdateSections (and the Supabase save) twice.
+  // `propagate` controls whether onUpdateSections is called (callers that
+  // already notified the parent pass false to avoid a duplicate update).
+  const pushToHistory = useCallback((newSections: DocSection[], options?: { propagate?: boolean }) => {
+    const prev = historyRef.current;
+    const updatedStack = prev.stack.slice(0, prev.index + 1);
+    updatedStack.push(newSections);
+    const newIndex = updatedStack.length - 1;
+    setHistoryState({ stack: updatedStack, index: newIndex });
+    if (!options || options.propagate !== false) {
+      onUpdateSections(newSections);
+    }
   }, [onUpdateSections]);
 
   const handleUndo = useCallback(() => {
-    setHistoryState(prev => {
-      if (prev.index > 0) {
-        const nextIdx = prev.index - 1;
-        setTimeout(() => onUpdateSections(prev.stack[nextIdx]), 0);
-        return { ...prev, index: nextIdx };
-      }
-      return prev;
-    });
+    const prev = historyRef.current;
+    if (prev.index > 0) {
+      const nextIdx = prev.index - 1;
+      setHistoryState({ ...prev, index: nextIdx });
+      onUpdateSections(prev.stack[nextIdx]);
+    }
   }, [onUpdateSections]);
 
   const handleRedo = useCallback(() => {
-    setHistoryState(prev => {
-      if (prev.index < prev.stack.length - 1) {
-        const nextIdx = prev.index + 1;
-        setTimeout(() => onUpdateSections(prev.stack[nextIdx]), 0);
-        return { ...prev, index: nextIdx };
-      }
-      return prev;
-    });
+    const prev = historyRef.current;
+    if (prev.index < prev.stack.length - 1) {
+      const nextIdx = prev.index + 1;
+      setHistoryState({ ...prev, index: nextIdx });
+      onUpdateSections(prev.stack[nextIdx]);
+    }
   }, [onUpdateSections]);
   // ============================================================
   // IA: Edição de texto (Notion-style inline AI editing)
@@ -644,11 +651,15 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   };
 
   // Detecta seleção de texto dentro de um bloco contentEditable e mostra o popover IA
+  const aiPopoverRef = useRef<string>('');
   const handleSelectionForAi = useCallback(() => {
     if (aiEditModal || aiGenerating) return;
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !sel.toString().trim()) {
-      setAiEditPopover(null);
+      if (aiPopoverRef.current) {
+        aiPopoverRef.current = '';
+        setAiEditPopover(null);
+      }
       return;
     }
     const text = sel.toString().trim();
@@ -659,7 +670,10 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
     // Só mostra para seleções dentro do editor de texto
     if (!editable) {
-      setAiEditPopover(null);
+      if (aiPopoverRef.current) {
+        aiPopoverRef.current = '';
+        setAiEditPopover(null);
+      }
       return;
     }
 
@@ -673,6 +687,11 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     const popoverY = rect.top - 8;
     const x = Math.min(window.innerWidth - 260, rect.left + rect.width / 2 - 130);
     const y = Math.max(8, popoverY);
+
+    // Evita re-render redundante quando o popover já representa a mesma seleção
+    const signature = `${text}|${blockIdx}|${Math.round(x)}|${Math.round(y)}`;
+    if (aiPopoverRef.current === signature) return;
+    aiPopoverRef.current = signature;
 
     setAiEditPopover({ selectedText: text, position: { x, y }, blockIndex: blockIdx });
   }, [activeBlockIndex, aiEditModal, aiGenerating]);
@@ -763,6 +782,11 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     isStrikethrough: false,
   });
 
+  const inlineFormattingRef = useRef(inlineFormatting);
+  useEffect(() => {
+    inlineFormattingRef.current = inlineFormatting;
+  }, [inlineFormatting]);
+
   const updateSelectionFormatting = useCallback(() => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return;
@@ -816,14 +840,29 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
       }
     }
 
-    setInlineFormatting({
+    const next = {
       isBold,
       isItalic,
       isUnderline,
       isStrikethrough,
       textColor,
       highlightColor,
-    });
+    };
+    // Só atualiza o estado se realmente mudou (evita re-render a cada
+    // selectionchange, que dispara em cada tecla/movimento de seleção).
+    const current = inlineFormattingRef.current;
+    if (
+      current.isBold === isBold &&
+      current.isItalic === isItalic &&
+      current.isUnderline === isUnderline &&
+      current.isStrikethrough === isStrikethrough &&
+      current.textColor === textColor &&
+      current.highlightColor === highlightColor
+    ) {
+      return;
+    }
+    inlineFormattingRef.current = next;
+    setInlineFormatting(next);
   }, []);
 
   // Listen to document-wide selection changes
@@ -1111,7 +1150,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
     if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
     typingDebounceRef.current = setTimeout(() => {
-      pushToHistory(updated);
+      pushToHistory(updated, { propagate: false });
     }, 600);
   };
 
@@ -1553,7 +1592,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     updated[blockIdx] = { ...updated[blockIdx], imageSize: clamped };
     onUpdateSections(updated);
     if (imageResizeDebounceRef.current) clearTimeout(imageResizeDebounceRef.current);
-    imageResizeDebounceRef.current = setTimeout(() => pushToHistory(updated), 600);
+    imageResizeDebounceRef.current = setTimeout(() => pushToHistory(updated, { propagate: false }), 600);
   };
 
   // Drag-to-resize (like Word): grab the corner handle and pull sideways
