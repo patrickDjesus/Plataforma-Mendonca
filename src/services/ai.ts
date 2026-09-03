@@ -56,3 +56,40 @@ export async function chatWithGroq(
     return null;
   }
 }
+
+export type AiEditAction = 'improve' | 'summarize' | 'expand' | 'fix-grammar' | 'simplify';
+
+const AI_EDIT_ACTION_LABELS: Record<AiEditAction, string> = {
+  improve: 'Melhorar o texto',
+  summarize: 'Resumir',
+  expand: 'Expandir com mais detalhes',
+  'fix-grammar': 'Corrigir gramática e ortografia',
+  simplify: 'Simplificar a linguagem',
+};
+
+export async function aiEditSelectedText(
+  selectedText: string,
+  action: AiEditAction,
+  docTitle?: string,
+  discipline?: string,
+): Promise<string | null> {
+  const actionLabel = AI_EDIT_ACTION_LABELS[action];
+
+  const systemInstruction =
+    `Você é a Lumina, assistente de estudos da Plataforma Mendonça. ` +
+    `O aluno está editando o documento "${docTitle || 'Anotações'}" de ${discipline || 'estudos gerais'}. ` +
+    `Sua tarefa é ${actionLabel} o trecho de texto selecionado pelo aluno. ` +
+    `Retorne APENAS o texto resultante, sem explicações, sem marcadores, sem formatação markdown extra. ` +
+    `Mantenha o sentido original e o nível acadêmico adequado para vestibular/ENEM. ` +
+    `Se o texto contiver fórmulas ou termos técnicos, preserve-os intactos. ` +
+    `Responda em português do Brasil.`;
+
+  const messages: AiChatMessage[] = [
+    {
+      role: 'user',
+      content: `Texto selecionado:\n\n"${selectedText}"`,
+    },
+  ];
+
+  return chatWithGroq(messages, systemInstruction);
+}

@@ -18,6 +18,13 @@ import badgeMenteDeTitanio from '../assets/images/badges/mente_de_titanio.png';
 import badgeLendaDaConstancia from '../assets/images/badges/lenda_da_constancia.png';
 import badgePrimeiroPasso from '../assets/images/badges/primeiro_passo.png';
 import badgeCenturiaoAnalitico from '../assets/images/badges/centuriao_analitico.png';
+import badgeMestreDoBanco from '../assets/images/badges/mestre-do-banco.png';
+import badgeTitaDosSimulados from '../assets/images/badges/tita-dos-simulados.png';
+import badgeMiraLaser from '../assets/images/badges/mira-laser.png';
+import badgePrecisaoCirurgica from '../assets/images/badges/precisao-cirurgica.png';
+import badgeCalouroDedicado from '../assets/images/badges/calouro-dedicado.png';
+import badgeEspecialistaNeuro from '../assets/images/badges/especialista-neuro.png';
+import badgeGraoMestreMendonca from '../assets/images/badges/grao-mestre-mendonca.png';
 
 // Imagens "capa" de cada conquista (chave = id da conquista). Faltantes => emoji.
 const BADGE_IMAGES: Record<string, string> = {
@@ -27,6 +34,13 @@ const BADGE_IMAGES: Record<string, string> = {
   'streak-30': badgeLendaDaConstancia,
   'quest-10': badgePrimeiroPasso,
   'quest-50': badgeCenturiaoAnalitico,
+  'quest-100': badgeMestreDoBanco,
+  'quest-300': badgeTitaDosSimulados,
+  'acc-80': badgeMiraLaser,
+  'acc-90': badgePrecisaoCirurgica,
+  'xp-500': badgeCalouroDedicado,
+  'xp-2000': badgeEspecialistaNeuro,
+  'xp-5000': badgeGraoMestreMendonca,
 };
 
 export interface StudyBadge {

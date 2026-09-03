@@ -31,6 +31,9 @@ import {
 import { DocSection, GlossaryDefinition } from '../data/disciplinesData';
 import { NotionToolbar, FormattingState } from './NotionToolbar';
 import { DocContextMenu } from './DocContextMenu';
+import { AiEditPopover } from './AiEditPopover';
+import { AiEditPreviewModal } from './AiEditPreviewModal';
+import { AiEditAction, aiEditSelectedText } from '../services/ai';
 import definitionsData from '../data/definitions.json';
 
 interface NotionDocEditorProps {
@@ -390,9 +393,13 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     }
   }, [isDraggingActive]);
 
-  // History Undo/Redo State
-  const [history, setHistory] = useState<DocSection[][]>([sections]);
-  const [historyIndex, setHistoryIndex] = useState<number>(0);
+  // History Undo/Redo State (single combined state to avoid stale closure bugs)
+  const [historyState, setHistoryState] = useState<{ stack: DocSection[][]; index: number }>({
+    stack: [sections],
+    index: 0,
+  });
+  const history = historyState.stack;
+  const historyIndex = historyState.index;
 
   // Slash menu state
   const [slashMenuIndex, setSlashMenuIndex] = useState<number | null>(null);
@@ -560,30 +567,186 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     };
   }, []);
 
-  // Update history on external change
+  // Update history on external change (functional update avoids stale closures)
   const pushToHistory = useCallback((newSections: DocSection[]) => {
-    const updatedHistory = history.slice(0, historyIndex + 1);
-    updatedHistory.push(newSections);
-    setHistory(updatedHistory);
-    setHistoryIndex(updatedHistory.length - 1);
-    onUpdateSections(newSections);
-  }, [history, historyIndex, onUpdateSections]);
+    setHistoryState(prev => {
+      const updatedStack = prev.stack.slice(0, prev.index + 1);
+      updatedStack.push(newSections);
+      const newIndex = updatedStack.length - 1;
+      setTimeout(() => onUpdateSections(newSections), 0);
+      return { stack: updatedStack, index: newIndex };
+    });
+  }, [onUpdateSections]);
 
-  const handleUndo = () => {
-    if (historyIndex > 0) {
-      const prevIndex = historyIndex - 1;
-      setHistoryIndex(prevIndex);
-      onUpdateSections(history[prevIndex]);
+  const handleUndo = useCallback(() => {
+    setHistoryState(prev => {
+      if (prev.index > 0) {
+        const nextIdx = prev.index - 1;
+        setTimeout(() => onUpdateSections(prev.stack[nextIdx]), 0);
+        return { ...prev, index: nextIdx };
+      }
+      return prev;
+    });
+  }, [onUpdateSections]);
+
+  const handleRedo = useCallback(() => {
+    setHistoryState(prev => {
+      if (prev.index < prev.stack.length - 1) {
+        const nextIdx = prev.index + 1;
+        setTimeout(() => onUpdateSections(prev.stack[nextIdx]), 0);
+        return { ...prev, index: nextIdx };
+      }
+      return prev;
+    });
+  }, [onUpdateSections]);
+  // ============================================================
+  // IA: Edição de texto (Notion-style inline AI editing)
+  // ============================================================
+  const [aiEditPopover, setAiEditPopover] = useState<{
+    selectedText: string;
+    position: { x: number; y: number };
+    blockIndex: number;
+  } | null>(null);
+  const [aiEditModal, setAiEditModal] = useState<{
+    selectedText: string;
+    blockIndex: number;
+  } | null>(null);
+  const [aiSuggestedText, setAiSuggestedText] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  // Fallback determinístico (sem backend) para edição de texto
+  function generateLocalEditFallback(text: string, action: AiEditAction): string {
+    const trimmed = text.trim();
+    switch (action) {
+      case 'fix-grammar':
+        return trimmed
+          .replace(/\s+/g, ' ')
+          .replace(/\s+([,.;:!?])/g, '$1')
+          .replace(/(^|\.\s+)([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+      case 'summarize': {
+        const words = trimmed.split(/\s+/);
+        if (words.length <= 15) return trimmed;
+        return words.slice(0, 15).join(' ') + '...';
+      }
+      case 'simplify':
+        return trimmed
+          .replace(/\butilizar\b/gi, 'usar')
+          .replace(/\brealizar\b/gi, 'fazer')
+          .replace(/\bmediante\b/gi, 'por meio de')
+          .replace(/\bconsoante\b/gi, 'conforme');
+      case 'expand':
+        return `${trimmed} Além disso, vale reforçar que este conceito se conecta diretamente ao restante do conteúdo do documento, facilitando a fixação para a prova.`;
+      case 'improve':
+      default:
+        return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
     }
   };
 
-  const handleRedo = () => {
-    if (historyIndex < history.length - 1) {
-      const nextIndex = historyIndex + 1;
-      setHistoryIndex(nextIndex);
-      onUpdateSections(history[nextIndex]);
+  // Detecta seleção de texto dentro de um bloco contentEditable e mostra o popover IA
+  const handleSelectionForAi = useCallback(() => {
+    if (aiEditModal || aiGenerating) return;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !sel.toString().trim()) {
+      setAiEditPopover(null);
+      return;
     }
-  };
+    const text = sel.toString().trim();
+    const anchorEl = sel.anchorNode?.nodeType === Node.TEXT_NODE
+      ? (sel.anchorNode.parentElement as HTMLElement | null)
+      : (sel.anchorNode as HTMLElement | null);
+    const editable = anchorEl?.closest('[contenteditable="true"]') as HTMLElement | null;
+
+    // Só mostra para seleções dentro do editor de texto
+    if (!editable) {
+      setAiEditPopover(null);
+      return;
+    }
+
+    // Descobre o índice do bloco a partir do elemento contentEditable
+    let blockIdx = activeBlockIndex;
+    blockRefs.current.forEach((el, i) => {
+      if (el === editable) blockIdx = i;
+    });
+
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    const popoverY = rect.top - 8;
+    const x = Math.min(window.innerWidth - 260, rect.left + rect.width / 2 - 130);
+    const y = Math.max(8, popoverY);
+
+    setAiEditPopover({ selectedText: text, position: { x, y }, blockIndex: blockIdx });
+  }, [activeBlockIndex, aiEditModal, aiGenerating]);
+
+  // Chama a IA para editar o texto selecionado
+  const handleAiAction = useCallback(async (action: AiEditAction) => {
+    if (!aiEditPopover) return;
+    const { selectedText, blockIndex } = aiEditPopover;
+
+    setAiEditModal({ selectedText, blockIndex });
+    setAiEditPopover(null);
+    setAiGenerating(true);
+    setAiError(null);
+
+    try {
+      let result = await aiEditSelectedText(selectedText, action);
+      // Fallback local simples caso a Edge Function não esteja disponível
+      if (!result || !result.trim()) {
+        result = generateLocalEditFallback(selectedText, action);
+      }
+      setAiSuggestedText((result ?? '').trim());
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : 'Falha ao conectar com a IA.');
+    } finally {
+      setAiGenerating(false);
+    }
+  }, [aiEditPopover]);
+
+  // Aplica a sugestão da IA no bloco selecionado (substituindo a seleção original)
+  const handleAiApprove = useCallback(() => {
+    if (!aiEditModal) return;
+    const { selectedText, blockIndex } = aiEditModal;
+    const block = sections[blockIndex];
+    if (!block) {
+      setAiEditModal(null);
+      return;
+    }
+
+    const blockHtml = block.contentHtml || escapeHtml(block.content || '');
+    const plainText = stripHtml(blockHtml);
+    const idx = plainText.indexOf(selectedText);
+
+    if (idx !== -1) {
+      // Reconstrói o novo texto puro substituindo a ocorrência
+      const newPlain =
+        plainText.slice(0, idx) + aiSuggestedText + plainText.slice(idx + selectedText.length);
+      const updated = [...sections];
+      updated[blockIndex] = {
+        ...block,
+        content: newPlain,
+        contentHtml: undefined,
+        formula: block.type === 'code' ? newPlain : block.formula,
+        heading:
+          block.type === 'h1' || block.type === 'h2' || block.type === 'h3'
+            ? newPlain
+            : block.heading,
+      };
+      pushToHistory(updated);
+    }
+    setAiEditModal(null);
+  }, [aiEditModal, aiSuggestedText, sections, pushToHistory]);
+
+  const handleAiReject = useCallback(() => {
+    setAiEditModal(null);
+    setAiError(null);
+  }, []);
+
+  const handleAiClosePopover = useCallback(() => {
+    setAiEditPopover(null);
+  }, []);
+
+
+
+
 
   // Inline formatting detection state (for selection or cursor in contentEditable)
   const [inlineFormatting, setInlineFormatting] = useState<{
@@ -667,12 +830,13 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   useEffect(() => {
     const handleSelectionChange = () => {
       updateSelectionFormatting();
+      handleSelectionForAi();
     };
     document.addEventListener('selectionchange', handleSelectionChange);
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
     };
-  }, [updateSelectionFormatting]);
+  }, [updateSelectionFormatting, handleSelectionForAi]);
 
   // Current active formatting state based on selected block and active selection
   const currentBlock = sections[activeBlockIndex] || sections[0] || {
@@ -2340,6 +2504,26 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
         onPaste={handleContextMenuPaste}
         onDefineConcept={handleContextMenuDefine}
         onApplyCorrection={handleContextMenuCorrection}
+      />
+
+      {/* Popover da IA para editar o texto selecionado (estilo Notion) */}
+      {aiEditPopover && (
+        <AiEditPopover
+          position={aiEditPopover.position}
+          onSelectAction={handleAiAction}
+          onClose={handleAiClosePopover}
+        />
+      )}
+
+      {/* Modal de confirmação da sugestão da IA */}
+      <AiEditPreviewModal
+        isOpen={!!aiEditModal}
+        selectedText={aiEditModal?.selectedText || ''}
+        suggestedText={aiSuggestedText}
+        isGenerating={aiGenerating}
+        error={aiError}
+        onApprove={handleAiApprove}
+        onReject={handleAiReject}
       />
 
     </div>
