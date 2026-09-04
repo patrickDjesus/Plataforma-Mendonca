@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Heading1,
   Heading2,
@@ -19,6 +19,7 @@ import {
   Plus,
   Trash2,
   MoreVertical,
+  GripVertical,
   Type,
   Check,
   Image as ImageIcon,
@@ -27,6 +28,8 @@ import {
   FileText,
   Layers,
   ExternalLink,
+  Copy,
+  X,
 } from 'lucide-react';
 import { DocSection, GlossaryDefinition } from '../data/disciplinesData';
 import { NotionToolbar, FormattingState } from './NotionToolbar';
@@ -369,15 +372,13 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   } | null>(null);
   const glossaryTipIdRef = useRef<string>('');
 
-  // Multi-seleção de blocos (automática: arraste em qualquer lugar para marcar vários)
+  // Multi-seleção de blocos (Ctrl/Cmd+clique alterna, Shift+clique seleciona intervalo)
   const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([]);
+  const lastSelectRef = useRef<number | null>(null);
   const blockListRef = useRef<HTMLDivElement>(null);
-  const dragSelectRef = useRef<{ startY: number; moved: boolean } | null>(null);
-  const dragModeRef = useRef<'marquee' | 'move' | null>(null);
+  const dragModeRef = useRef<'move' | null>(null);
   const moveDragRef = useRef<{ startY: number; insertion: number | null } | null>(null);
   const didBlockDragRef = useRef(false);
-  const [dragLiveIds, setDragLiveIds] = useState<string[]>([]);
-  const [dragSelectRect, setDragSelectRect] = useState<{ top: number; height: number } | null>(null);
   const [moveIndicatorY, setMoveIndicatorY] = useState<number | null>(null);
   const [isDraggingActive, setIsDraggingActive] = useState(false);
 
@@ -1380,32 +1381,59 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     setActiveBlockIndex(Math.max(0, idx - 1));
   };
 
-  // --- Multi-seleção de blocos (automática: arraste em qualquer lugar da página) ---
-  const isBlockSelected = (id: string) => selectedBlockIds.includes(id) || dragLiveIds.includes(id);
+  // --- Multi-seleção de blocos (Ctrl/Cmd+clique alterna, Shift+clique seleciona intervalo) ---
+  const isBlockSelected = (id: string) => selectedBlockIds.includes(id);
 
-  const toggleBlockSelect = (id: string) => {
+  const toggleBlockSelect = useCallback((id: string) => {
     setSelectedBlockIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
-  };
+  }, []);
 
-  const clearBlockSelection = () => {
+  const selectRange = useCallback((fromIdx: number, toIdx: number) => {
+    const ids: string[] = [];
+    const [a, b] = [Math.min(fromIdx, toIdx), Math.max(fromIdx, toIdx)];
+    for (let i = a; i <= b; i++) {
+      const s = sections[i];
+      if (s) ids.push(s.id);
+    }
+    setSelectedBlockIds(ids);
+  }, [sections]);
+
+  const clearBlockSelection = useCallback(() => {
     setSelectedBlockIds([]);
-    setDragLiveIds([]);
-    setDragSelectRect(null);
     setMoveIndicatorY(null);
     dragModeRef.current = null;
     moveDragRef.current = null;
-    dragSelectRef.current = null;
     setIsDraggingActive(false);
+  }, []);
+
+  // Inicia o arrasto de um bloco (ou da multi-seleção) a partir da alça ⋮⋮
+  const startBlockDrag = (e: React.MouseEvent, idx: number) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const block = sections[idx];
+    if (!block) return;
+    // Mantém a multi-seleção se o bloco já faz parte dela; senão seleciona só ele
+    if (!selectedBlockIds.includes(block.id) || selectedBlockIds.length === 0) {
+      setSelectedBlockIds([block.id]);
+    }
+    lastSelectRef.current = idx;
+    setActiveBlockIndex(idx);
+    didBlockDragRef.current = false;
+    dragModeRef.current = 'move';
+    moveDragRef.current = { startY: e.clientY, insertion: null };
+    setIsDraggingActive(true);
   };
 
-  // Dois modos de arrasto: 'marquee' (selecionar vários) e 'move' (arrastar selecionados)
+  // Mousedown no editor: arrastar a partir de um bloco JÁ selecionado move a seleção toda.
+  // Clique em área vazia fora dos blocos limpa a seleção. (Sem rubber-band: a seleção
+  // múltipla é feita por Ctrl/Cmd + clique ou Shift + clique.)
   const onEditorMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
     const t = e.target as HTMLElement;
 
-    // Imagens: interações sobre o corpo/controles da imagem NUNCA disparam marquee ou
-    // reordenação de bloco (evita fantasma do navegador e movimentos acidentais).
-    // Para mover a imagem use a alcinha da esquerda do bloco (segurador) ou Ctrl+clique + arraste de outro bloco.
+    // Imagens: interações sobre o corpo/controles da imagem NUNCA disparam reordenação.
+    // Para mover a imagem use a alça ⋮⋮ (segurador) do bloco.
     if (t.closest(
       '[data-block-type="image"] img, ' +
       '[data-block-type="image"] .image-resize-handle, ' +
@@ -1413,9 +1441,13 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
       '[data-block-type="image"] .img-error-fallback'
     )) return;
 
-    // Se começar sobre um bloco JÁ selecionado e houver seleção => arrastar para mover
+    // Dentro de texto/interativo => deixa o comportamento padrão (editar, clicar botão)
+    if (t.closest('[contenteditable="true"], button, input, textarea, select, a, table')) return;
+
     const blockEl = t.closest('[data-block-id]') as HTMLElement | null;
     const blockId = blockEl?.getAttribute('data-block-id') || '';
+
+    // Se começar sobre um bloco JÁ selecionado e houver seleção => arrastar para mover
     if (blockEl && selectedBlockIds.includes(blockId) && selectedBlockIds.length > 0) {
       dragModeRef.current = 'move';
       didBlockDragRef.current = false;
@@ -1424,89 +1456,51 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
       return;
     }
 
-    // Dentro de texto/interativo => deixa o comportamento padrão (editar, clicar botão)
-    if (t.closest('[contenteditable="true"], button, input, textarea, select')) return;
-
-    // Qualquer outro lugar da página (área vazia, margens, entre blocos) => marquee
-    dragModeRef.current = 'marquee';
-    didBlockDragRef.current = false;
-    dragSelectRef.current = { startY: e.clientY, moved: false };
-    setIsDraggingActive(true);
+    // Área vazia fora dos blocos => limpa a seleção
+    if (!blockEl && selectedBlockIds.length > 0) {
+      clearBlockSelection();
+    }
   };
 
   const onEditorMouseMove = (e: React.MouseEvent) => {
-    if (dragModeRef.current === 'marquee') {
-      const drag = dragSelectRef.current;
-      if (!drag) return;
-      if (!drag.moved && Math.abs(e.clientY - drag.startY) < 6) return;
-      drag.moved = true;
-      didBlockDragRef.current = true;
+    if (dragModeRef.current !== 'move') return;
+    const mv = moveDragRef.current;
+    if (!mv) return;
+    if (!didBlockDragRef.current && Math.abs(e.clientY - mv.startY) < 6) return;
+    e.preventDefault();
+    didBlockDragRef.current = true;
 
-      const top = Math.min(drag.startY, e.clientY);
-      const height = Math.abs(e.clientY - drag.startY);
-      setDragSelectRect({ top, height });
-
-      const live: string[] = [];
-      if (blockListRef.current) {
-        blockListRef.current.querySelectorAll('[data-block-id]').forEach(el => {
-          const r = el.getBoundingClientRect();
-          if (r.top < top + height && r.bottom > top) {
-            const id = el.getAttribute('data-block-id');
-            if (id) live.push(id);
-          }
-        });
-      }
-      setDragLiveIds(live);
-    } else if (dragModeRef.current === 'move') {
-      const mv = moveDragRef.current;
-      if (!mv) return;
-      e.preventDefault();
-      didBlockDragRef.current = true;
-
-      let insertion = 0;
-      let found = false;
-      if (blockListRef.current) {
-        blockListRef.current.querySelectorAll('[data-block-id]').forEach(el => {
-          const r = el.getBoundingClientRect();
-          if (e.clientY > r.top + r.height / 2) { insertion += 1; found = true; }
-        });
-      }
-      mv.insertion = insertion;
-
-      const els = blockListRef.current?.querySelectorAll('[data-block-id]');
-      let y = 0;
-      if (els && els.length) {
-        if (insertion <= 0) y = els[0].getBoundingClientRect().top;
-        else if (insertion >= els.length) y = els[els.length - 1].getBoundingClientRect().bottom;
-        else y = els[insertion].getBoundingClientRect().top;
-      }
-      setMoveIndicatorY(found || els && els.length ? y : null);
+    let insertion = 0;
+    let found = false;
+    if (blockListRef.current) {
+      blockListRef.current.querySelectorAll('[data-block-id]').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (e.clientY > r.top + r.height / 2) { insertion += 1; found = true; }
+      });
     }
+    mv.insertion = insertion;
+
+    const els = blockListRef.current?.querySelectorAll('[data-block-id]');
+    let y = 0;
+    if (els && els.length) {
+      if (insertion <= 0) y = els[0].getBoundingClientRect().top;
+      else if (insertion >= els.length) y = els[els.length - 1].getBoundingClientRect().bottom;
+      else y = els[insertion].getBoundingClientRect().top;
+    }
+    setMoveIndicatorY(found || els && els.length ? y : null);
   };
 
   const onEditorMouseUp = () => {
     const mode = dragModeRef.current;
-    if (mode === 'marquee') {
-      const drag = dragSelectRef.current;
-      if (drag?.moved) {
-        setSelectedBlockIds(prev => {
-          const merged = [...prev];
-          dragLiveIds.forEach(id => { if (!merged.includes(id)) merged.push(id); });
-          return merged;
-        });
-      }
-    } else if (mode === 'move') {
+    if (mode === 'move') {
       const mv = moveDragRef.current;
       if (mv && mv.insertion !== null && didBlockDragRef.current) {
         moveToInsertion(mv.insertion);
       }
     }
     dragModeRef.current = null;
-    dragSelectRef.current = null;
     moveDragRef.current = null;
     setMoveIndicatorY(null);
-    setDragLiveIds([]);
-    setDragSelectRect(null);
     setIsDraggingActive(false);
   };
 
@@ -1518,18 +1512,48 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
     pushToHistory([...rest.slice(0, at), ...selected, ...rest.slice(at)]);
   };
 
-  const deleteSelectedBlocks = () => {
+  const deleteSelectedBlocks = useCallback(() => {
     if (selectedBlockIds.length === 0) return;
     const ids = new Set<string>(selectedBlockIds);
     const kept = sections.filter(s => !ids.has(s.id));
     const next = kept.length ? kept : [{ id: `s-${Date.now()}`, type: 'paragraph' as const, content: '', heading: '' }];
     pushToHistory(next);
     clearBlockSelection();
-  };
+  }, [sections, selectedBlockIds, pushToHistory, clearBlockSelection]);
 
-  // Delete/Backspace apaga os blocos selecionados (quando o foco não está no texto)
+  const duplicateSelectedBlocks = useCallback(() => {
+    if (selectedBlockIds.length === 0) return;
+    const sel = new Set<string>(selectedBlockIds);
+    let lastIdx = -1;
+    sections.forEach((s, i) => { if (sel.has(s.id)) lastIdx = i; });
+    if (lastIdx < 0) return;
+
+    const newIds: string[] = [];
+    const duplicates: DocSection[] = [];
+    sections.forEach(s => {
+      if (!sel.has(s.id)) return;
+      const id = `s-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      newIds.push(id);
+      duplicates.push({ ...s, id });
+    });
+
+    const updated = [...sections];
+    updated.splice(lastIdx + 1, 0, ...duplicates);
+    pushToHistory(updated);
+    setSelectedBlockIds(newIds);
+  }, [sections, selectedBlockIds, pushToHistory]);
+
+  // Delete/Backspace apaga os blocos selecionados (quando o foco não está no texto);
+  // Escape limpa a seleção
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (selectedBlockIds.length > 0) {
+          e.preventDefault();
+          clearBlockSelection();
+        }
+        return;
+      }
       if (e.key !== 'Delete' && e.key !== 'Backspace') return;
       if (e.ctrlKey || e.metaKey) return;
       const t = e.target as HTMLElement;
@@ -1789,14 +1813,21 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
               onContextMenu={(e) => handleContextMenu(e, idx)}
               onClick={(e) => {
                 if (didBlockDragRef.current) { didBlockDragRef.current = false; return; }
+                if (e.shiftKey) {
+                  const anchor = lastSelectRef.current ?? activeBlockIndex;
+                  selectRange(anchor, idx);
+                  return;
+                }
                 if (e.ctrlKey || e.metaKey) {
                   toggleBlockSelect(section.id);
-                } else {
-                  if (selectedBlockIds.length > 0) clearBlockSelection();
-                  setActiveBlockIndex(idx);
+                  lastSelectRef.current = idx;
+                  return;
                 }
+                if (selectedBlockIds.length > 0) clearBlockSelection();
+                lastSelectRef.current = idx;
+                setActiveBlockIndex(idx);
               }}
-              className={`group relative flex items-start -ml-6 sm:-ml-10 pl-6 sm:pl-10 rounded-xl transition-all duration-200 scroll-mt-24 ${
+              className={`group relative flex items-start -ml-6 sm:-ml-16 pl-6 sm:pl-16 rounded-xl transition-all duration-200 scroll-mt-24 ${
                 selectedBlockIds.length > 0 ? 'cursor-pointer' : ''
               } ${
                 isBlockSelected(section.id)
@@ -1811,7 +1842,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
               )}
               {/* Slash Command Menu */}
               {slashMenuIndex === idx && filteredSlashItems.length > 0 && (
-                <div className="absolute left-6 top-10 z-50 w-60 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-1.5 text-xs animate-in fade-in zoom-in-95 max-h-80 overflow-y-auto">
+                <div className="absolute left-6 sm:left-16 top-10 z-50 w-60 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-1.5 text-xs animate-in fade-in zoom-in-95 max-h-80 overflow-y-auto">
                   {filteredSlashItems.map((item, i) => (
                     <button
                       key={item.type}
@@ -1837,10 +1868,22 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                   isHovered || isFocused ? 'opacity-100' : 'opacity-0'
                 }`}
               >
+                {/* Alça de arrastar para mover o bloco (estilo Notion) */}
+                <div
+                  role="button"
+                  aria-label="Arraste para mover o bloco"
+                  title="Arraste para mover o bloco"
+                  className="w-5 h-5 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors select-none touch-none"
+                  onMouseDown={(e) => startBlockDrag(e, idx)}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <GripVertical className="w-4 h-4" />
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => handleAddBlock('paragraph')}
-                  className="w-5 h-5 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
+                  onClick={(e) => { e.stopPropagation(); handleAddBlock('paragraph'); }}
+                  className="hidden sm:flex w-5 h-5 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 items-center justify-center cursor-pointer transition-colors"
                   title="Adicionar bloco abaixo (Enter)"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -1849,7 +1892,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() => setActiveMenuBlockIndex(activeMenuBlockIndex === idx ? null : idx)}
+                    onClick={(e) => { e.stopPropagation(); setActiveMenuBlockIndex(activeMenuBlockIndex === idx ? null : idx); }}
                     className="w-5 h-5 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
                     title="Mais opções do bloco"
                   >
@@ -1858,7 +1901,10 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
                   {/* Dropdown de Opções Rápidas do Bloco */}
                   {activeMenuBlockIndex === idx && (
-                    <div className="absolute left-6 top-0 z-50 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-1.5 text-xs animate-in fade-in zoom-in-95">
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute left-6 sm:left-16 top-0 z-50 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-1.5 text-xs animate-in fade-in zoom-in-95"
+                    >
                       <button
                         onClick={() => {
                           convertBlockType(idx, 'paragraph');
@@ -2399,22 +2445,6 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
           );
         })}
 
-          {/* Retângulo de seleção (rubber-band vertical) */}
-          {dragSelectRect && (
-            <div
-              className="pointer-events-none fixed z-[60]"
-              style={{
-                left: 0,
-                right: 0,
-                top: dragSelectRect.top,
-                height: dragSelectRect.height,
-                background: 'rgba(59, 130, 246, 0.15)',
-                border: '1.5px solid rgba(59, 130, 246, 0.7)',
-                borderRadius: 8,
-              }}
-            />
-          )}
-
           {/* Indicador de posição ao arrastar blocos selecionados */}
           {moveIndicatorY !== null && (
             <div
@@ -2424,6 +2454,51 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
           )}
         </div>
       </div>
+
+      {/* Barra flutuante de ações quando há blocos selecionados */}
+      <AnimatePresence>
+        {selectedBlockIds.length > 0 && (
+          <motion.div
+            key="block-selection-bar"
+            initial={{ opacity: 0, y: 12, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ type: 'spring', damping: 24, stiffness: 480, mass: 0.5 }}
+            className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[70] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700/80 px-2 py-1.5 flex items-center gap-1 font-sans select-none"
+          >
+            <span className="px-2 text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0">
+              {selectedBlockIds.length} {selectedBlockIds.length === 1 ? 'bloco' : 'blocos'} selecionado{selectedBlockIds.length === 1 ? '' : 's'}
+            </span>
+            <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
+            <button
+              type="button"
+              onClick={duplicateSelectedBlocks}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              title="Duplicar blocos selecionados"
+            >
+              <Copy className="w-3.5 h-3.5 text-slate-500" />
+              Duplicar
+            </button>
+            <button
+              type="button"
+              onClick={deleteSelectedBlocks}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors cursor-pointer"
+              title="Excluir blocos selecionados (Delete)"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Excluir
+            </button>
+            <button
+              type="button"
+              onClick={clearBlockSelection}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              title="Limpar seleção (Esc)"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 3. BOTÃO DE INSERIR NOVO BLOCO NO FINAL DO DOCUMENTO */}
       <div className="pt-6 pb-2 flex items-center justify-center">
