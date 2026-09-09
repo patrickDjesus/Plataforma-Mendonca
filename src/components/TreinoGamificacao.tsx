@@ -41,7 +41,7 @@ import { PostTrainingSummaryModal, PostTrainingSummaryData } from './PostTrainin
 import { useAuth } from '../context/AuthContext';
 import { GameHUD } from './treino/GameHUD';
 import { GameOver } from './treino/GameOver';
-import { ScrollFade } from './ScrollFade';
+import { TeacherCustomModeModal } from './treino/TeacherCustomModeModal';
 import { 
   subscribeToQuestions, 
   createQuestion, 
@@ -62,7 +62,6 @@ import {
   GameDifficulty
 } from '../utils/gameGenerators';
 import { playSound } from '../utils/sounds';
-import { getEnduranceLevel } from '../utils/endurance';
 import { setGameActive } from '../utils/gameActivity';
 import { CUSTOM_QUESTIONS_STORAGE_KEY, HIGH_SCORE_STORAGE_KEY, ANALYTICS_STORAGE_KEY, DEFAULT_ANALYTICS, SUBJECT_OPTIONS } from '../constants/game';
 
@@ -104,6 +103,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
   // Modo e Dificuldade selecionados
   const [gameMode, setGameMode] = useState<GameCategory | 'teacher_custom'>('math_arcade');
   const [difficulty, setDifficulty] = useState<GameDifficulty>('Médio');
+
+  // Filtro de matéria para o modo "Minhas Questões" (null = todas as matérias)
+  const [customSubjectFilter, setCustomSubjectFilter] = useState<string | null>(null);
+  const [isTeacherCustomModalOpen, setIsTeacherCustomModalOpen] = useState(false);
 
   // Recorde pessoal
   const [highScore, setHighScore] = useState<number>(() => {
@@ -313,46 +316,18 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
   };
 
-  // Gerador de Próxima Pergunta Infinita (com suporte ao modo Endurance)
-  const generateNextQuestion = (mode: GameCategory | 'teacher_custom', diff: GameDifficulty, currentElapsed = elapsedSeconds): QuizQuestion => {
-    const effectiveDiff = mode === 'endurance' ? getEnduranceLevel(currentElapsed).diff : diff;
-
-    if (mode === 'endurance') {
-
-      // No Endurance, alterna dinamicamente com dificuldade crescente
-      const dice = Math.random();
-      if (dice < 0.35) {
-        return generateRandomMathQuestion(effectiveDiff);
-      } else if (dice < 0.65) {
-        return generateRandomFormulaQuestion(effectiveDiff);
-      } else if (dice < 0.90) {
-        return generateRandomPeriodicTableQuestion(effectiveDiff);
-      } else {
-        const pool = [...QUIZ_QUESTIONS, ...customQuestions];
-        if (pool.length > 0) {
-          const selected = pickRandomFromPool(pool);
-          if (selected) {
-            return {
-              ...shuffleQuestionOptions(selected),
-              id: Date.now() + Math.random(),
-              difficulty: effectiveDiff === 'Hardcore' ? 'Difícil' : effectiveDiff
-            };
-          }
-        }
-        // Sem questões no banco → cai no gerador randômico
-        return generateRandomMathQuestion(effectiveDiff);
-      }
-    }
-
+  // Gerador de Próxima Pergunta Infinita
+  const generateNextQuestion = (mode: GameCategory | 'teacher_custom', diff: GameDifficulty): QuizQuestion => {
     if (mode === 'math_arcade') {
       return generateRandomMathQuestion(diff);
     } else if (mode === 'periodic_table') {
       return generateRandomPeriodicTableQuestion(diff);
-    } else if (mode === 'enem_formulas') {
-      return generateRandomFormulaQuestion(diff);
     } else if (mode === 'teacher_custom') {
-      if (customQuestions.length > 0) {
-        const picked = pickRandomFromPool(customQuestions);
+      const pool = customSubjectFilter
+        ? customQuestions.filter(q => q.subject === customSubjectFilter)
+        : customQuestions;
+      if (pool.length > 0) {
+        const picked = pickRandomFromPool(pool);
         if (picked) {
           return { ...shuffleQuestionOptions(picked), id: Date.now() + Math.random() };
         }
@@ -375,7 +350,24 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     }
   };
 
-  // Iniciar Modo Survival ou Endurance
+  // Seleção de modo no lobby. Ao escolher "Minhas Questões", abre o modal
+  // para filtrar entre todas as matérias ou uma disciplina específica.
+  const handleGameModeChange = (mode: GameCategory | 'teacher_custom') => {
+    if (mode === 'teacher_custom') {
+      setIsTeacherCustomModalOpen(true);
+    } else {
+      setCustomSubjectFilter(null);
+      setGameMode(mode);
+    }
+  };
+
+  const handleTeacherCustomConfirm = (subject: string | null) => {
+    setCustomSubjectFilter(subject);
+    setGameMode('teacher_custom');
+    setIsTeacherCustomModalOpen(false);
+  };
+
+  // Iniciar Modo Survival
   const handleStartSurvival = (forcedMode?: GameCategory | 'teacher_custom') => {
     const targetMode = forcedMode || gameMode;
     playSound('click');
@@ -393,7 +385,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     setIsAnswerConfirmed(false);
     setShowAiHint(false);
     setHasWrongAttempt(false);
-    setCurrentQuestion(generateNextQuestion(targetMode, difficulty, 0));
+    setCurrentQuestion(generateNextQuestion(targetMode, difficulty));
   };
 
   // Iniciar Treino Focado a partir do Dashboard de Desempenho
@@ -401,13 +393,11 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     playSound('click');
     setActiveTab('game');
 
-    let modeToUse: GameCategory | 'teacher_custom' = 'enem_formulas';
+    let modeToUse: GameCategory | 'teacher_custom' = 'math_arcade';
     if (subject.toLowerCase().includes('matemática') || subject.toLowerCase().includes('cálculo') || subject.toLowerCase().includes('álgebra')) {
       modeToUse = 'math_arcade';
     } else if (subject.toLowerCase().includes('química') || subject.toLowerCase().includes('tabela')) {
       modeToUse = 'periodic_table';
-    } else if (subject.toLowerCase().includes('física')) {
-      modeToUse = 'enem_formulas';
     } else if (customQuestions.some(q => q.subject === subject)) {
       modeToUse = 'teacher_custom';
     }
@@ -433,17 +423,11 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     setIsAnswerConfirmed(true);
 
     if (isCorrect) {
-      let currentDiff = difficulty;
-      let enduranceBonus = 1.0;
-      if (gameMode === 'endurance') {
-        const lvl = getEnduranceLevel(elapsedSeconds);
-        currentDiff = lvl.diff;
-        enduranceBonus = lvl.multiplierBonus;
-      }
+      const currentDiff = difficulty;
 
       const baseXP = currentDiff === 'Fácil' ? 80 : currentDiff === 'Médio' ? 140 : currentDiff === 'Difícil' ? 200 : 320;
-      const finalXP = Math.round(baseXP * streakMultiplier * (gameMode === 'endurance' ? 1.5 : 1));
-      const earnedPoints = Math.round(100 * streakMultiplier * enduranceBonus);
+      const finalXP = Math.round(baseXP * streakMultiplier);
+      const earnedPoints = Math.round(100 * streakMultiplier);
 
       setXpEarned(prev => prev + finalXP);
       setScore(prev => {
@@ -459,9 +443,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
         return newScore;
       });
 
-      // No modo Endurance, o streak máximo chega até 10x!
-      const maxStreakLimit = gameMode === 'endurance' ? 10 : 5;
-      const nextStreak = Math.min(maxStreakLimit, streakMultiplier + 1);
+      const nextStreak = Math.min(5, streakMultiplier + 1);
       const isNewHighScore = (score + earnedPoints) > highScore;
       
       setStreakMultiplier(nextStreak);
@@ -672,10 +654,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             const currentAccuracy = currentTotal > 0 ? Math.round((currentCorrect / currentTotal) * 100) : 0;
 
             const modeLabel = 
-              gameMode === 'endurance' ? 'Modo Endurance Progressivo' :
               gameMode === 'math_arcade' ? 'Cálculo Mental Arcade' :
-              gameMode === 'periodic_table' ? 'Tabela Periódica' :
-              gameMode === 'enem_formulas' ? 'Fórmulas ENEM' : 'Simulado Autoral';
+              gameMode === 'periodic_table' ? 'Tabela Periódica' : 'Simulado Autoral';
 
             const newSession: PerformanceSessionHistory = {
               id: `sess-${Date.now()}`,
@@ -762,7 +742,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
     setIsAnswerConfirmed(false);
     setShowAiHint(false);
     setHasWrongAttempt(false);
-    setCurrentQuestion(generateNextQuestion(gameMode, difficulty, elapsedSeconds));
+    setCurrentQuestion(generateNextQuestion(gameMode, difficulty));
   };
 
   // Desistir / Pausar para o Lobby
@@ -1264,19 +1244,36 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
         )}
       </AnimatePresence>
 
+      {/* Modal de Filtro do Modo "Minhas Questões" (Geral vs Matéria) */}
+      <TeacherCustomModeModal
+        open={isTeacherCustomModalOpen}
+        subjects={Array.from(
+          new Map(
+            customQuestions
+              .filter(q => q.subject)
+              .map(q => [q.subject, q.subject])
+          ).keys()
+        ).map(subject => ({
+          subject,
+          count: customQuestions.filter(q => q.subject === subject).length,
+        }))}
+        totalCount={customQuestions.length}
+        onConfirm={handleTeacherCustomConfirm}
+        onClose={() => setIsTeacherCustomModalOpen(false)}
+      />
+
       {/* 1. SELETOR PRINCIPAL DE ABAS (CENTRO DE TREINO vs DASHBOARD vs ESTÚDIO DO PROFESSOR) */}
-      <ScrollFade container={scrollContainerRef}>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-6">
+        <div className="inline-flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 overflow-x-auto no-scrollbar w-full lg:w-auto">
           <button
             type="button"
             onClick={() => {
               playSound('click');
               setActiveTab('game');
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'game'
-                ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-xs scale-102'
+                ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -1290,9 +1287,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
               playSound('click');
               setActiveTab('dashboard');
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'dashboard'
-                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs scale-102'
+                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -1306,9 +1303,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
               playSound('click');
               setActiveTab('leaderboard');
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'leaderboard'
-                ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-xs scale-102'
+                ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -1322,9 +1319,9 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
               playSound('click');
               setActiveTab('teacher');
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'teacher'
-                ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs scale-102'
+                ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -1334,7 +1331,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
         </div>
 
         {/* Recorde e Info */}
-        <div className="hidden sm:flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3 lg:ml-auto">
           <button
             type="button"
             onClick={() => {
@@ -1353,13 +1350,11 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           </div>
         </div>
       </div>
-      </ScrollFade>
 
       {/* ========================================================================= */}
-      {/* ABA 1: CENTRO DE TREINO SURVIVAL & ENDURANCE                              */}
+      {/* ABA 1: CENTRO DE TREINO SURVIVAL                                         */}
       {/* ========================================================================= */}
       {activeTab === 'game' && (
-        <ScrollFade container={scrollContainerRef}>
         <div className="space-y-6">
           
           {/* 1.1 TELA LOBBY / MENU DE INÍCIO */}
@@ -1368,7 +1363,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
               analytics={analytics}
               customQuestionsCount={customQuestions.length}
               gameMode={gameMode}
-              onGameModeChange={setGameMode}
+              onGameModeChange={handleGameModeChange}
+              customSubjectFilter={customSubjectFilter}
               difficulty={difficulty}
               onDifficultyChange={setDifficulty}
               burstParticles={burstParticles}
@@ -1378,7 +1374,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             />
           )}
 
-          {/* 1.2 TELA DE JOGO ATIVO (SURVIVAL & ENDLESS) */}
+          {/* 1.2 TELA DE JOGO ATIVO (SURVIVAL) */}
           {gameStatus === 'playing' && currentQuestion && (
             <div className="space-y-5">
               
@@ -1387,7 +1383,6 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                 formatTime={formatTime}
                 elapsedSeconds={elapsedSeconds}
                 questionNumber={questionNumber}
-                gameMode={gameMode}
                 lives={lives}
                 lastLostLife={lastLostLife}
                 streakMultiplier={streakMultiplier}
@@ -1429,14 +1424,12 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             />
           )}
         </div>
-        </ScrollFade>
       )}
 
       {/* ========================================================================= */}
       {/* ABA 2: DASHBOARD DE DESEMPENHO E DIAGNÓSTICO DE ERROS                     */}
       {/* ========================================================================= */}
       {activeTab === 'dashboard' && (
-        <ScrollFade container={scrollContainerRef}>
         <PerformanceDashboard
           analytics={analytics}
           onStartFocusedPractice={handleStartFocusedPractice}
@@ -1444,36 +1437,27 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           onResetAnalytics={handleResetAnalytics}
           onImportAnalytics={handleImportAnalytics}
         />
-        </ScrollFade>
       )}
 
       {/* ========================================================================= */}
       {/* ABA 3: RANKING GLOBAL & COMUNIDADE DE COMPETIDORES                        */}
       {/* ========================================================================= */}
       {activeTab === 'leaderboard' && (
-        <ScrollFade container={scrollContainerRef}>
         <GlobalLeaderboard
-          onStartChallenge={(mode) => {
+          onStartChallenge={(_mode) => {
             playSound('click');
-            if (mode === 'endurance') {
-              setGameMode('endurance');
-              handleStartSurvival('endurance');
-            } else {
-              setGameMode('enem_formulas');
-              handleStartSurvival('enem_formulas');
-            }
+            setGameMode('math_arcade');
+            handleStartSurvival('math_arcade');
             setActiveTab('game');
           }}
           onNavigate={onNavigate}
         />
-        </ScrollFade>
       )}
 
       {/* ========================================================================= */}
       {/* ABA 4: ESTÚDIO DE CRIAÇÃO DO PROFESSOR (AUTORIA EMBUTIDA NA PÁGINA)       */}
       {/* ========================================================================= */}
       {activeTab === 'teacher' && (
-        <ScrollFade container={scrollContainerRef}>
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -2463,7 +2447,6 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             )}
           </div>
         </motion.div>
-        </ScrollFade>
       )}
 
       {/* Modal de Importação JSON de Questões */}

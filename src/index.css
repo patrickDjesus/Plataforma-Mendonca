@@ -2,6 +2,14 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer base {
   :root {
     --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -31,43 +39,6 @@
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
-}
-
-/* Authentic Ruled Caderno Lines with Margin - Precisely Aligned to 36px Base */
-.bg-caderno-ruled {
-  background-color: #FFFDF9;
-  background-image: 
-    linear-gradient(to right, transparent 54px, #F87171 54px, #F87171 56px, transparent 56px),
-    linear-gradient(to bottom, transparent 35px, #CBD5E1 35px, #CBD5E1 36px);
-  background-size: 100% 36px;
-  background-attachment: local;
-  line-height: 36px;
-}
-
-.dark .bg-caderno-ruled {
-  background-color: #0B1329;
-  background-image: 
-    linear-gradient(to right, transparent 54px, #EF4444 54px, #EF4444 56px, transparent 56px),
-    linear-gradient(to bottom, transparent 35px, #334155 35px, #334155 36px);
-  background-size: 100% 36px;
-  background-attachment: local;
-  line-height: 36px;
-}
-
-.bg-caderno-grid {
-  background-color: #FFFDF9;
-  background-image: 
-    linear-gradient(to right, rgba(203, 213, 225, 0.6) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(203, 213, 225, 0.6) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-.dark .bg-caderno-grid {
-  background-color: #0B1329;
-  background-image: 
-    linear-gradient(to right, rgba(51, 65, 85, 0.5) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(51, 65, 85, 0.5) 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 
 .font-handwriting {

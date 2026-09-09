@@ -4,7 +4,6 @@ import {
   Search,
   BookOpen,
   Brain,
-  Network,
   Home,
   Sun,
   Moon,
@@ -96,18 +95,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       shortcut: '3',
       action: () => {
         onNavigate('treino');
-        onClose();
-      },
-    },
-    {
-      id: 'nav-mapa',
-      title: 'Ir para Mapa de Conceitos',
-      subtitle: 'Conexões neurais e visualização cognitiva',
-      category: 'Navegação',
-      icon: <Network className="w-4 h-4 text-amber-500" />,
-      shortcut: '4',
-      action: () => {
-        onNavigate('mapa');
         onClose();
       },
     },

@@ -1,6 +1,6 @@
 import { QuizQuestion } from '../types/design';
 
-export type GameCategory = 'math_arcade' | 'enem_formulas' | 'periodic_table' | 'enem_mixed' | 'endurance';
+export type GameCategory = 'math_arcade' | 'periodic_table' | 'enem_mixed';
 export type GameDifficulty = 'Fácil' | 'Médio' | 'Difícil' | 'Hardcore';
 
 export interface ChemicalElement {

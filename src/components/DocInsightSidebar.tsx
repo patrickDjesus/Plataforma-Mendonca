@@ -119,16 +119,16 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
       },
       {
         id: 'q-dyn-2',
-        question: 'Como os conceitos anotados neste documento se conectam com o seu mapa neural de estudos?',
+        question: 'Como os conceitos anotados neste documento se conectam com as demais disciplinas?',
         options: [
-          'Eles formam nós conceituais com conexões sinápticas interdisciplinares.',
+          'Eles formam conexões interdisciplinares que reforçam a compreensão.',
           'São anotações isoladas que não interagem com outras matérias.',
           'Não têm relevância para simulados e vestibulares.',
           'Devem ser apagados após a leitura.'
         ],
         correctIdx: 0,
-        explanation: 'A rede neural integra os nós de cada disciplina para promover recuperação ativa e memória de longo prazo.',
-        hint: 'Explore o Mapa Neural para visualizar os termos associados.'
+        explanation: 'Os conceitos de cada disciplina se integram e se reforçam mutuamente, promovendo recuperação ativa e memória de longo prazo.',
+        hint: 'Relacione os termos chave deste documento com assuntos correlatos de outras matérias.'
       }
     ];
   };

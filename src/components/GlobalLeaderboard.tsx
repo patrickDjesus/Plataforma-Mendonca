@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Trophy, 
   Flame, 
-  Zap, 
   Crown, 
   Medal, 
   Users, 
@@ -37,7 +36,6 @@ export interface LeaderboardUser {
   status: 'online' | 'jogando' | 'offline';
   favoriteSubject: string;
   weeklyXp: number;
-  enduranceRecordSecs: number;
 }
 
 interface GlobalLeaderboardProps {
@@ -52,7 +50,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
   const { userProfile, currentUser } = useAuth();
   // Filtros
   const [scope, setScope] = useState<'global' | 'friends' | 'league'>('global');
-  const [period, setPeriod] = useState<'weekly' | 'allTime' | 'endurance'>('weekly');
+  const [period, setPeriod] = useState<'weekly' | 'allTime'>('weekly');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionToast, setActionToast] = useState<string | null>(null);
   const [supabaseEntries, setSupabaseEntries] = useState<any[]>([]);
@@ -99,16 +97,13 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
         isCurrentUser: isMe,
         isFriend: false,
         status: fe.status || 'online',
-        favoriteSubject: fe.favoriteSubject || 'Treino Geral',
-        enduranceRecordSecs: fe.enduranceRecordSecs || 120
+        favoriteSubject: fe.favoriteSubject || 'Treino Geral'
       };
     });
 
     const sorted = [...list].sort((a, b) => {
       if (period === 'weekly') {
         return b.weeklyXp - a.weeklyXp;
-      } else if (period === 'endurance') {
-        return b.enduranceRecordSecs - a.enduranceRecordSecs;
       } else {
         return b.score - a.score;
       }
@@ -155,7 +150,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
   const handleChallenge = (user: LeaderboardUser) => {
     showToast(`⚔️ Desafio enviado para ${user.name}! O treino foi iniciado.`);
     setTimeout(() => {
-      onStartChallenge(period === 'endurance' ? 'endurance' : 'enem_formulas');
+      onStartChallenge('math_arcade');
     }, 600);
   };
 
@@ -193,7 +188,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
               <Trophy className="w-6 h-6 text-amber-400 hidden sm:inline-block" />
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Dispute o topo com estudantes de todo o Brasil. Mantenha suas sequências de fogo diárias, acumule XP nos modos Survival & Endurance e suba de divisão a cada fechamento semanal.
+              Dispute o topo com estudantes de todo o Brasil. Mantenha suas sequências de fogo diárias, acumule XP no Treino Survival e suba de divisão a cada fechamento semanal.
             </p>
           </div>
 
@@ -300,18 +295,6 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                 }`}
               >
                 Geral (All-time)
-              </button>
-              <button
-                type="button"
-                onClick={() => setPeriod('endurance')}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  period === 'endurance'
-                    ? 'bg-rose-500 text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                <Zap className="w-3 h-3" />
-                <span>Endurance</span>
               </button>
             </div>
 

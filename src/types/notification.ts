@@ -9,5 +9,5 @@ export interface StudyNotification {
   category: 'cronograma' | 'estudos' | 'simulado' | 'admin' | 'revisao';
   read: boolean;
   actionLabel?: string;
-  actionTarget?: 'home' | 'caderno' | 'mapa' | 'treino';
+  actionTarget?: 'home' | 'caderno' | 'treino';
 }

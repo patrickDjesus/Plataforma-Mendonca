@@ -131,7 +131,7 @@ export const PostTrainingSummaryModal: React.FC<PostTrainingSummaryModalProps> =
         badge: '🥉 Em Evolução',
         badgeColor: 'bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border-purple-300 dark:border-purple-700',
         title: 'Bom Treino de Fixação!',
-        text: 'Identificamos algumas oscilações em fórmulas e termos conceituais. Recomendamos abrir o Mapa Neural de Conceitos para conectar as lacunas.'
+        text: 'Identificamos algumas oscilações em fórmulas e termos conceituais. Recomendamos revisar esses pontos no seu caderno de anotações e refazer as questões de treino para fechar as lacunas.'
       };
     } else {
       return {

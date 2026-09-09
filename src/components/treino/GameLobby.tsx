@@ -3,11 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Zap,
   Trophy,
-  Flame,
   Check,
   Calculator,
   Atom,
-  FlaskConical,
   GraduationCap,
   ChevronRight,
   Play,
@@ -37,6 +35,7 @@ interface GameLobbyProps {
   customQuestionsCount: number;
   gameMode: GameCategory | 'teacher_custom';
   onGameModeChange: (mode: GameCategory | 'teacher_custom') => void;
+  customSubjectFilter?: string | null;
   difficulty: GameDifficulty;
   onDifficultyChange: (d: GameDifficulty) => void;
   burstParticles: BurstParticles | null;
@@ -46,14 +45,6 @@ interface GameLobbyProps {
 }
 
 const GAME_MODES: Omit<GameModeOption, 'icon'>[] = [
-  {
-    id: 'endurance',
-    title: 'Modo Endurance Progressivo',
-    badge: '⚡ Dificuldade Dinâmica',
-    desc: 'O tempo corre e a dificuldade sobe continuamente (Fácil ➔ Médio ➔ Difícil ➔ Hardcore). Combos de até 10x!',
-    color: 'from-amber-500 via-rose-500 to-purple-600',
-    borderActive: 'border-amber-500 ring-2 ring-amber-400/40 bg-gradient-to-b from-amber-50/80 to-purple-50/40 dark:from-amber-950/40 dark:to-purple-950/20 shadow-md shadow-amber-500/10'
-  },
   {
     id: 'math_arcade',
     title: 'Cálculo Mental Arcade',
@@ -71,14 +62,6 @@ const GAME_MODES: Omit<GameModeOption, 'icon'>[] = [
     borderActive: 'border-purple-500 ring-2 ring-purple-400/40 bg-gradient-to-b from-purple-50/80 to-pink-50/40 dark:from-purple-950/40 dark:to-pink-950/20 shadow-md shadow-purple-500/10'
   },
   {
-    id: 'enem_formulas',
-    title: 'Fórmulas & Macetes',
-    badge: 'Física & Ciências',
-    desc: 'Macetes mnemônicos do ENEM (Quem Vê R-I, Que Macete, Torricelli).',
-    color: 'from-amber-600 to-orange-600',
-    borderActive: 'border-amber-500 ring-2 ring-amber-400/40 bg-gradient-to-b from-amber-50/80 to-orange-50/40 dark:from-amber-950/40 dark:to-orange-950/20 shadow-md shadow-amber-500/10'
-  },
-  {
     id: 'teacher_custom',
     title: 'Minhas Questões',
     badge: '',  // filled dynamically
@@ -89,10 +72,8 @@ const GAME_MODES: Omit<GameModeOption, 'icon'>[] = [
 ];
 
 const MODE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  endurance: Flame,
   math_arcade: Calculator,
   periodic_table: Atom,
-  enem_formulas: FlaskConical,
   teacher_custom: GraduationCap
 };
 
@@ -110,6 +91,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
   customQuestionsCount,
   gameMode,
   onGameModeChange,
+  customSubjectFilter = null,
   difficulty,
   onDifficultyChange,
   burstParticles,
@@ -129,7 +111,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-bold">
               <Zap className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-              <span>Modo Survival & Endurance • 3 Vidas</span>
+              <span>Modo Survival • 3 Vidas</span>
             </div>
 
             <button
@@ -175,7 +157,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
           1. Escolha a Modalidade de Treino:
         </label>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
           {GAME_MODES.map((mode) => {
             const Icon = MODE_ICONS[mode.id];
             const isSelected = gameMode === mode.id;
@@ -265,45 +247,36 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
         </div>
       </div>
 
-      {/* Seletor de Dificuldade (ou aviso se estiver no modo Endurance) */}
+      {/* Seletor de Dificuldade */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
           <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider block mb-0.5">
-            {gameMode === 'endurance' ? '2. Progressão Dinâmica Ativa:' : '2. Nível de Desafio & Ritmo:'}
+            2. Nível de Desafio & Ritmo:
           </span>
           <p className="text-[11px] text-slate-500">
-            {gameMode === 'endurance'
-              ? 'No Modo Endurance, a dificuldade sobe automaticamente com o tempo (Fácil ➔ Médio ➔ Difícil ➔ Hardcore).'
-              : 'Maior dificuldade concede multiplicadores extras de XP e pontuação.'}
+            Maior dificuldade concede multiplicadores extras de XP e pontuação.
           </p>
         </div>
 
-        {gameMode === 'endurance' ? (
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold animate-pulse">
-            <Flame className="w-4 h-4 text-amber-500" />
-            <span>Dificuldade Automática em Tempo Real</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            {DIFFICULTIES.map((d) => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => {
-                  playSound('click');
-                  onDifficultyChange(d);
-                }}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  difficulty === d
-                    ? DIFFICULTY_CLASSES[d]
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {DIFFICULTIES.map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => {
+                playSound('click');
+                onDifficultyChange(d);
+              }}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                difficulty === d
+                  ? DIFFICULTY_CLASSES[d]
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* BOTÃO PRINCIPAL DE INICIAR TREINO */}
@@ -313,22 +286,23 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
           whileTap={{ scale: 0.97 }}
           type="button"
           onClick={() => onStartSurvival()}
-          className={`w-full sm:w-auto min-w-[320px] flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-white font-extrabold text-sm shadow-xl transition-all cursor-pointer ${
-            gameMode === 'endurance'
-              ? 'bg-gradient-to-r from-amber-500 via-rose-600 to-purple-600 hover:from-amber-400 hover:to-purple-500 shadow-amber-500/25'
-              : 'bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 shadow-cyan-500/25'
-          }`}
+          className="w-full sm:w-auto min-w-[320px] flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-extrabold text-sm shadow-xl shadow-cyan-500/25 transition-all cursor-pointer"
         >
           <Play className="w-5 h-5 fill-white" />
-          <span>
-            {gameMode === 'endurance' ? '⚡ INICIAR MODO ENDURANCE INFINITO' : '⚡ INICIAR TREINO SURVIVAL'}
-          </span>
+          <span>⚡ INICIAR TREINO SURVIVAL</span>
         </motion.button>
         <p className="text-[11px] text-slate-500 dark:text-slate-400">
-          {gameMode === 'endurance'
-            ? 'O cronômetro dispara e a dificuldade sobe progressivamente com combos de pontuação até 10x!'
-            : 'O cronômetro dispara ao clicar. Responda o máximo de perguntas até perder suas 3 vidas!'}
+          O cronômetro dispara ao clicar. Responda o máximo de perguntas até perder suas 3 vidas!
         </p>
+
+        {gameMode === 'teacher_custom' && customSubjectFilter && (
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">
+            <Check className="w-3.5 h-3.5" />
+            <span>
+              Foco: {customSubjectFilter}
+            </span>
+          </div>
+        )}
       </div>
     </motion.div>
   );

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ScreenId } from '../types/design';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Sparkles, 
   Flame, 
   Clock, 
   Play, 
@@ -112,9 +111,7 @@ const FOCUS_PLANS: FocusPlan[] = [
 ];
 
 export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streakCount }) => {
-  const { currentUser, userProfile } = useAuth();
-  const userName = userProfile?.displayName || currentUser?.displayName || 'Estudante';
-  const firstName = userName.split(' ')[0];
+  const { userProfile } = useAuth();
 
   // Estado do Exame Selecionado para Contagem Regressiva Real
   const [selectedExamId, setSelectedExamId] = useState<string>('enem-dia-1');

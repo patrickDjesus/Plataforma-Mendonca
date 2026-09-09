@@ -1,14 +1,11 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Clock, Flame, Heart, HeartCrack, Trophy, Pause } from 'lucide-react';
-import { getEnduranceLevel } from '../../utils/endurance';
-import { GameCategory } from '../../utils/gameGenerators';
 
 interface GameHUDProps {
   formatTime: (secs: number) => string;
   elapsedSeconds: number;
   questionNumber: number;
-  gameMode: GameCategory | 'teacher_custom';
   lives: number;
   lastLostLife: number | null;
   streakMultiplier: number;
@@ -20,7 +17,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   formatTime,
   elapsedSeconds,
   questionNumber,
-  gameMode,
   lives,
   lastLostLife,
   streakMultiplier,
@@ -39,15 +35,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400">
           Questão #{questionNumber}
         </span>
-
-        {/* Badge de Fase do Modo Endurance */}
-        {gameMode === 'endurance' && (
-          <div className={`px-2.5 py-1 rounded-xl text-[11px] font-black border flex items-center gap-1.5 animate-pulse ${getEnduranceLevel(elapsedSeconds).color} ${getEnduranceLevel(elapsedSeconds).badgeBg}`}>
-            <Flame className="w-3.5 h-3.5" />
-            <span>{getEnduranceLevel(elapsedSeconds).label}</span>
-            <span className="text-[10px] opacity-85 font-mono">({getEnduranceLevel(elapsedSeconds).multiplierBonus}x bônus)</span>
-          </div>
-        )}
       </div>
 
       {/* Vidas, Combo, Pontuação */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ScreenId } from './types/design';
 import { Navbar } from './components/Navbar';
 import { HomeDashboard } from './components/HomeDashboard';
@@ -7,13 +7,26 @@ import { LoadingTransition } from './components/LoadingTransition';
 import { NotificationsDrawer } from './components/NotificationsDrawer';
 import { CommandPalette } from './components/CommandPalette';
 import { CadernoWorkspace } from './components/CadernoWorkspace';
-import { MapaConceitos } from './components/MapaConceitos';
 import { TreinoGamificacao } from './components/TreinoGamificacao';
 import { StudyNotification } from './types/notification';
 import { AnimatePresence, motion } from 'motion/react';
 import { Moon, Sun } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import { isGameActive } from './utils/gameActivity';
+
+// Cada tela tem seu próprio caminho real (URL). Assim o botão "voltar" do
+// navegador navega dentro do site (histórico por tela) em vez de sair dele.
+const SCREEN_TO_PATH: Record<ScreenId, string> = {
+  home: '/',
+  caderno: '/caderno',
+  treino: '/treino',
+};
+
+const PATH_TO_SCREEN: Record<string, ScreenId> = {
+  '/': 'home',
+  '/caderno': 'caderno',
+  '/treino': 'treino',
+};
 
 export const App: React.FC = () => {
   const { currentUser, userProfile, logoutUser } = useAuth();
@@ -23,7 +36,12 @@ export const App: React.FC = () => {
     email: '',
     avatar: 'EM',
   });
-  const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
+  const [currentScreen, setCurrentScreen] = useState<ScreenId>(() => {
+    if (typeof window !== 'undefined') {
+      return PATH_TO_SCREEN[window.location.pathname] ?? 'home';
+    }
+    return 'home';
+  });
   const [streakCount, setStreakCount] = useState<number>(1);
 
   // Sincroniza com Supabase Auth
@@ -102,6 +120,28 @@ export const App: React.FC = () => {
     localStorage.setItem('mendonca_theme', theme);
   }, [theme]);
 
+  // Navegação entre telas: atualiza o estado E cria uma entrada real no
+  // histórico (caminho na URL). O botão "voltar" volta então para a tela
+  // anterior DENTRO do site, e só sai do site a partir da primeira tela.
+  const navigate = useCallback((screen: ScreenId) => {
+    setCurrentScreen(screen);
+    const path = SCREEN_TO_PATH[screen];
+    if (window.location.pathname !== path) {
+      window.history.pushState({ screen }, '', path);
+    }
+  }, []);
+
+  // Voltar / avançar do navegador (popstate) → troca de tela sem criar
+  // nova entrada, para o histórico não crescer infinitamente.
+  useEffect(() => {
+    const onPopState = () => {
+      const screen = PATH_TO_SCREEN[window.location.pathname] ?? 'home';
+      setCurrentScreen(screen);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
   // Global Keyboard Shortcuts (Cmd+K, /, Esc, 1-4, N)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -149,13 +189,11 @@ export const App: React.FC = () => {
       // Quick jumps when not in an input
       if (!isInput && authState === 'authenticated' && !isCommandPaletteOpen && !isNotificationsOpen && !isGameActive()) {
         if (e.key === '1') {
-          setCurrentScreen('home');
+          navigate('home');
         } else if (e.key === '2') {
-          setCurrentScreen('caderno');
+          navigate('caderno');
         } else if (e.key === '3') {
-          setCurrentScreen('treino');
-        } else if (e.key === '4') {
-          setCurrentScreen('mapa');
+          navigate('treino');
         } else if (e.key.toLowerCase() === 'n' && !e.metaKey && !e.ctrlKey) {
           setIsNotificationsOpen(prev => !prev);
         }
@@ -164,7 +202,7 @@ export const App: React.FC = () => {
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [authState, isCommandPaletteOpen, isNotificationsOpen]);
+  }, [authState, isCommandPaletteOpen, isNotificationsOpen, navigate]);
 
   const toggleTheme = () => {
     if (isThemeTransitioning) return;
@@ -205,7 +243,7 @@ export const App: React.FC = () => {
 
   const handleLoadingFinish = () => {
     setAuthState('authenticated');
-    setCurrentScreen('home');
+    navigate('home');
   };
 
   const handleLogout = async () => {
@@ -280,7 +318,7 @@ export const App: React.FC = () => {
             {/* MENU HEADER SUPERIOR COM TABS ANIMADAS, TEMA E NOTIFICAÇÕES */}
             <Navbar
               currentScreen={currentScreen}
-              setCurrentScreen={setCurrentScreen}
+              setCurrentScreen={navigate}
               streakCount={streakCount}
               user={user}
               onLogout={handleLogout}
@@ -300,7 +338,7 @@ export const App: React.FC = () => {
               notifications={notifications}
               onMarkAsRead={handleMarkAsRead}
               onMarkAllAsRead={handleMarkAllAsRead}
-              onNavigate={(screen) => setCurrentScreen(screen)}
+              onNavigate={navigate}
             />
 
             {/* PALETA DE COMANDOS GLOBAL (CMD+K / CTRL+K / ATALHOS) */}
@@ -308,7 +346,7 @@ export const App: React.FC = () => {
               isOpen={isCommandPaletteOpen}
               onClose={() => setIsCommandPaletteOpen(false)}
               currentScreen={currentScreen}
-              onNavigate={(screen) => setCurrentScreen(screen)}
+              onNavigate={navigate}
               theme={theme}
               onToggleTheme={toggleTheme}
               onOpenNotifications={() => setIsNotificationsOpen(true)}
@@ -330,27 +368,21 @@ export const App: React.FC = () => {
                 >
                   {currentScreen === 'home' && (
                     <HomeDashboard
-                      onNavigate={setCurrentScreen}
+                      onNavigate={navigate}
                       streakCount={streakCount}
                     />
                   )}
 
                   {currentScreen === 'caderno' && (
                     <div className="flex-1 overflow-hidden h-full">
-                      <CadernoWorkspace onNavigate={setCurrentScreen} />
-                    </div>
-                  )}
-
-                  {currentScreen === 'mapa' && (
-                    <div className="flex-1 overflow-hidden h-full">
-                      <MapaConceitos onNavigate={setCurrentScreen} />
+                      <CadernoWorkspace onNavigate={navigate} />
                     </div>
                   )}
 
                   {currentScreen === 'treino' && (
                     <div className="flex-1 overflow-hidden h-full">
                       <TreinoGamificacao
-                        onNavigate={setCurrentScreen}
+                        onNavigate={navigate}
                         streakCount={streakCount}
                         onStreakChange={setStreakCount}
                       />

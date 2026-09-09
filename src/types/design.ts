@@ -1,20 +1,4 @@
-export type ScreenId = 'home' | 'caderno' | 'mapa' | 'treino';
-
-export interface ConceptNode {
-  id: string;
-  label: string;
-  category: string;
-  color: string;
-  glowColor: string;
-  x: number;
-  y: number;
-  size: number;
-  mastery: number; // 0 to 100%
-  description: string;
-  connections: string[]; // ids of connected nodes
-  synapticStrength: number; // 1 to 5
-  tags: string[];
-}
+export type ScreenId = 'home' | 'caderno' | 'treino';
 
 export interface QuizQuestion {
   id: number;

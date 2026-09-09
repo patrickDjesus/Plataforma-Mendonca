@@ -87,7 +87,7 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
       } else if (qLower.includes('quest') || qLower.includes('quiz') || qLower.includes('pergunta')) {
         reply = `🎯 **Desafio Rápido de Fixação:**\n\n*Qual é a principal condição de contorno para a validade do teorema exposto nas anotações?*\n\n> Dica: Pense na continuidade e diferenciabilidade da função no intervalo fechado [a, b].`;
       } else {
-        reply = `Entendi sua dúvida sobre "${query}". Ao analisar seu caderno de ${discipline.name}, sugiro conectar este tópico com os nós conceituais no Mapa Neural para maximizar a retenção da memória sináptica.`;
+        reply = `Entendi sua dúvida sobre "${query}". Ao analisar seu caderno de ${discipline.name}, sugiro revisar este tópico no seu material e praticar com as questões de treino para reforçar a retenção da memória sináptica.`;
       }
     }
 

@@ -42,10 +42,9 @@ import {
 } from 'lucide-react';
 import { CreateDocModal } from './CreateDocModal';
 import { AddGlossaryTermModal } from './AddGlossaryTermModal';
-import { DocInsightSidebar } from './DocInsightSidebar';
-import { DocAiChatDrawer } from './DocAiChatDrawer';
-import { NotionDocEditor } from './NotionDocEditor';
+import { BlockNoteDocEditor } from './BlockNoteDocEditor';
 import { EmojiQuickPicker } from './EmojiQuickPicker';
+import { countWordsOfSections, sectionsToText } from '../utils/docConverter';
 import { CorpoHumanoSimulator } from '../corpoHumano/CorpoHumanoSimulator';
 import { SIMULATOR_DOC_ID, simulatorDoc } from '../corpoHumano/simulatorDoc';
 import { ScrollFade } from './ScrollFade';
@@ -61,7 +60,7 @@ const RichText: React.FC<{ html?: string; text: string; className?: string }> = 
   return <span className={className}>{text}</span>;
 };
 
-export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }) => {
+export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: _onNavigate }) => {
   const { currentUser } = useAuth();
   const userId = currentUser?.id || null;
 
@@ -139,9 +138,9 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
   const [isAddGlossaryOpen, setIsAddGlossaryOpen] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [initialGlossaryTerm, setInitialGlossaryTerm] = useState('');
-  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
-  const [showInsightSidebar, setShowInsightSidebar] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [spellEnabled, setSpellEnabled] = useState(true);
+  const [editorEpoch, setEditorEpoch] = useState(0);
 
   // Search & View Modes
   const [searchQuery, setSearchQuery] = useState('');
@@ -155,9 +154,6 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
   const [dragLiveIds, setDragLiveIds] = useState<string[]>([]);
   const dragStartRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const didDragRef = useRef(false);
-  
-  // Discreet Document Paper Mode (📄 Digital, 📝 Pautado, 📐 Grade)
-  const [docPaperMode, setDocPaperMode] = useState<'docs' | 'ruled' | 'grid'>('docs');
   
   const [copied, setCopied] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
@@ -347,7 +343,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
     if (!selectedDisciplineId || !selectedDocId || !selectedDoc) return;
     setSaveStatus('saving');
 
-    const wordCount = newSections.reduce((acc, s) => acc + (s.content || '').split(/\s+/).filter(Boolean).length, 0);
+    const wordCount = countWordsOfSections(newSections);
     const readTime = `${Math.max(1, Math.ceil(wordCount / 120))} min`;
 
     setAllDisciplines(prev =>
@@ -410,6 +406,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
       };
       handleUpdateSections(updated);
     }
+    setEditorEpoch((v) => v + 1);
   };
 
   const handleDeleteCurrentDoc = () => {
@@ -591,25 +588,11 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
   const handleCopyDoc = () => {
     if (!selectedDoc) return;
     const fullText = `${selectedDoc.title}\n\n${selectedDoc.summary}\n\n` +
-      selectedDoc.sections.map(s => `${s.heading ? s.heading + '\n' : ''}${s.content}\n${s.formula ? 'Fórmula: ' + s.formula + '\n' : ''}`).join('\n');
+      sectionsToText(selectedDoc.sections || []);
     
     navigator.clipboard.writeText(fullText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  // Insert AI message text into doc
-  const handleInsertAiTextIntoDoc = (text: string) => {
-    if (!selectedDisciplineId || !selectedDocId || !selectedDoc) return;
-    const newSection: DocSection = {
-      id: `s-ai-${Date.now()}`,
-      heading: '',
-      content: text,
-      type: 'callout',
-      callout: text,
-      calloutType: 'tip'
-    };
-    handleUpdateSections([...selectedDoc.sections, newSection]);
   };
 
   // Helper icon selector
@@ -1420,22 +1403,6 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               </div>
               )}
 
-              {/* Botão Discreto de Auto-Teste / Quiz AI */}
-              {!isSimulatorDoc && (
-              <button
-                onClick={() => setShowInsightSidebar(!showInsightSidebar)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  showInsightSidebar 
-                    ? 'bg-purple-600 text-white shadow-xs' 
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
-                title="Abrir Auto-Teste e Quiz de Fixação"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                <span>Auto-Teste AI</span>
-              </button>
-              )}
-
               {/* Menu Mais Opções (...) onde ficam os botões discretos */}
               {!isSimulatorDoc && (
               <div className="relative">
@@ -1478,45 +1445,6 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
                         {selectedDoc.isPublic !== false ? 'Público' : 'Privado'}
                       </span>
                     </button>
-
-                    {/* Estilo da Página (Digital, Pautado, Grade) */}
-                    <div className="px-3 py-1.5 border-t border-slate-100 dark:border-slate-800">
-                      <span className="text-[10px] font-bold text-slate-400 block mb-1.5">
-                        Estilo da Folha
-                      </span>
-                      <div className="grid grid-cols-3 gap-1">
-                        <button
-                          onClick={() => setDocPaperMode('docs')}
-                          className={`py-1 text-[11px] rounded-lg font-medium transition-all ${
-                            docPaperMode === 'docs' 
-                              ? 'bg-blue-600 text-white font-bold' 
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                          }`}
-                        >
-                          Digital
-                        </button>
-                        <button
-                          onClick={() => setDocPaperMode('ruled')}
-                          className={`py-1 text-[11px] rounded-lg font-medium transition-all ${
-                            docPaperMode === 'ruled' 
-                              ? 'bg-indigo-600 text-white font-bold' 
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                          }`}
-                        >
-                          Linhas
-                        </button>
-                        <button
-                          onClick={() => setDocPaperMode('grid')}
-                          className={`py-1 text-[11px] rounded-lg font-medium transition-all ${
-                            docPaperMode === 'grid' 
-                              ? 'bg-emerald-600 text-white font-bold' 
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                          }`}
-                        >
-                          Grade
-                        </button>
-                      </div>
-                    </div>
 
                     <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
 
@@ -1576,52 +1504,22 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
             <div 
               ref={docContainerRef}
               onScroll={handleDocScroll}
-              className="flex-1 overflow-y-auto pr-1 flex items-start justify-center pb-28 scroll-smooth"
+              className="flex-1 overflow-y-auto pr-1 scroll-smooth"
             >
-              <div 
-                className={`w-full max-w-4xl min-h-[700px] transition-all rounded-[28px] p-6 sm:p-12 shadow-xs relative ${
-                  docPaperMode === 'ruled'
-                    ? 'bg-caderno-ruled border border-amber-200/60 dark:border-slate-700'
-                    : docPaperMode === 'grid'
-                    ? 'bg-caderno-grid border border-slate-200/80 dark:border-slate-800'
-                    : 'bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80'
-                }`}
-              >
-                {/* Título Principal do Documento (Fluido com quebra de linha natural) */}
-                <div className="mb-4 pb-2 border-b border-slate-100 dark:border-slate-800/60">
-                  <textarea
-                    rows={1}
-                    value={selectedDoc.title}
-                    onChange={(e) => {
-                      handleUpdateDocTitle(e.target.value);
-                      e.target.style.height = 'auto';
-                      e.target.style.height = `${e.target.scrollHeight}px`;
-                    }}
-                    placeholder="Título do Documento..."
-                    className="w-full bg-transparent resize-none border-none outline-none text-2xl sm:text-4xl font-black text-slate-900 dark:text-white font-display tracking-tight leading-tight placeholder:text-slate-300 dark:placeholder:text-slate-600 overflow-hidden break-words"
-                  />
-                  
-                  <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-400 font-medium pt-2">
-                    <span className="flex items-center gap-2">
-                      <FileText className="w-3.5 h-3.5 text-blue-500" />
-                      {selectedDoc.sections.reduce((acc, s) => acc + (s.content || '').split(/\s+/).filter(Boolean).length, 0)} palavras
-                      • {selectedDoc.sections.reduce((acc, s) => acc + (s.content || '').length, 0)} caracteres
-                    </span>
-                    <span>Criado em {selectedDoc.createdAt}</span>
-                  </div>
-                </div>
-
-                {/* Editor Rich Text de Blocos Notion / Word */}
-                <NotionDocEditor
-                  sections={selectedDoc.sections}
-                  glossary={selectedDoc.glossary}
-                  disciplineColor={selectedDiscipline.color}
-                  paperMode={docPaperMode}
+              <div className="flex flex-col items-center gap-4 pb-28">
+                <BlockNoteDocEditor
+                  key={`${selectedDoc.id}:${editorEpoch}`}
+                  doc={selectedDoc}
+                  spellEnabled={spellEnabled}
+                  onToggleSpell={() => setSpellEnabled(v => !v)}
+                  onUpdateTitle={handleUpdateDocTitle}
                   onUpdateSections={handleUpdateSections}
-                  onOpenAddGlossary={(term) => {
-                    setInitialGlossaryTerm(term || '');
+                  onDefineGlossary={(term) => {
+                    setInitialGlossaryTerm(term);
                     setIsAddGlossaryOpen(true);
                   }}
+                  onExit={() => setSelectedDocId(null)}
+                  glossary={selectedDoc.glossary}
                 />
               </div>
 
@@ -1645,49 +1543,9 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate }
               </AnimatePresence>
             </div>
 
-            {/* Sidebar de Insights e Auto-Teste AI */}
-            <AnimatePresence>
-              {showInsightSidebar && (
-                <DocInsightSidebar
-                  doc={selectedDoc}
-                  discipline={selectedDiscipline}
-                  isOpen={showInsightSidebar}
-                  onClose={() => setShowInsightSidebar(false)}
-                  onNavigate={onNavigate}
-                />
-              )}
-            </AnimatePresence>
           </div>
           )}
 
-          {/* Botão Flutuante Discreto da IA Lumina no Canto Esquerdo (oculto no simulador) */}
-          {!isSimulatorDoc && (
-            <div className="fixed bottom-6 left-6 z-40">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsAiChatOpen(true)}
-                className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40 cursor-pointer transition-all border border-purple-400/30"
-              >
-                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                  <Sparkles className="w-3.5 h-3.5 text-white" />
-                </div>
-                <span>Lumina AI Tutor</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              </motion.button>
-            </div>
-          )}
-
-          {/* Gaveta de Chat da IA */}
-          {!isSimulatorDoc && (
-          <DocAiChatDrawer
-            isOpen={isAiChatOpen}
-            onClose={() => setIsAiChatOpen(false)}
-            doc={selectedDoc}
-            discipline={selectedDiscipline}
-            onInsertTextIntoDoc={handleInsertAiTextIntoDoc}
-          />
-          )}
         </div>
       )}
 
