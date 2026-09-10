@@ -583,6 +583,61 @@ export function BlockNoteDocEditor({
     return () => window.removeEventListener('keydown', onKey);
   }, [showCharPicker]);
 
+  // === Enforcement do alinhamento à régua (36px) ===
+  // O BlockNote injeta seus próprios estilos (.bn-block-outer com
+  // line-height: 1.5 e .bn-block-content com padding: 3px 0) que
+  // quebram o encaixe do texto nas linhas da folha. Injetamos inline
+  // (com <style> dentro da folha + MutationObserver) para que o texto
+  // SEMPRE fique centralizado entre as linhas da régua, mesmo quando
+  // imagens ou outros elementos são adicionados.
+const [paperStyleId] = useState('doc-paper-grid-rule');
+
+  useEffect(() => {
+    const view = editor.prosemirrorView;
+    const root = view?.dom as HTMLElement | null;
+    if (!root) return;
+
+    const snapImageHeights = () => {
+      root.querySelectorAll<HTMLElement>('[data-content-type="image"]').forEach((el) => {
+        const frame = el.querySelector<HTMLElement>('.bn-visual-media-wrapper');
+        if (!frame) return;
+        const img = frame.querySelector('img') as HTMLImageElement | null;
+        if (!img) return;
+
+        const doSnap = () => {
+          const naturalH = frame.scrollHeight || frame.offsetHeight;
+          if (naturalH <= 0) return;
+          const remainder = naturalH % 36;
+          const snapped = remainder === 0 ? naturalH : naturalH + (36 - remainder);
+          frame.style.minHeight = snapped + 'px';
+        };
+
+        if (img.complete && img.naturalHeight > 0) {
+          requestAnimationFrame(() => doSnap());
+        } else {
+          img.addEventListener('load', () => requestAnimationFrame(() => doSnap()), { once: true });
+        }
+      });
+
+      // Limpa minHeight de imagens que foram removidas (evita stale height)
+      root.querySelectorAll<HTMLElement>('.bn-visual-media-wrapper').forEach((frame) => {
+        if (!frame.querySelector('img')) {
+          frame.style.minHeight = '';
+        }
+      });
+    };
+
+    snapImageHeights();
+
+    const mo = new MutationObserver(() => {
+      requestAnimationFrame(snapImageHeights);
+    });
+    mo.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+
+    return () => mo.disconnect();
+  }, [editor]);
+
+  const currentAlignment = (activeBlock?.props?.textAlignment as string) || 'left';
   const fmt = {
     toggleBold: () => editor.toggleStyles({ bold: true }),
     toggleItalic: () => editor.toggleStyles({ italic: true }),
@@ -596,6 +651,10 @@ export function BlockNoteDocEditor({
     numberedList: () => editor.updateBlock(editor.getTextCursorPosition().block, { type: 'numberedListItem' }),
     checkList: () => editor.updateBlock(editor.getTextCursorPosition().block, { type: 'checkListItem' }),
     inlineCode: () => editor.toggleStyles({ code: true }),
+    alignLeft: () => editor.updateBlock(editor.getTextCursorPosition().block, { props: { textAlignment: 'left' } }),
+    alignCenter: () => editor.updateBlock(editor.getTextCursorPosition().block, { props: { textAlignment: 'center' } }),
+    alignRight: () => editor.updateBlock(editor.getTextCursorPosition().block, { props: { textAlignment: 'right' } }),
+    alignJustify: () => editor.updateBlock(editor.getTextCursorPosition().block, { props: { textAlignment: 'justify' } }),
   };
 
   const wordCount = countWordsOfSections(sections);
@@ -607,21 +666,33 @@ export function BlockNoteDocEditor({
       <div className="sticky top-0 z-30 w-full flex justify-center pt-3 pr-1 pointer-events-none">
         <div className="doc-format-bar pointer-events-auto">
           <div className="doc-format-group">
-            <ToolbarBtn title="Parágrafo" active={activeBlock?.type === 'paragraph'} onClick={fmt.paragraph}>
+            <ToolbarBtn title="Alinhar à esquerda" active={currentAlignment === 'left'} onClick={fmt.alignLeft}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <line x1="3" y1="12" x2="15" y2="12" />
                 <line x1="3" y1="18" x2="18" y2="18" />
               </svg>
             </ToolbarBtn>
-            <ToolbarBtn title="Título 1" active={activeBlock?.type === 'heading' && activeBlock.props.level === 1} onClick={fmt.heading1}>
-              <span className="doc-toolbar-label">H1</span>
+            <ToolbarBtn title="Centralizar" active={currentAlignment === 'center'} onClick={fmt.alignCenter}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="6" y1="12" x2="18" y2="12" />
+                <line x1="4" y1="18" x2="20" y2="18" />
+              </svg>
             </ToolbarBtn>
-            <ToolbarBtn title="Título 2" active={activeBlock?.type === 'heading' && activeBlock.props.level === 2} onClick={fmt.heading2}>
-              <span className="doc-toolbar-label">H2</span>
+            <ToolbarBtn title="Alinhar à direita" active={currentAlignment === 'right'} onClick={fmt.alignRight}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="9" y1="12" x2="21" y2="12" />
+                <line x1="6" y1="18" x2="21" y2="18" />
+              </svg>
             </ToolbarBtn>
-            <ToolbarBtn title="Título 3" active={activeBlock?.type === 'heading' && activeBlock.props.level === 3} onClick={fmt.heading3}>
-              <span className="doc-toolbar-label">H3</span>
+            <ToolbarBtn title="Justificar" active={currentAlignment === 'justify'} onClick={fmt.alignJustify}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
             </ToolbarBtn>
           </div>
 
@@ -764,6 +835,82 @@ export function BlockNoteDocEditor({
             onMouseLeave={handleGlossaryLeave}
             onClick={handleGlossaryClick}
           >
+            <style id={paperStyleId}>{`
+              .doc-editor-paper .bn-block-outer,
+              .doc-editor-paper .bn-block,
+              .doc-editor-paper .bn-block-content {
+                padding: 0 !important;
+                margin: 0 !important;
+              }
+              .doc-editor-paper .bn-block-outer {
+                line-height: 36px !important;
+              }
+              .doc-editor-paper [data-content-type] {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+              }
+              .doc-editor-paper [data-content-type="paragraph"],
+              .doc-editor-paper [data-content-type="bulletListItem"],
+              .doc-editor-paper [data-content-type="numberedListItem"],
+              .doc-editor-paper [data-content-type="checkListItem"] {
+                line-height: 36px !important;
+                min-height: 36px !important;
+              }
+              .doc-editor-paper [data-content-type="heading"] {
+                padding: 0 !important;
+              }
+              .doc-editor-paper [data-content-type="heading"][data-level="1"],
+              .doc-editor-paper [data-content-type="heading"][data-level="2"] {
+                line-height: 72px !important;
+                min-height: 72px !important;
+              }
+              .doc-editor-paper [data-content-type="heading"][data-level="3"] {
+                line-height: 36px !important;
+                min-height: 36px !important;
+              }
+              .doc-editor-paper .bn-inline-content {
+                max-width: 100% !important;
+              }
+              .doc-editor-paper .bn-trailing-block {
+                height: 36px !important;
+                min-height: 36px !important;
+              }
+              .doc-editor-paper [data-content-type="image"] {
+                position: relative !important;
+                box-sizing: border-box !important;
+              }
+              .doc-editor-paper [data-content-type="image"] .bn-file-block-content-wrapper {
+                max-width: 100% !important;
+                margin: 36px 0 !important;
+                box-sizing: border-box !important;
+              }
+              .doc-editor-paper [data-content-type="image"] .bn-visual-media-wrapper {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-sizing: border-box !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                height: auto !important;
+                padding: 6px !important;
+                border-radius: 10px !important;
+                border: 1px solid transparent !important;
+                overflow: hidden !important;
+              }
+              .doc-editor-paper [data-content-type="image"] .bn-visual-media-wrapper img {
+                display: block !important;
+                margin: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                max-width: 100% !important;
+                max-height: none !important;
+                object-fit: contain !important;
+                border-radius: 6px !important;
+              }
+            `}</style>
             <div className="doc-paper-margin" />
             <div className="doc-paper-holes">
               <span /><span /><span />

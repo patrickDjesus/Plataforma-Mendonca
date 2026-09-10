@@ -120,6 +120,7 @@
 .doc-editor-body {
   background: transparent;
   padding: 0;
+  overflow: hidden !important;
 }
 
 .doc-editor-paper {
@@ -130,6 +131,10 @@
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
   padding: 0 28px 140px 68px;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
 .dark .doc-editor-paper {
@@ -159,6 +164,11 @@
     ) !important;
   background-origin: content-box !important;
   background-clip: content-box !important;
+  overflow: hidden !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
 .dark .doc-editor-paper .bn-editor.bn-editor {
@@ -172,6 +182,11 @@
     ) !important;
   background-origin: content-box !important;
   background-clip: content-box !important;
+  overflow: hidden !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
 .doc-editor-paper .bn-editor > *:first-child {
@@ -220,88 +235,156 @@
   min-height: 0;
 }
 
-/* --- Overrides do BlockNote (transparência + grade de 36px) --- */
+/* === ZERA TUDO que o BlockNote injeta nos wrappers internos ===
+   Bloco DOM do BlockNote:
+     .bn-block-outer  (line-height: 1.5  — mata o alinhamento 36px)
+       .bn-block
+         .bn-block-content  (padding: 3px 0 — desloca 6px por bloco)
+           .bn-inline-content  (o texto real)
+   A gente precisa anular cada camada para que o texto nasça
+   exatamente na borda da content-box e o half-leading centralize
+   o glyph no meio da célula da régua (36 px). */
+
+/* 1) wrapper externo — herda line-height do .bn-editor (36 px) */
+.doc-editor-paper .bn-block-outer {
+  line-height: inherit !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* 2) bloco interno — sem margin/padding */
+.doc-editor-paper .bn-block {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 3) bloco de conteúdo — anula o padding 3px do BlockNote */
+.doc-editor-paper .bn-block-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Containers gerais: transparência total */
 .doc-editor-paper [class*="bn-container"],
-.doc-editor-paper [class*="bn-block"],
-.doc-editor-paper .bn-editor,
 .doc-editor-paper .ProseMirror,
 .doc-editor-paper .bn-editor > div {
   background: transparent !important;
   height: auto !important;
   min-height: unset !important;
   max-height: none !important;
-  overflow: visible !important;
+  overflow: hidden !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-/* Parágrafos e listas: exatamente uma fileira da grade */
-.doc-editor-paper [data-content-type="paragraph"] {
-  margin: 0 !important;
-  line-height: 36px !important;
+.doc-editor-paper .bn-editor {
+  background: transparent !important;
+  height: auto !important;
+  min-height: unset !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 4) trailing block — BlockNote usa height: 30px no último bloco vazio */
+.doc-editor-paper .bn-trailing-block {
+  height: 36px !important;
   min-height: 36px !important;
 }
 
-.doc-editor-paper [data-content-type="bulletListItem"],
-.doc-editor-paper [data-content-type="numberedListItem"],
-.doc-editor-paper [data-content-type="checkListItem"] {
-  margin: 0 !important;
-  line-height: 36px !important;
-  min-height: 36px !important;
-}
-
-/* Neutraliza os paddings/margens que o BlockNote embute em cada bloco
-   (.bn-block-content ganha 3px, e "heading" ganha 18px no topo). Com
-   isso toda fileira ocupa exatamente o pitch da régua (36px) — e o
-   conteúdo após títulos maiores nunca desalinha. */
+/* 5) Todos os data-content-type: zera margin/padding e garante
+      word-break + centralização vertical via line-height herdado */
 .doc-editor-paper [data-content-type] {
   margin: 0 !important;
   padding: 0 !important;
+  line-height: inherit !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
+}
+
+/* 6) Texto inline real — garante quebra de palavra */
+.doc-editor-paper .bn-inline-content {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+/* === Parágrafos e listas: exatamente 1 célula da régua (36 px) ===
+   O half-leading centraliza o texto:
+     font-size 15 px → (36 − 15) / 2 = 10.5 px acima + abaixo */
+.doc-editor-paper [data-content-type="paragraph"],
+.doc-editor-paper [data-content-type="bulletListItem"],
+.doc-editor-paper [data-content-type="numberedListItem"],
+.doc-editor-paper [data-content-type="checkListItem"] {
+  line-height: 36px !important;
+  min-height: 36px !important;
 }
 
 /* --- Blocos de imagem: TAMANHO FIXO (P/M/G). Sem redimensionamento por
    arrasto — os handles do BlockNote ficam ocultos. O seletor P/M/G é
-   injetado pelo JS e grava um previewWidth fixo (35% / 55% / 100%). A
-   ALTURA do quadro é TRAVADA em 180px (múltiplo do pitch de 36px) e o img
-   usa object-fit: contain (nunca corta/projeta). Assim o bloco inteiro
-   mede exatamente 36+180+36 = 252px = 7 linhas da régua, SEM qualqulquer
-   JS de layout: o texto abaixo nasce sempre na linha. */
+   injetado pelo JS e grava um previewWidth fixo (35% / 55% / 100%).
+
+   DOM REAL da imagem no BlockNote:
+     .bn-block-content[data-content-type="image"]
+       .bn-file-block-content-wrapper   (BlockNote seta width inline)
+         .bn-visual-media-wrapper        (display: flex, max-width 100%)
+           img.bn-visual-media           (a imagem em si)
+
+   A ALTURA é TRAVADA em 180px (múltiplo de 36px) mais margem 36px acima
+   e 36px abaixo → bloco inteiro = 252px = 7 linhas da régua, e o texto
+   abaixo nasce sempre na linha. */
 .doc-editor-paper [data-content-type="image"] {
   position: relative;
-}
-
-.doc-editor-paper [data-content-type="image"] > .bn-file-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  width: fit-content !important;
-  max-width: 100% !important;
-  min-width: 0;
-  height: 180px;
-  margin-top: 36px;
-  margin-bottom: 36px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 6px;
+  box-sizing: border-box !important;
 }
 
 .doc-editor-paper [data-content-type="image"] .bn-file-block-content-wrapper {
   max-width: 100% !important;
   min-width: 0;
+  height: auto;
+  margin: 36px 0 !important;
+  box-sizing: border-box !important;
 }
 
-.dark .doc-editor-paper [data-content-type="image"] > .bn-file-content {
-  background: #0f172a;
-  border-color: #1e293b;
+.doc-editor-paper [data-content-type="image"] .bn-visual-media-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100% !important;
+  min-width: 0;
+  width: 100% !important;
+  height: auto !important;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  overflow: hidden !important;
+}
+
+.dark .doc-editor-paper [data-content-type="image"] .bn-visual-media-wrapper {
+  border-color: transparent;
+  background: transparent;
 }
 
 .doc-editor-paper [data-content-type="image"] img {
   display: block;
   margin: 0;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: none !important;
   object-fit: contain;
   border-radius: 6px;
 }
@@ -370,9 +453,18 @@
   border-radius: 4px;
 }
 
-/* Títulos: múltiplos exatos da grade para nunca desalinhar o texto abaixo */
+/* Títulos: múltiplos exatos da grade para nunca desalinhar o texto abaixo.
+   H1/H2 ocupam 2 células (72 px), H3 ocupa 1 célula (36 px).
+   O half-leading do line-height centraliza o texto no meio das linhas:
+     H1: (72 − 36) / 2 = 18 px acima + abaixo
+     H2: (72 − 28) / 2 = 22 px acima + abaixo
+     H3: (36 − 22) / 2 =  7 px acima + abaixo */
 .doc-editor-paper [data-content-type="heading"] {
   margin: 0 !important;
+  padding: 0 !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
 }
 
 .doc-editor-paper h1,
@@ -469,6 +561,24 @@
 
 .dark .doc-editor-paper pre code {
   color: #cbd5e1 !important;
+}
+
+/* Tabelas: não devem ultrapassar a largura da folha */
+.doc-editor-paper [data-content-type="table"] {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.doc-editor-paper [data-content-type="table"] table {
+  max-width: 100% !important;
+  table-layout: fixed !important;
+}
+
+.doc-editor-paper [data-content-type="table"] td,
+.doc-editor-paper [data-content-type="table"] th {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
 }
 
 .doc-editor-paper [class*="FormattingToolbar"] {
