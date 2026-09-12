@@ -431,42 +431,54 @@ export const DetailModal: React.FC<DetailModalProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {part.flashcards.map((card, idx) => {
-                    const isFlipped = !flashcardFlipped[idx];
+                    const isTurned = !!flashcardFlipped[idx];
                     return (
-                      <div
-                        key={idx}
-                        onClick={() => toggleFlashcard(idx)}
-                        className={`p-4 rounded-2xl border-2 transition-all cursor-pointer min-h-[140px] flex flex-col justify-between select-none ${
-                          isFlipped
-                            ? 'bg-[#2D5A46] border-[#21483A] text-white shadow-md'
-                            : 'bg-white hover:bg-[#EBF3EF]/50 border-[#E7E2D9] text-[#1C1917] shadow-sm dark:bg-[#232326]/70 dark:hover:bg-[#333338]/60 dark:border-[#2C2C30] dark:text-[#FAF9F5]'
-                        }`}
-                      >
-                        <div>
-                          <span
-                            className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                              isFlipped
-                                ? 'bg-white/20 text-white'
-                                : 'bg-[#EBF3EF] text-[#2D5A46] dark:bg-[#15221B]/60 dark:text-[#52B788]'
-                            }`}
-                          >
-                            {isFlipped ? 'Resposta & Conceito' : 'Pergunta de Prova'}
-                          </span>
-                          <p
-                            className={`text-xs sm:text-sm font-bold mt-2 leading-relaxed ${
-                              isFlipped ? 'text-[#FAF9F5]' : 'text-[#1C1917] dark:text-[#FAF9F5]'
-                            }`}
-                          >
-                            {isFlipped ? card.answer : card.question}
-                          </p>
-                        </div>
+                      <div key={idx} className="perspective-1000 h-full">
+                        <div
+                          onClick={() => toggleFlashcard(idx)}
+                          className={`grid transform-style-3d transition-transform duration-500 cursor-pointer select-none ${
+                            isTurned ? 'rotate-y-180' : ''
+                          }`}
+                        >
+                          {/* Front Face */}
+                          <div className="[grid-area:1/1] backface-hidden flex flex-col justify-between min-h-[140px] p-4 rounded-2xl border-2 bg-white hover:bg-[#EBF3EF]/50 border-[#E7E2D9] text-[#1C1917] shadow-sm dark:bg-[#232326]/70 dark:hover:bg-[#333338]/60 dark:border-[#2C2C30] dark:text-[#FAF9F5]">
+                            <div>
+                              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#EBF3EF] text-[#2D5A46] dark:bg-[#15221B]/60 dark:text-[#52B788]">
+                                Pergunta de Prova
+                              </span>
+                              <p className="text-xs sm:text-sm font-bold mt-2 leading-relaxed text-[#1C1917] dark:text-[#FAF9F5]">
+                                {card.question}
+                              </p>
+                            </div>
 
-                        <div className="flex items-center justify-between pt-2 text-[10px] font-bold opacity-80">
-                          <span>Card #{idx + 1}</span>
-                          <span className="flex items-center gap-1">
-                            <RotateCcw className="w-3 h-3" />
-                            <span>{isFlipped ? 'Voltar pergunta' : 'Girar card'}</span>
-                          </span>
+                            <div className="flex items-center justify-between pt-2 text-[10px] font-bold opacity-80">
+                              <span>Card #{idx + 1}</span>
+                              <span className="flex items-center gap-1">
+                                <RotateCcw className="w-3 h-3" />
+                                <span>Girar card</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Back Face */}
+                          <div className="[grid-area:1/1] backface-hidden rotate-y-180 flex flex-col justify-between min-h-[140px] p-4 rounded-2xl border-2 bg-[#2D5A46] border-[#21483A] text-white shadow-md">
+                            <div>
+                              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
+                                Resposta & Conceito
+                              </span>
+                              <p className="text-xs sm:text-sm font-bold mt-2 leading-relaxed text-[#FAF9F5]">
+                                {card.answer}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2 text-[10px] font-bold opacity-80">
+                              <span>Card #{idx + 1}</span>
+                              <span className="flex items-center gap-1">
+                                <RotateCcw className="w-3 h-3" />
+                                <span>Voltar pergunta</span>
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     );

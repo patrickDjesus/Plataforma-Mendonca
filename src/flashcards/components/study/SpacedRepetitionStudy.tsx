@@ -151,80 +151,146 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
       </div>
 
       {/* Card Box */}
-      <div className="w-full min-h-[360px] bg-white dark:bg-[#232326] rounded-3xl p-6 sm:p-8 shadow-xl border border-[#E7E2D9] dark:border-[#2C2C30] flex flex-col justify-between mb-6 transition-all">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#44403C] dark:text-[#D6D3CD]">
-              {currentCard.status === 'mastered'
-                ? 'Dominado'
-                : currentCard.status === 'learning'
-                ? 'Aprendendo'
-                : currentCard.status === 'review'
-                ? 'Em Revisão'
-                : 'Novo'}
-            </span>
-            {currentCard.tag && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#78716C]">
-                {currentCard.tag}
+      <div className="w-full perspective-1000 mb-6">
+        <div
+          className={`grid transform-style-3d transition-transform duration-500 rounded-3xl border border-[#E7E2D9] dark:border-[#2C2C30] ${
+            isAnswerRevealed ? 'rotate-y-180' : ''
+          }`}
+        >
+          {/* FRONT FACE */}
+          <div
+            id="flashcard-3d-box"
+            onClick={handleReveal}
+            className="[grid-area:1/1] backface-hidden cursor-pointer w-full min-h-[360px] bg-white dark:bg-[#232326] rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-between"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#44403C] dark:text-[#D6D3CD]">
+                  {currentCard.status === 'mastered'
+                    ? 'Dominado'
+                    : currentCard.status === 'learning'
+                    ? 'Aprendendo'
+                    : currentCard.status === 'review'
+                    ? 'Em Revisão'
+                    : 'Novo'}
+                </span>
+                {currentCard.tag && (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#78716C]">
+                    {currentCard.tag}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  id="btn-spaced-tts"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    soundFx.speak(currentCard.front);
+                  }}
+                  title="Ouvir"
+                  className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors"
+                >
+                  <Volume2 className="w-4 h-4" />
+                </button>
+                <button
+                  id="btn-spaced-star"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleStar(currentCard.id);
+                  }}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    currentCard.starred
+                      ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                      : 'text-[#A8A29E] hover:text-amber-500 hover:bg-[#EFECE6] dark:hover:bg-[#232326]'
+                  }`}
+                >
+                  <Star className={`w-4 h-4 ${currentCard.starred ? 'fill-amber-500' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Question Front */}
+            <div className="py-6 text-center">
+              <span className="text-xs font-semibold text-[#A8A29E] dark:text-[#78716C] uppercase tracking-widest block mb-2">
+                Pergunta / Termo
               </span>
-            )}
+              <p className="text-xl sm:text-2xl font-bold text-[#1C1917] dark:text-[#FAF9F5] font-['Outfit',sans-serif] leading-relaxed">
+                {currentCard.front}
+              </p>
+            </div>
+
+            {/* Reveal Hint */}
+            <div className="text-center pt-6 border-t border-[#E7E2D9] dark:border-[#2C2C30]">
+              <span className="text-xs font-semibold text-[#A8A29E] dark:text-[#78716C] uppercase tracking-wider">
+                Clique no card para ver a resposta [Espaço]
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <button
-              id="btn-spaced-tts"
-              onClick={() => soundFx.speak(currentCard.front)}
-              title="Ouvir"
-              className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors"
-            >
-              <Volume2 className="w-4 h-4" />
-            </button>
-            <button
-              id="btn-spaced-star"
-              onClick={() => onToggleStar(currentCard.id)}
-              className={`p-1.5 rounded-lg transition-colors ${
-                currentCard.starred
-                  ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
-                  : 'text-[#A8A29E] hover:text-amber-500 hover:bg-[#EFECE6] dark:hover:bg-[#232326]'
-              }`}
-            >
-              <Star className={`w-4 h-4 ${currentCard.starred ? 'fill-amber-500' : ''}`} />
-            </button>
+          {/* BACK FACE */}
+          <div className="[grid-area:1/1] backface-hidden rotate-y-180 w-full min-h-[360px] bg-[#FAF8F5] dark:bg-[#1A1A1D] rounded-3xl p-6 sm:p-8 shadow-xl border border-[#CFE1D6] dark:border-[#22392D] flex flex-col justify-between">
+            {/* Header */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EBF3EF] dark:bg-[#1D2B24] text-[#2D5A46] dark:text-[#52B788]">
+                  {currentCard.status === 'mastered'
+                    ? 'Dominado'
+                    : currentCard.status === 'learning'
+                    ? 'Aprendendo'
+                    : currentCard.status === 'review'
+                    ? 'Em Revisão'
+                    : 'Novo'}
+                </span>
+                {currentCard.tag && (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#78716C]">
+                    {currentCard.tag}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  id="btn-spaced-tts-back"
+                  onClick={() => soundFx.speak(currentCard.back)}
+                  title="Ouvir resposta"
+                  className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors"
+                >
+                  <Volume2 className="w-4 h-4" />
+                </button>
+                <button
+                  id="btn-spaced-star-back"
+                  onClick={() => onToggleStar(currentCard.id)}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    currentCard.starred
+                      ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                      : 'text-[#A8A29E] hover:text-amber-500 hover:bg-[#EFECE6] dark:hover:bg-[#232326]'
+                  }`}
+                >
+                  <Star className={`w-4 h-4 ${currentCard.starred ? 'fill-amber-500' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Answer Back */}
+            <div className="py-6 text-center">
+              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block mb-2">
+                Resposta / Definição
+              </span>
+              <p className="text-lg sm:text-xl font-medium text-[#1C1917] dark:text-[#FAF9F5] leading-relaxed">
+                {currentCard.back}
+              </p>
+            </div>
+
+            {/* Rating Hint */}
+            <div className="text-center pt-6 border-t border-[#E7E2D9] dark:border-[#2C2C30]">
+              <span className="text-xs font-semibold text-[#A8A29E] dark:text-[#78716C] uppercase tracking-wider">
+                Como foi lembrar deste card? Avalie abaixo.
+              </span>
+            </div>
           </div>
         </div>
-
-        {/* Question Front */}
-        <div className="py-6 text-center">
-          <span className="text-xs font-semibold text-[#A8A29E] dark:text-[#78716C] uppercase tracking-widest block mb-2">
-            Pergunta / Termo
-          </span>
-          <p className="text-xl sm:text-2xl font-bold text-[#1C1917] dark:text-[#FAF9F5] font-['Outfit',sans-serif] leading-relaxed">
-            {currentCard.front}
-          </p>
-        </div>
-
-        {/* Answer Revealed Section */}
-        {isAnswerRevealed ? (
-          <div className="pt-6 border-t border-[#E7E2D9] dark:border-[#2C2C30] animate-in fade-in duration-200">
-            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block mb-2 text-center">
-              Resposta / Definição
-            </span>
-            <p className="text-lg sm:text-xl font-medium text-[#1C1917] dark:text-[#FAF9F5] text-center leading-relaxed">
-              {currentCard.back}
-            </p>
-          </div>
-        ) : (
-          <div className="text-center pt-6 border-t border-[#E7E2D9] dark:border-[#2C2C30]">
-            <button
-              id="btn-spaced-reveal"
-              onClick={handleReveal}
-              className="px-6 py-3 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-semibold text-sm shadow-md shadow-[#2D5A46]/20 hover:scale-102 transition-all"
-            >
-              Mostrar Resposta [Espaço]
-            </button>
-          </div>
-        )}
       </div>
 
       {/* SM-2 4 Rating Buttons */}

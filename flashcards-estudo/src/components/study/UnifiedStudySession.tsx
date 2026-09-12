@@ -451,96 +451,131 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
           {/* PHASE 1: RECOGNITION FLASHCARD (Frente / Verso)     */}
           {/* =================================================== */}
           {phase === 'recognition' && (
-            <div className="space-y-6">
-              <div
-                id="study-flashcard-interactive"
-                onClick={() => setIsFlipped(!isFlipped)}
-                className={`relative min-h-[300px] sm:min-h-[360px] rounded-3xl p-8 sm:p-10 border-2 transition-all duration-300 flex flex-col justify-between cursor-pointer select-none ${
-                  isFlipped
-                    ? 'bg-[#FAF8F5] dark:bg-[#1E1E22] border-[#2D5A46] shadow-[0_12px_36px_rgba(45,90,70,0.12)]'
-                    : 'bg-white dark:bg-[#18181B] border-[#E7E2D9] dark:border-[#2C2C30] shadow-[0_6px_24px_rgba(0,0,0,0.04)] hover:border-[#D6D0C5]'
-                }`}
-              >
-                {/* Index Card Top Line */}
-                <div className="flex items-center justify-between border-b border-[#F0ECE1] dark:border-[#28282C] pb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#A8A29E]">
-                      {isFlipped ? 'Verso (Resposta)' : 'Frente (Pergunta)'}
-                    </span>
-                    {activeCard.tag && (
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#F4EFE6] dark:bg-[#282522] text-[#8C7A6B] dark:text-[#C5B5A5]">
-                        {activeCard.tag}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        soundFx.speak(isFlipped ? activeCard.back : activeCard.front);
-                      }}
-                      className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#1C1917] dark:hover:text-[#FAF9F5] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                      title="Ouvir áudio"
-                    >
-                      <Volume2 className="w-4 h-4" />
-                    </button>
-                    <span className="text-xs text-[#A8A29E] flex items-center gap-1 font-mono">
-                      <RotateCw className="w-3 h-3" /> Espaço
-                    </span>
-                  </div>
-                </div>
-
-                {/* Card Main Content */}
-                <div className="my-auto py-8 text-center px-2">
-                  {!isFlipped ? (
-                    <div className="space-y-3">
-                      <span className="text-xs font-mono uppercase tracking-widest text-[#2D5A46] font-bold block">
-                        Pergunta / Conceito
-                      </span>
-                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold font-['Fraunces',serif] text-[#1C1917] dark:text-[#FAF9F5] leading-snug">
-                        {activeCard.front}
-                      </h2>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 animate-in fade-in zoom-in-95 duration-150">
-                      <span className="text-xs font-mono uppercase tracking-widest text-[#2D5A46] dark:text-[#52B788] font-bold block">
-                        Definição / Resposta
-                      </span>
-                      <p className="text-xl sm:text-2xl font-medium font-['Fraunces',serif] text-[#1C1917] dark:text-[#FAF9F5] leading-relaxed">
-                        {activeCard.back}
-                      </p>
-                      {activeCard.acceptedAnswers && activeCard.acceptedAnswers.length > 0 && (
-                        <div className="pt-2">
-                          <span className="text-[11px] font-mono text-[#8C7A6B] dark:text-[#A8A29E] block">
-                            Formatos aceitos adicionais:
+<div className="space-y-6">
+                <div className="perspective-1000">
+                  <div
+                    id="study-flashcard-interactive"
+                    onClick={() => setIsFlipped(!isFlipped)}
+                    className={`grid transform-style-3d transition-transform duration-500 cursor-pointer select-none rounded-3xl border-2 ${
+                      isFlipped
+                        ? 'rotate-y-180 border-[#2D5A46]'
+                        : 'border-[#E7E2D9] dark:border-[#2C2C30]'
+                    }`}
+                  >
+                    {/* FRONT FACE */}
+                    <div className="[grid-area:1/1] backface-hidden flex flex-col justify-between min-h-[300px] sm:min-h-[360px] p-8 sm:p-10 rounded-3xl bg-white dark:bg-[#18181B] shadow-[0_6px_24px_rgba(0,0,0,0.04)]">
+                      <div className="flex items-center justify-between border-b border-[#F0ECE1] dark:border-[#28282C] pb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#A8A29E]">
+                            Frente (Pergunta)
                           </span>
-                          <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1">
-                            {activeCard.acceptedAnswers.map((alt, i) => (
-                              <span
-                                key={i}
-                                className="text-[11px] px-2 py-0.5 rounded-md bg-[#EBF3EF] dark:bg-[#1D2B24] text-[#2D5A46] dark:text-[#52B788] border border-[#CFE1D6] dark:border-[#2B4637]"
-                              >
-                                {alt}
-                              </span>
-                            ))}
-                          </div>
+                          {activeCard.tag && (
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#F4EFE6] dark:bg-[#282522] text-[#8C7A6B] dark:text-[#C5B5A5]">
+                              {activeCard.tag}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
 
-                {/* Index Card Bottom Hint */}
-                <div className="border-t border-[#F0ECE1] dark:border-[#28282C] pt-3 text-center text-xs text-[#A8A29E]">
-                  {!isFlipped ? (
-                    <span>Clique no cartão ou aperte <strong>Espaço</strong> para ver a resposta</span>
-                  ) : (
-                    <span>Você sabia a resposta antes de virar? Escolha abaixo:</span>
-                  )}
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              soundFx.speak(activeCard.front);
+                            }}
+                            className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#1C1917] dark:hover:text-[#FAF9F5] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                            title="Ouvir áudio"
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </button>
+                          <span className="text-xs text-[#A8A29E] flex items-center gap-1 font-mono">
+                            <RotateCw className="w-3 h-3" /> Espaço
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="my-auto py-8 text-center px-2">
+                        <div className="space-y-3">
+                          <span className="text-xs font-mono uppercase tracking-widest text-[#2D5A46] font-bold block">
+                            Pergunta / Conceito
+                          </span>
+                          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold font-['Fraunces',serif] text-[#1C1917] dark:text-[#FAF9F5] leading-snug">
+                            {activeCard.front}
+                          </h2>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-[#F0ECE1] dark:border-[#28282C] pt-3 text-center text-xs text-[#A8A29E]">
+                        <span>Clique no cartão ou aperte <strong>Espaço</strong> para ver a resposta</span>
+                      </div>
+                    </div>
+
+                    {/* BACK FACE */}
+                    <div className="[grid-area:1/1] backface-hidden rotate-y-180 flex flex-col justify-between min-h-[300px] sm:min-h-[360px] p-8 sm:p-10 rounded-3xl bg-[#FAF8F5] dark:bg-[#1E1E22] shadow-[0_12px_36px_rgba(45,90,70,0.12)]">
+                      <div className="flex items-center justify-between border-b border-[#F0ECE1] dark:border-[#28282C] pb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#A8A29E]">
+                            Verso (Resposta)
+                          </span>
+                          {activeCard.tag && (
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#F4EFE6] dark:bg-[#282522] text-[#8C7A6B] dark:text-[#C5B5A5]">
+                              {activeCard.tag}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              soundFx.speak(activeCard.back);
+                            }}
+                            className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#1C1917] dark:hover:text-[#FAF9F5] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                            title="Ouvir áudio"
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </button>
+                          <span className="text-xs text-[#A8A29E] flex items-center gap-1 font-mono">
+                            <RotateCw className="w-3 h-3" /> Espaço
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="my-auto py-8 text-center px-2">
+                        <div className="space-y-4">
+                          <span className="text-xs font-mono uppercase tracking-widest text-[#2D5A46] dark:text-[#52B788] font-bold block">
+                            Definição / Resposta
+                          </span>
+                          <p className="text-xl sm:text-2xl font-medium font-['Fraunces',serif] text-[#1C1917] dark:text-[#FAF9F5] leading-relaxed">
+                            {activeCard.back}
+                          </p>
+                          {activeCard.acceptedAnswers && activeCard.acceptedAnswers.length > 0 && (
+                            <div className="pt-2">
+                              <span className="text-[11px] font-mono text-[#8C7A6B] dark:text-[#A8A29E] block">
+                                Formatos aceitos adicionais:
+                              </span>
+                              <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1">
+                                {activeCard.acceptedAnswers.map((alt, i) => (
+                                  <span
+                                    key={i}
+                                    className="text-[11px] px-2 py-0.5 rounded-md bg-[#EBF3EF] dark:bg-[#1D2B24] text-[#2D5A46] dark:text-[#52B788] border border-[#CFE1D6] dark:border-[#2B4637]"
+                                  >
+                                    {alt}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="border-t border-[#F0ECE1] dark:border-[#28282C] pt-3 text-center text-xs text-[#A8A29E]">
+                        <span>Você sabia a resposta antes de virar? Escolha abaixo:</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
               {/* Action Buttons: Sei vs Não Sei */}
               {isFlipped ? (

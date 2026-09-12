@@ -468,29 +468,48 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   {organelle.flashcards.map((card, idx) => {
-                    const isFlipped = !flashcardFlipped[idx];
+                    const isTurned = !!flashcardFlipped[idx];
                     return (
-                      <div
-                        key={idx}
-                        onClick={() => toggleFlashcard(idx)}
-                        className={`min-h-[160px] p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between select-none shadow-sm ${
-                          isFlipped
-                            ? 'bg-gradient-to-br from-[#2D5A46] to-[#1E3E30] text-white border-[#21483A] shadow-[#2D5A46]/20'
-                            : 'bg-white hover:bg-[#EBF3EF]/60 border-[#E7E2D9] text-[#1C1917] hover:border-[#CFE1D6] dark:bg-[#232326]/70 dark:hover:bg-[#333338]/60 dark:border-[#2C2C30] dark:text-[#FAF9F5] dark:hover:border-[#22392D]'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider opacity-80">
-                          <span>{isFlipped ? '✅ Resposta Modelo' : '❓ Pergunta do Flashcard'}</span>
-                          <span>Card #{idx + 1}</span>
-                        </div>
+                      <div key={idx} className="perspective-1000 h-full">
+                        <div
+                          onClick={() => toggleFlashcard(idx)}
+                          className={`grid transform-style-3d transition-transform duration-500 cursor-pointer select-none ${
+                            isTurned ? 'rotate-y-180' : ''
+                          }`}
+                        >
+                          {/* Front Face */}
+                          <div className="[grid-area:1/1] backface-hidden flex flex-col justify-between min-h-[160px] p-5 rounded-2xl border-2 bg-white hover:bg-[#EBF3EF]/60 border-[#E7E2D9] text-[#1C1917] hover:border-[#CFE1D6] shadow-sm dark:bg-[#232326]/70 dark:hover:bg-[#333338]/60 dark:border-[#2C2C30] dark:text-[#FAF9F5] dark:hover:border-[#22392D]">
+                            <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider opacity-80">
+                              <span>❓ Pergunta do Flashcard</span>
+                              <span>Card #{idx + 1}</span>
+                            </div>
 
-                        <p className={`text-sm font-bold my-auto leading-relaxed ${isFlipped ? 'text-[#EBF3EF]' : 'text-[#1C1917] dark:text-[#FAF9F5]'}`}>
-                          {isFlipped ? card.back : card.front}
-                        </p>
+                            <p className="text-sm font-bold my-auto leading-relaxed text-[#1C1917] dark:text-[#FAF9F5]">
+                              {card.front}
+                            </p>
 
-                        <div className="flex items-center justify-between text-[10px] font-bold opacity-75 pt-2 border-t border-current/20">
-                          <span>{isFlipped ? 'Toque para rever a pergunta' : 'Toque para revelar a resposta'}</span>
-                          <span>↺</span>
+                            <div className="flex items-center justify-between text-[10px] font-bold opacity-75 pt-2 border-t border-current/20">
+                              <span>Toque para revelar a resposta</span>
+                              <span>↺</span>
+                            </div>
+                          </div>
+
+                          {/* Back Face */}
+                          <div className="[grid-area:1/1] backface-hidden rotate-y-180 flex flex-col justify-between min-h-[160px] p-5 rounded-2xl border-2 bg-gradient-to-br from-[#2D5A46] to-[#1E3E30] text-white border-[#21483A] shadow-sm shadow-[#2D5A46]/20">
+                            <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider opacity-80">
+                              <span>✅ Resposta Modelo</span>
+                              <span>Card #{idx + 1}</span>
+                            </div>
+
+                            <p className="text-sm font-bold my-auto leading-relaxed text-[#EBF3EF]">
+                              {card.back}
+                            </p>
+
+                            <div className="flex items-center justify-between text-[10px] font-bold opacity-75 pt-2 border-t border-current/20">
+                              <span>Toque para rever a pergunta</span>
+                              <span>↺</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     );
