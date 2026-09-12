@@ -63,8 +63,18 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
   const [recentlySavedFormat, setRecentlySavedFormat] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionFlipTimeout = useRef<number | null>(null);
 
   const totalCardsCount = cards.length;
+
+  // Clear pending flip-back timeout if the session unmounts mid-animation
+  useEffect(() => {
+    return () => {
+      if (recognitionFlipTimeout.current !== null) {
+        window.clearTimeout(recognitionFlipTimeout.current);
+      }
+    };
+  }, []);
 
   // Keybindings for Recognition & Writing
   useEffect(() => {
@@ -116,37 +126,44 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
   // ==========================================
   const handleRecognitionAnswer = (knows: boolean) => {
     if (!currentRecognitionCard) return;
+    if (recognitionFlipTimeout.current !== null) return;
 
     setRecognitionAttempts((prev) => prev + 1);
 
     if (knows) {
       // User knows it!
       soundFx.playCorrect();
-      setIsFlipped(false);
-
-      const nextQueue = recognitionQueue.slice(1);
-      setRecognitionQueue(nextQueue);
-
-      if (nextQueue.length === 0) {
-        // Phase 1 finished! Transition to Writing phase
-        soundFx.playVictory();
-        setPhase('transition');
-      }
     } else {
       // User doesn't know it -> Card stays in queue, re-appended to the end
       soundFx.playWrong();
-      setIsFlipped(false);
-
       setRecognitionFailures((prev) => ({
         ...prev,
         [currentRecognitionCard.id]: (prev[currentRecognitionCard.id] || 0) + 1,
       }));
-
-      // Move to back of the queue so it reappears until answered correctly
-      if (recognitionQueue.length > 1) {
-        setRecognitionQueue((prev) => [...prev.slice(1), prev[0]]);
-      }
     }
+
+    const queueWhenAnswered = recognitionQueue;
+
+    // Flip the card back to the question first, then advance to the next card
+    setIsFlipped(false);
+
+    recognitionFlipTimeout.current = window.setTimeout(() => {
+      recognitionFlipTimeout.current = null;
+
+      if (knows) {
+        const nextQueue = queueWhenAnswered.slice(1);
+        setRecognitionQueue(nextQueue);
+
+        if (nextQueue.length === 0) {
+          // Phase 1 finished! Transition to Writing phase
+          soundFx.playVictory();
+          setPhase('transition');
+        }
+      } else if (queueWhenAnswered.length > 1) {
+        // Move to back of the queue so it reappears until answered correctly
+        setRecognitionQueue([...queueWhenAnswered.slice(1), queueWhenAnswered[0]]);
+      }
+    }, 500);
   };
 
   // Start Phase 2 (Writing) from scratch with all deck cards
