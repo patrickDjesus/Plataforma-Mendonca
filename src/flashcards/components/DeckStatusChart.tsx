@@ -11,7 +11,7 @@ interface ChartItem {
   name: string;
   value: number;
   color: string;
-  key: 'new' | 'learning' | 'mastered';
+  key: 'new' | 'learning' | 'review' | 'mastered';
   description: string;
 }
 
@@ -46,6 +46,7 @@ export const DeckStatusChart: React.FC<DeckStatusChartProps> = ({ cards }) => {
 
   const countNew = cards.filter((c) => !c.status || c.status === 'new').length;
   const countLearning = cards.filter((c) => c.status === 'learning').length;
+  const countReview = cards.filter((c) => c.status === 'review').length;
   const countMastered = cards.filter((c) => c.status === 'mastered').length;
 
   const data: ChartItem[] = [
@@ -54,7 +55,14 @@ export const DeckStatusChart: React.FC<DeckStatusChartProps> = ({ cards }) => {
       value: countNew,
       color: '#78716C', // Stone 500
       key: 'new',
-      description: 'Ainda não revisados',
+      description: 'Ainda não respondidos',
+    },
+    {
+      name: 'Em revisão',
+      value: countReview,
+      color: '#3B82F6', // Blue 500
+      key: 'review',
+      description: 'Respondidos e agendados para revisão',
     },
     {
       name: 'Aprendendo',

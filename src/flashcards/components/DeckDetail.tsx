@@ -70,7 +70,12 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
   // Deck metrics
   const totalCards = deck.cards.length;
   const masteredCards = deck.cards.filter((c) => c.status === 'mastered').length;
-  const learningCards = deck.cards.filter((c) => c.status === 'learning').length;
+  const reviewedCards = deck.cards.filter(
+    (c) => c.status !== 'new' || (c.correctCount || 0) > 0
+  ).length;
+  const inProgressCards = deck.cards.filter(
+    (c) => c.status === 'learning' || c.status === 'review'
+  ).length;
   const starredCount = deck.cards.filter((c) => c.starred).length;
 
   const now = Date.now();
@@ -119,6 +124,7 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
   };
 
   const masteryPercent = totalCards > 0 ? Math.round((masteredCards / totalCards) * 100) : 0;
+  const answeredPercent = totalCards > 0 ? Math.round((reviewedCards / totalCards) * 100) : 0;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in duration-200">
@@ -231,6 +237,15 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
           {/* Quick Mastery & Due Metrics */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="p-3.5 rounded-xl bg-white/90 dark:bg-[#18181B]/90 border-2 border-[#E7E2D9] dark:border-[#2C2C30] text-center min-w-[100px]">
+              <span className="text-[10px] font-mono font-bold text-[#2D5A46] dark:text-[#52B788] uppercase tracking-wider block">
+                Respondidos
+              </span>
+              <span className="text-xl font-bold text-[#2D5A46] dark:text-[#52B788] font-mono">
+                {answeredPercent}%
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-white/90 dark:bg-[#18181B]/90 border-2 border-[#E7E2D9] dark:border-[#2C2C30] text-center min-w-[100px]">
               <span className="text-[10px] font-mono font-bold text-[#8C7A6B] uppercase tracking-wider block">
                 Dominados
               </span>
@@ -259,8 +274,8 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
           />
           <div
             className="bg-[#D97706] transition-all duration-300"
-            style={{ width: `${totalCards ? (learningCards / totalCards) * 100 : 0}%` }}
-            title={`Aprendendo: ${learningCards}`}
+            style={{ width: `${totalCards ? (inProgressCards / totalCards) * 100 : 0}%` }}
+            title={`Em aprendizado: ${inProgressCards}`}
           />
         </div>
       </div>

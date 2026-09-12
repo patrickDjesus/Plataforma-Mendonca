@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  ArrowLeft,
   Volume2,
   Check,
   X,
   RotateCw,
-  Sparkles,
   CheckCircle2,
   AlertCircle,
-  HelpCircle,
   PenTool,
   BookmarkPlus,
   RefreshCw,
@@ -16,6 +13,7 @@ import {
   Flame,
   Award,
   Sigma,
+  Square,
 } from 'lucide-react';
 import { Deck, Flashcard } from '../../types';
 import { soundFx } from '../../utils/sound';
@@ -449,18 +447,8 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6 animate-in fade-in duration-200">
-      {/* Top Header: Navigation & Mode Indicator */}
+      {/* Top Header: Mode Indicator & Stop Button */}
       <div className="flex items-center justify-between gap-4">
-        <button
-          id="btn-exit-study-session"
-          onClick={onExit}
-          title="Sair do baralho agora (o desempenho já foi salvo em tempo real)"
-          className="inline-flex items-center gap-2 text-xs font-bold text-[#DC2626] dark:text-[#F87171] border border-[#FECACA] dark:border-[#7F1D1D] bg-[#FEF2F2] dark:bg-[#2C1818] hover:bg-[#FEE2E2] dark:hover:bg-[#3A1D1D] px-3 py-1.5 rounded-xl transition-all cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Sair do Baralho</span>
-        </button>
-
         {/* Phase Pill */}
         <div className="flex items-center gap-2">
           <span
@@ -473,6 +461,16 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
             {phase === 'recognition' ? '1ª Etapa: Reconhecimento Ativo' : '2ª Etapa: Fixação por Escrita'}
           </span>
         </div>
+
+        <button
+          id="btn-exit-study-session"
+          onClick={onExit}
+          title="Interromper agora (o desempenho já foi salvo em tempo real)"
+          className="inline-flex items-center gap-2 text-xs font-bold text-[#DC2626] dark:text-[#F87171] border-2 border-[#FECACA] dark:border-[#7F1D1D] bg-[#FEF2F2] dark:bg-[#2C1818] hover:bg-[#FEE2E2] dark:hover:bg-[#3A1D1D] px-4 py-2 rounded-xl transition-all cursor-pointer shrink-0"
+        >
+          <Square className="w-3.5 h-3.5 fill-current" />
+          <span>Parar e Sair</span>
+        </button>
       </div>
 
       {/* Progress Bar & Deck Meta */}

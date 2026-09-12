@@ -419,13 +419,17 @@ export const DeckList: React.FC<DeckListProps> = ({
                               ? 'bg-[#EAF5EE] dark:bg-[#1A3326] text-[#2D5A46] dark:text-[#52B788]'
                               : card.status === 'learning'
                               ? 'bg-[#FEF3C7] dark:bg-[#3D2E14] text-[#D97706] dark:text-[#FBBF24]'
-                              : 'bg-[#EBF3EF] dark:bg-[#15221B] text-[#2D5A46]'
+                              : card.status === 'review'
+                              ? 'bg-[#EBF3EF] dark:bg-[#15221B] text-[#2D5A46]'
+                              : 'bg-[#EFECE6] dark:bg-[#252529] text-[#78716C] dark:text-[#A8A29E]'
                           }`}
                         >
                           {card.status === 'mastered'
                             ? 'Dominado'
                             : card.status === 'learning'
                             ? 'Aprendendo'
+                            : card.status === 'review'
+                            ? 'Revisado'
                             : 'Novo'}
                         </span>
                       </div>
@@ -460,9 +464,11 @@ export const DeckList: React.FC<DeckListProps> = ({
             {processedDecks.map((deck) => {
               const theme = COLOR_THEMES[deck.color] || COLOR_THEMES.indigo;
               const totalCards = deck.cards.length;
-              const masteredCards = deck.cards.filter((c) => c.status === 'mastered').length;
-              const masteryPercent =
-                totalCards > 0 ? Math.round((masteredCards / totalCards) * 100) : 0;
+              const reviewedCards = deck.cards.filter(
+                (c) => c.status !== 'new' || (c.correctCount || 0) > 0
+              ).length;
+              const answeredPercent =
+                totalCards > 0 ? Math.round((reviewedCards / totalCards) * 100) : 0;
               const dueCards = deck.cards.filter((c) => (c.dueDate || 0) <= now).length;
               const isMenuOpen = activeMenuDeckId === deck.id;
 
@@ -587,14 +593,14 @@ export const DeckList: React.FC<DeckListProps> = ({
                           {totalCards} {totalCards === 1 ? 'card' : 'cards'}
                         </span>
                         <span className="font-mono font-bold text-[#2D5A46] dark:text-[#52B788]">
-                          {masteryPercent}% dominado
+                          {answeredPercent}% respondido
                         </span>
                       </div>
 
                       <div className="w-full bg-[#E7E2D9] dark:bg-[#2C2C30] h-2 rounded-full overflow-hidden">
                         <div
                           className="bg-[#2D5A46] h-full rounded-full transition-all duration-300"
-                          style={{ width: `${masteryPercent}%` }}
+                          style={{ width: `${answeredPercent}%` }}
                         />
                       </div>
                     </div>
