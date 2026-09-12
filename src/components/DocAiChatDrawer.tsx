@@ -117,7 +117,7 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs sm:hidden pointer-events-auto"
+          className="fixed inset-0 bg-[#121214]/40 backdrop-blur-xs sm:hidden pointer-events-auto"
         />
 
         {/* Floating Chat Window on Left */}
@@ -126,13 +126,13 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
           animate={{ x: 0, opacity: 1, scale: 1 }}
           exit={{ x: -100, opacity: 0, scale: 0.95 }}
           transition={{ type: 'spring', damping: 25, stiffness: 320 }}
-          className="pointer-events-auto relative w-full sm:w-[420px] max-h-[85vh] h-[560px] bg-white dark:bg-slate-900 rounded-[32px] border border-purple-200 dark:border-purple-900/60 shadow-2xl flex flex-col overflow-hidden z-50 mb-2 sm:mb-0"
+          className="pointer-events-auto relative w-full sm:w-[420px] max-h-[85vh] h-[560px] bg-white dark:bg-[#18181B] rounded-[32px] border border-[#CFE1D6] dark:border-[#22392D]/60 shadow-2xl flex flex-col overflow-hidden z-50 mb-2 sm:mb-0"
           role="dialog"
           aria-modal="true"
           aria-label="Chat de IA Lumina Tutor"
         >
           {/* Header */}
-          <div className="p-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white flex items-center justify-between shrink-0">
+          <div className="p-4 bg-gradient-to-r from-[#2D5A46] via-[#1E3E30] to-[#0E1712] text-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
@@ -142,7 +142,7 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
                   Lumina AI Tutor
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 </h3>
-                <p className="text-[10px] text-purple-100 opacity-90 truncate max-w-[220px]">
+                <p className="text-[10px] text-[#FAF9F5] opacity-90 truncate max-w-[220px]">
                   Contexto: {doc.title.replace(/^[^\w\s]+/, '').trim()}
                 </p>
               </div>
@@ -158,7 +158,7 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50 dark:bg-slate-950/40">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-[#EFECE6]/50 dark:bg-[#121214]/40">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
@@ -167,18 +167,18 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
                 <div
                   className={`max-w-[88%] p-3.5 rounded-2xl text-xs leading-relaxed shadow-xs relative group ${
                     msg.sender === 'user'
-                      ? 'bg-purple-600 text-white rounded-tr-none'
-                      : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-200/80 dark:border-slate-700/80'
+                      ? 'bg-[#2D5A46] text-white rounded-tr-none'
+                      : 'bg-white dark:bg-[#232326] text-[#1C1917] dark:text-[#FAF9F5] rounded-tl-none border border-[#E7E2D9]/80 dark:border-[#3B3B40]/80'
                   }`}
                 >
                   <Markdown content={msg.text} />
                   
                   {/* Action Bar for AI response */}
                   {msg.sender === 'ai' && (
-                    <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center gap-2 text-[10px]">
+                    <div className="mt-2 pt-2 border-t border-[#EFECE6] dark:border-[#3B3B40]/60 flex items-center gap-2 text-[10px]">
                       <button
                         onClick={() => handleCopyText(msg.text, idx)}
-                        className="flex items-center gap-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer font-medium"
+                        className="flex items-center gap-1 text-[#A8A29E] hover:text-[#44403C] dark:hover:text-[#E7E5E4] cursor-pointer font-medium"
                       >
                         {copiedIdx === idx ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                         <span>{copiedIdx === idx ? 'Copiado!' : 'Copiar'}</span>
@@ -187,7 +187,7 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
                       {onInsertTextIntoDoc && (
                         <button
                           onClick={() => onInsertTextIntoDoc(msg.text)}
-                          className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:underline cursor-pointer font-semibold ml-auto"
+                          className="flex items-center gap-1 text-[#2D5A46] dark:text-[#52B788] hover:underline cursor-pointer font-semibold ml-auto"
                           title="Inserir resposta como nova anotação no documento"
                         >
                           <Plus className="w-3 h-3" />
@@ -197,18 +197,18 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
                     </div>
                   )}
                 </div>
-                <span className="text-[9px] text-slate-400 px-1 mt-1">
+                <span className="text-[9px] text-[#A8A29E] px-1 mt-1">
                   {msg.time}
                 </span>
               </div>
             ))}
             {isTyping && (
               <div className="flex flex-col items-start">
-                <div className="max-w-[88%] p-3.5 rounded-2xl text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-200/80 dark:border-slate-700/80">
+                <div className="max-w-[88%] p-3.5 rounded-2xl text-xs bg-white dark:bg-[#232326] text-[#1C1917] dark:text-[#FAF9F5] rounded-tl-none border border-[#E7E2D9]/80 dark:border-[#3B3B40]/80">
                   <span className="inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce [animation-delay:0.15s]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce [animation-delay:0.3s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#52B788] animate-bounce" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#2D5A46] animate-bounce [animation-delay:0.15s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#21483A] animate-bounce [animation-delay:0.3s]" />
                   </span>
                 </div>
               </div>
@@ -216,22 +216,22 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
           </div>
 
           {/* Quick Prompts */}
-          <div className="px-3 py-2 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto shrink-0">
+          <div className="px-3 py-2 bg-white dark:bg-[#18181B] border-t border-[#EFECE6] dark:border-[#2C2C30] flex items-center gap-1.5 overflow-x-auto shrink-0">
             <button
               onClick={() => handleSend('Resumir tópicos-chave deste documento')}
-              className="text-[10px] whitespace-nowrap bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-xl font-bold border border-purple-200 dark:border-purple-800/60 cursor-pointer"
+              className="text-[10px] whitespace-nowrap bg-[#EBF3EF] dark:bg-[#15221B]/60 hover:bg-[#DFEBE3] text-[#224A38] dark:text-[#52B788] px-2.5 py-1 rounded-xl font-bold border border-[#CFE1D6] dark:border-[#22392D]/60 cursor-pointer"
             >
               ⚡ Resumo Rápido
             </button>
             <button
               onClick={() => handleSend('Explique de forma simples o conceito principal')}
-              className="text-[10px] whitespace-nowrap bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-2.5 py-1 rounded-xl font-medium cursor-pointer"
+              className="text-[10px] whitespace-nowrap bg-[#EFECE6] dark:bg-[#232326] hover:bg-[#E5DFD5] text-[#44403C] dark:text-[#E7E5E4] px-2.5 py-1 rounded-xl font-medium cursor-pointer"
             >
               💡 Explicar Conceito
             </button>
             <button
               onClick={() => handleSend('Crie um exemplo prático aplicado')}
-              className="text-[10px] whitespace-nowrap bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800/60 cursor-pointer"
+              className="text-[10px] whitespace-nowrap bg-[#EBF3EF] dark:bg-[#15221B]/60 hover:bg-[#DFEBE3] text-[#224A38] dark:text-[#52B788] px-2.5 py-1 rounded-xl font-bold border border-[#CFE1D6] dark:border-[#22392D]/60 cursor-pointer"
             >
               🔬 Exemplo Prático
             </button>
@@ -243,19 +243,19 @@ export const DocAiChatDrawer: React.FC<DocAiChatDrawerProps> = ({
               e.preventDefault();
               handleSend();
             }}
-            className="p-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 shrink-0"
+            className="p-3 bg-white dark:bg-[#18181B] border-t border-[#EFECE6] dark:border-[#2C2C30] flex items-center gap-2 shrink-0"
           >
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Digite sua dúvida sobre o documento..."
-              className="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+              className="flex-1 bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-2xl px-3.5 py-2.5 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 font-medium"
             />
             <button
               type="submit"
               disabled={!input.trim()}
-              className="w-9 h-9 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shadow-md disabled:opacity-40 transition-colors cursor-pointer shrink-0"
+              className="w-9 h-9 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white flex items-center justify-center shadow-md disabled:opacity-40 transition-colors cursor-pointer shrink-0"
               aria-label="Enviar mensagem"
             >
               <Send className="w-4 h-4" />

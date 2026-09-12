@@ -66,7 +66,7 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/75 backdrop-blur-md"
+          className="fixed inset-0 bg-[#121214]/75 backdrop-blur-md"
         />
 
         {/* Modal Window */}
@@ -75,10 +75,10 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 20 }}
           transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[32px] shadow-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 z-10 overflow-hidden flex flex-col max-h-[90vh] text-slate-900 dark:text-slate-100"
+          className="relative w-full max-w-3xl bg-white dark:bg-[#18181B] rounded-[32px] shadow-2xl border border-[#E7E2D9]/90 dark:border-[#2C2C30] p-6 sm:p-8 z-10 overflow-hidden flex flex-col max-h-[90vh] text-[#1C1917] dark:text-[#E7E5E4]"
         >
           {/* Header */}
-          <div className="flex items-start justify-between pb-4 border-b border-slate-100 dark:border-slate-800 relative z-10">
+          <div className="flex items-start justify-between pb-4 border-b border-[#E7E2D9] dark:border-[#2C2C30] relative z-10">
             <div className="flex items-start gap-3.5">
               <div 
                 className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-md"
@@ -89,15 +89,15 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
 
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                  <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-[#EFECE6] dark:bg-[#232326] text-[#44403C] dark:text-[#D6D3CD]">
                     {material.discipline}
                   </span>
-                  <span className="text-[10px] font-bold text-slate-400">•</span>
+                  <span className="text-[10px] font-bold text-[#A8A29E]">•</span>
                   <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                     {material.enemIncidence}
                   </span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold font-display text-slate-900 dark:text-white leading-tight">
+                <h2 className="text-xl sm:text-2xl font-bold font-display text-[#1C1917] dark:text-[#FAF9F5] leading-tight">
                   {material.title}
                 </h2>
               </div>
@@ -105,7 +105,7 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
 
             <button
               onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-2"
+              className="w-9 h-9 rounded-xl bg-[#EFECE6] dark:bg-[#232326] hover:bg-[#E7E2D9] dark:hover:bg-[#3B3B40] text-[#78716C] dark:text-[#A8A29E] flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-2"
               title="Fechar"
             >
               <X className="w-5 h-5" />
@@ -116,11 +116,11 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
           <div className="py-5 overflow-y-auto flex-1 space-y-6 pr-1">
             
             {/* Resumo Direto */}
-            <div className="bg-blue-50/70 dark:bg-blue-950/40 rounded-2xl p-4 border border-blue-200/70 dark:border-blue-900/60">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-600 dark:text-blue-400 block mb-1">
+            <div className="bg-[#EBF3EF]/70 dark:bg-[#15221B]/40 rounded-2xl p-4 border border-[#CFE1D6]/70 dark:border-[#22392D]/60">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#2D5A46] dark:text-[#52B788] block mb-1">
                 Síntese Rápida
               </span>
-              <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-[#44403C] dark:text-[#E7E5E4] leading-relaxed font-medium">
                 {material.summary}
               </p>
             </div>
@@ -129,24 +129,24 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
             <div className="space-y-5">
               {material.sections.map((section, sIdx) => (
                 <div key={sIdx} className="space-y-2.5">
-                  <h3 className="text-sm sm:text-base font-bold font-display text-slate-900 dark:text-white flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-blue-600" />
+                  <h3 className="text-sm sm:text-base font-bold font-display text-[#1C1917] dark:text-[#FAF9F5] flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#2D5A46]" />
                     {section.heading}
                   </h3>
 
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#57534E] dark:text-[#D6D3CD] leading-relaxed">
                     {section.content}
                   </p>
 
                   {/* Fórmula ou Código Destacado */}
                   {section.formulaOrCode && (
-                    <div className="bg-slate-950 text-cyan-300 p-3.5 rounded-2xl font-mono text-xs border border-slate-800 relative group flex items-center justify-between shadow-inner">
+                    <div className="bg-[#121214] text-[#6BCFA0] p-3.5 rounded-2xl font-mono text-xs border border-[#2C2C30] relative group flex items-center justify-between shadow-inner">
                       <code className="break-all pr-8 leading-relaxed font-semibold">
                         {section.formulaOrCode}
                       </code>
                       <button
                         onClick={() => handleCopyFormula(section.formulaOrCode!)}
-                        className="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 transition-colors cursor-pointer shrink-0"
+                        className="text-[#A8A29E] hover:text-white p-1.5 rounded-lg bg-[#232326]/80 hover:bg-[#3B3B40] transition-colors cursor-pointer shrink-0"
                         title="Copiar fórmula"
                       >
                         {copiedCode === section.formulaOrCode ? (
@@ -169,8 +169,8 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
                   {section.keyPoints && section.keyPoints.length > 0 && (
                     <ul className="space-y-1.5 pl-2">
                       {section.keyPoints.map((pt, pIdx) => (
-                        <li key={pIdx} className="text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                        <li key={pIdx} className="text-xs text-[#44403C] dark:text-[#D6D3CD] flex items-start gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788] shrink-0 mt-0.5" />
                           <span>{pt}</span>
                         </li>
                       ))}
@@ -181,15 +181,15 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
             </div>
 
             {/* Teste Rápido de Fixação (Flash Review) */}
-            <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 space-y-3.5">
+            <div className="bg-[#EFECE6] dark:bg-[#232326]/60 rounded-2xl p-5 border border-[#E7E2D9] dark:border-[#3B3B40] space-y-3.5">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-500" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                <Sparkles className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
+                <span className="text-xs font-bold uppercase tracking-wider text-[#1C1917] dark:text-[#E7E5E4]">
                   Teste Rápido de Fixação
                 </span>
               </div>
 
-              <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100">
+              <p className="text-xs sm:text-sm font-semibold text-[#1C1917] dark:text-[#E7E5E4]">
                 {material.flashReviewQuestion.question}
               </p>
 
@@ -198,9 +198,9 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
                   const isSelected = selectedQuizOption === oIdx;
                   const isCorrectOption = oIdx === material.flashReviewQuestion.correctIndex;
 
-                  let optStyles = 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200';
+                  let optStyles = 'bg-white dark:bg-[#18181B] border-[#E7E2D9] dark:border-[#3B3B40] text-[#44403C] dark:text-[#E7E5E4]';
                   if (isSelected && !isQuizConfirmed) {
-                    optStyles = 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-900 dark:text-blue-200';
+                    optStyles = 'bg-[#EBF3EF] dark:bg-[#15221B]/60 border-[#2D5A46] text-[#2D5A46] dark:text-[#52B788]';
                   } else if (isQuizConfirmed) {
                     if (isCorrectOption) {
                       optStyles = 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold';
@@ -234,8 +234,8 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
                   onClick={handleConfirmQuiz}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     selectedQuizOption !== null
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
+                      ? 'bg-[#2D5A46] hover:bg-[#21483A] text-white shadow-sm'
+                      : 'bg-[#E7E2D9] dark:bg-[#3B3B40] text-[#A8A29E] cursor-not-allowed'
                   }`}
                 >
                   Conferir Resposta
@@ -251,8 +251,8 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 relative z-10">
-            <span className="text-xs text-slate-400">
+          <div className="pt-4 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex flex-wrap items-center justify-between gap-3 relative z-10">
+            <span className="text-xs text-[#A8A29E]">
               {material.readTime} • Plataforma Mendonça
             </span>
 
@@ -264,7 +264,7 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
                     onClose();
                     onNavigateToCaderno();
                   }}
-                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] text-[#44403C] dark:text-[#D6D3CD] font-bold text-xs hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors cursor-pointer"
                 >
                   Abrir no Caderno Completo
                 </button>
@@ -277,7 +277,7 @@ export const StudyMaterialModal: React.FC<StudyMaterialModalProps> = ({
                     onClose();
                     onNavigateToTreino();
                   }}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/20 flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <Zap className="w-3.5 h-3.5" />
                   <span>Treinar Questões Desse Tema</span>

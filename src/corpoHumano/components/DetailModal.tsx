@@ -105,25 +105,25 @@ export const DetailModal: React.FC<DetailModalProps> = ({
       id: 'fisiologia' as TabType,
       label: 'Fisiologia & Mecanismos',
       shortLabel: 'Fisiologia',
-      icon: <BookOpen className="w-3.5 h-3.5 text-blue-600" />,
+      icon: <BookOpen className="w-3.5 h-3.5 text-[#2D5A46]" />,
     },
     {
       id: 'vida_real' as TabType,
       label: '🔬 Na Vida Real (Ultraestrutura)',
       shortLabel: '🔬 Vida Real',
-      icon: <Microscope className="w-3.5 h-3.5 text-indigo-600" />,
+      icon: <Microscope className="w-3.5 h-3.5 text-[#52B788]" />,
     },
     {
       id: 'enem_dicas' as TabType,
       label: 'Como Cai no ENEM',
       shortLabel: 'Dicas ENEM',
-      icon: <Zap className="w-3.5 h-3.5 text-amber-500" />,
+      icon: <Zap className="w-3.5 h-3.5 text-[#2D5A46]" />,
     },
     {
       id: 'flashcards' as TabType,
       label: `Flashcards (${part.flashcards.length})`,
       shortLabel: 'Flashcards',
-      icon: <Layers className="w-3.5 h-3.5 text-sky-600" />,
+      icon: <Layers className="w-3.5 h-3.5 text-[#52B788]" />,
     },
     {
       id: 'questao' as TabType,
@@ -145,7 +145,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
             sounds.stopNarration();
             onClose();
           }}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+          className="fixed inset-0 bg-[#18181B]/60 backdrop-blur-sm"
         />
 
         {/* Modal Card */}
@@ -154,10 +154,10 @@ export const DetailModal: React.FC<DetailModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border-2 border-blue-200 overflow-hidden z-10 my-auto flex flex-col max-h-[92vh] dark:bg-slate-900 dark:border-slate-700"
+          className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border-2 border-[#E7E2D9] overflow-hidden z-10 my-auto flex flex-col max-h-[92vh] dark:bg-[#18181B] dark:border-[#2C2C30]"
         >
           {/* Header Banner */}
-          <div className="p-4 sm:p-5 bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-700 text-white flex items-center justify-between gap-3 shrink-0">
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-[#2D5A46] via-[#2D5A46] to-[#1E3E30] text-white flex items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-white/20 border border-white/30 backdrop-blur-sm flex items-center justify-center text-2xl shadow-inner shrink-0">
                 {part.icon}
@@ -167,11 +167,11 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   <h2 className="text-lg sm:text-xl font-black font-display tracking-tight">
                     {part.name}
                   </h2>
-                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-900/40 text-blue-100 border border-white/20">
+                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#1E3E30]/40 text-[#CFE1D6] border border-white/20">
                     {part.enemRecurrence === 'Altíssima' || part.enemRecurrence === 'Alta' ? 'Alta' : part.enemRecurrence === 'Média' ? 'Média' : 'Baixa'}
                   </span>
                 </div>
-                <p className="text-xs text-blue-100 font-medium italic">
+                <p className="text-xs text-[#CFE1D6] font-medium italic">
                   {part.scientificName} • {part.tagline}
                 </p>
               </div>
@@ -184,7 +184,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                 onClick={handleReadAloud}
                 className={`flex items-center gap-1 px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
                   isPlayingAudio
-                    ? 'bg-amber-400 text-amber-950 border-amber-300 animate-pulse'
+                    ? 'bg-[#21483A] text-white border-[#21483A] animate-pulse'
                     : 'bg-white/20 hover:bg-white/30 text-white border-white/20'
                 }`}
                 title={isPlayingAudio ? 'Parar leitura de voz' : 'Ouvir resumo em áudio'}
@@ -209,7 +209,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
           </div>
 
           {/* Clean Segmented Tab Bar - Zero Horizontal Dragging */}
-          <div className="bg-slate-100/90 p-2 border-b border-slate-200 shrink-0 dark:bg-slate-800/90 dark:border-slate-700">
+          <div className="bg-[#EFECE6]/90 p-2 border-b border-[#E7E2D9] shrink-0 dark:bg-[#232326]/90 dark:border-[#2C2C30]">
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
               {tabsConfig.map((tab) => {
                 const isSelected = activeTab === tab.id;
@@ -220,8 +220,8 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                     onClick={() => goToTab(tab.id)}
                     className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                       isSelected
-                        ? 'bg-white text-blue-700 border-blue-300 shadow-sm ring-2 ring-blue-200/60 font-black dark:bg-slate-800 dark:text-sky-400 dark:border-slate-600 dark:ring-sky-500/30'
-                        : 'bg-slate-200/50 hover:bg-white/80 border-transparent text-slate-600 hover:text-slate-900 dark:bg-slate-800/50 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-white'
+                        ? 'bg-white text-[#2D5A46] border-[#CFE1D6] shadow-sm ring-2 ring-[#CFE1D6]/60 font-black dark:bg-[#232326] dark:text-[#52B788] dark:border-[#3B3B40] dark:ring-[#52B788]/30'
+                        : 'bg-[#E7E2D9]/50 hover:bg-white/80 border-transparent text-[#57534E] hover:text-[#1C1917] dark:bg-[#2C2C30]/50 dark:hover:bg-[#333338] dark:text-[#A8A29E] dark:hover:text-[#FAF9F5]'
                     }`}
                   >
                     {tab.icon}
@@ -233,34 +233,34 @@ export const DetailModal: React.FC<DetailModalProps> = ({
           </div>
 
           {/* Scrollable Tab Content */}
-          <div className="p-5 overflow-y-auto space-y-4 text-slate-800 flex-1 text-sm scrollbar-thin dark:text-slate-200">
+          <div className="p-5 overflow-y-auto space-y-4 text-[#1C1917] flex-1 text-sm scrollbar-thin dark:text-[#FAF9F5]">
             {/* TAB 1: FISIOLOGIA & MECANISMOS */}
             {activeTab === 'fisiologia' && (
               <div className="space-y-4 animate-in fade-in duration-200">
                 {/* Easy Analogy & Quick Summary Card */}
                 {part.simpleAnalogy && (
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-2 border-amber-300 shadow-sm space-y-2.5">
-                    <div className="flex items-center gap-2 text-amber-900 font-black font-display text-base dark:text-amber-300">
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-[#EBF3EF] via-[#EBF3EF]/80 to-[#EBF3EF] border-2 border-[#CFE1D6] shadow-sm space-y-2.5">
+                    <div className="flex items-center gap-2 text-[#2D5A46] font-black font-display text-base dark:text-[#52B788]">
                       <span className="text-xl">💡</span>
                       <h3>Para Entender Fácil (Sem Complicação)</h3>
                     </div>
-                    <p className="text-slate-800 font-semibold text-sm leading-relaxed dark:text-slate-100">
+                    <p className="text-[#44403C] font-semibold text-sm leading-relaxed dark:text-[#D6D3CD]">
                       {part.simpleAnalogy}
                     </p>
 
                     {/* Easy Steps if available */}
                     {part.easySteps && part.easySteps.length > 0 && (
-                      <div className="pt-2 border-t border-amber-200/80 mt-2 space-y-1.5">
-                        <h4 className="text-[11px] font-black uppercase text-amber-900 tracking-wider">
+                      <div className="pt-2 border-t border-[#CFE1D6] mt-2 space-y-1.5">
+                        <h4 className="text-[11px] font-black uppercase text-[#2D5A46] tracking-wider">
                           Como funciona na prática (passo a passo):
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {part.easySteps.map((step, idx) => (
                             <div
                               key={idx}
-                              className="p-2.5 rounded-xl bg-white/90 border border-amber-200 text-xs font-bold text-slate-800 flex items-start gap-2 shadow-xs dark:bg-slate-800/90 dark:border-amber-700 dark:text-slate-100"
+                              className="p-2.5 rounded-xl bg-white/90 border border-[#CFE1D6] text-xs font-bold text-[#44403C] flex items-start gap-2 shadow-xs dark:bg-[#18181B]/90 dark:border-[#22392D] dark:text-[#D6D3CD]"
                             >
-                              <span className="w-5 h-5 rounded-full bg-amber-500 text-white font-black text-[11px] flex items-center justify-center shrink-0">
+                              <span className="w-5 h-5 rounded-full bg-[#2D5A46] text-white font-black text-[11px] flex items-center justify-center shrink-0">
                                 {idx + 1}
                               </span>
                               <span className="leading-snug">{step}</span>
@@ -274,14 +274,14 @@ export const DetailModal: React.FC<DetailModalProps> = ({
 
                 {/* Keywords pill list */}
                 <div>
-                  <h4 className="text-xs font-extrabold uppercase text-slate-500 tracking-wider mb-2 dark:text-slate-400">
+                  <h4 className="text-xs font-extrabold uppercase text-[#78716C] tracking-wider mb-2 dark:text-[#A8A29E]">
                     Conceitos que o ENEM mais cobra:
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
                     {part.enemKeywords.map((kw, i) => (
                       <span
                         key={i}
-                        className="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold dark:bg-sky-950/50 dark:border-sky-900/60 dark:text-sky-300"
+                        className="px-2.5 py-1 rounded-lg bg-[#EBF3EF] border border-[#CFE1D6] text-[#2D5A46] text-xs font-bold dark:bg-[#15221B]/50 dark:border-[#22392D] dark:text-[#52B788]"
                       >
                         #{kw}
                       </span>
@@ -290,23 +290,23 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                 </div>
 
                 {/* Main Physiology Mechanism */}
-                <div className="p-4 rounded-2xl bg-white border border-blue-100 shadow-sm space-y-2 dark:bg-slate-800/70 dark:border-slate-700">
-                  <div className="flex items-center gap-2 text-blue-900 font-black font-display text-base dark:text-sky-300">
-                    <BookOpen className="w-5 h-5 text-blue-600" />
+                <div className="p-4 rounded-2xl bg-white border border-[#E7E2D9] shadow-sm space-y-2 dark:bg-[#232326]/70 dark:border-[#2C2C30]">
+                  <div className="flex items-center gap-2 text-[#2D5A46] font-black font-display text-base dark:text-[#52B788]">
+                    <BookOpen className="w-5 h-5 text-[#2D5A46]" />
                     <h3>O que ele faz no corpo (Fisiologia)</h3>
                   </div>
-                  <p className="text-slate-700 leading-relaxed text-sm dark:text-slate-300">
+                  <p className="text-[#44403C] leading-relaxed text-sm dark:text-[#D6D3CD]">
                     {part.fullPhysiology}
                   </p>
                 </div>
 
                 {/* Cellular & Biochemical details */}
-                <div className="p-4 rounded-2xl bg-sky-50/60 border border-sky-100 shadow-sm space-y-2 dark:bg-sky-950/40 dark:border-sky-900/60">
-                  <div className="flex items-center gap-2 text-sky-950 font-black font-display text-base dark:text-sky-300">
-                    <Sparkles className="w-5 h-5 text-sky-600" />
+                <div className="p-4 rounded-2xl bg-[#EBF3EF]/60 border border-[#CFE1D6] shadow-sm space-y-2 dark:bg-[#15221B]/40 dark:border-[#22392D]">
+                  <div className="flex items-center gap-2 text-[#2D5A46] font-black font-display text-base dark:text-[#52B788]">
+                    <Sparkles className="w-5 h-5 text-[#2D5A46]" />
                     <h3>Por dentro das células (Bioquímica Explicada)</h3>
                   </div>
-                  <p className="text-slate-700 leading-relaxed text-sm dark:text-slate-300">
+                  <p className="text-[#44403C] leading-relaxed text-sm dark:text-[#D6D3CD]">
                     {part.cellularBiochemistry}
                   </p>
                 </div>
@@ -316,7 +316,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => goToTab('vida_real')}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                   >
                     <span>Avançar: Ver Esquema & Na Vida Real</span>
                     <ArrowRight className="w-4 h-4" />
@@ -334,14 +334,14 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   name={part.name}
                   scientificName={part.scientificName}
                   icon={part.icon}
-                  themeColor="#2563eb"
+                  themeColor="#2D5A46"
                 />
 
                 <div className="pt-2 flex justify-between items-center">
                   <button
                     type="button"
                     onClick={() => goToTab('fisiologia')}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#EFECE6] hover:bg-[#E5DFD5] text-[#57534E] font-bold text-xs transition-colors cursor-pointer dark:bg-[#232326] dark:hover:bg-[#333338] dark:text-[#D6D3CD]"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Fisiologia</span>
@@ -349,7 +349,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => goToTab('enem_dicas')}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                   >
                     <span>Avançar: Dicas ENEM & Pegadinhas</span>
                     <ArrowRight className="w-4 h-4" />
@@ -361,8 +361,8 @@ export const DetailModal: React.FC<DetailModalProps> = ({
             {/* TAB 2: COMO CAI NO ENEM & PEGADINHAS */}
             {activeTab === 'enem_dicas' && (
               <div className="space-y-3 animate-in fade-in duration-200">
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-xs text-blue-900 font-semibold flex items-center gap-2 dark:bg-sky-950/50 dark:border-sky-900/60 dark:text-sky-300">
-                  <Award className="w-5 h-5 text-blue-600 shrink-0" />
+                <div className="p-3 bg-[#EBF3EF]/60 border border-[#CFE1D6] rounded-2xl text-xs text-[#2D5A46] font-semibold flex items-center gap-2 dark:bg-[#15221B]/50 dark:border-[#22392D] dark:text-[#52B788]">
+                  <Award className="w-5 h-5 text-[#2D5A46] shrink-0" />
                   <span>
                     Dicas calibradas pela análise dos últimos 15 anos de provas do ENEM (TRI de Ciências da Natureza).
                   </span>
@@ -375,7 +375,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                       tip.type === 'pegadinha'
                         ? 'bg-amber-50/70 border-amber-200 text-amber-950 dark:bg-amber-950/40 dark:border-amber-800/60 dark:text-amber-200'
                         : tip.type === 'frequente'
-                        ? 'bg-blue-50/70 border-blue-200 text-blue-950 dark:bg-sky-950/40 dark:border-sky-800/60 dark:text-sky-200'
+                        ? 'bg-[#EBF3EF]/70 border-[#CFE1D6] text-[#2D5A46] dark:bg-[#15221B]/40 dark:border-[#22392D] dark:text-[#52B788]'
                         : 'bg-emerald-50/70 border-emerald-200 text-emerald-950 dark:bg-emerald-950/40 dark:border-emerald-800/60 dark:text-emerald-200'
                     }`}
                   >
@@ -383,13 +383,13 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                       {tip.type === 'pegadinha' ? (
                         <AlertTriangle className="w-4 h-4 text-amber-600" />
                       ) : tip.type === 'frequente' ? (
-                        <Sparkles className="w-4 h-4 text-blue-600" />
+                        <Sparkles className="w-4 h-4 text-[#2D5A46]" />
                       ) : (
                         <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                       )}
                       <span>{tip.title}</span>
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium dark:text-slate-300">
+                    <p className="text-xs sm:text-sm text-[#44403C] leading-relaxed font-medium dark:text-[#D6D3CD]">
                       {tip.description}
                     </p>
                   </div>
@@ -399,7 +399,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => goToTab('vida_real')}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#EFECE6] hover:bg-[#E5DFD5] text-[#57534E] font-bold text-xs transition-colors cursor-pointer dark:bg-[#232326] dark:hover:bg-[#333338] dark:text-[#D6D3CD]"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Vida Real</span>
@@ -407,7 +407,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => goToTab('flashcards')}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                   >
                     <span>Avançar: Flashcards</span>
                     <ArrowRight className="w-4 h-4" />
@@ -419,12 +419,12 @@ export const DetailModal: React.FC<DetailModalProps> = ({
             {/* TAB 3: FLASHCARDS */}
             {activeTab === 'flashcards' && (
               <div className="space-y-3 animate-in fade-in duration-200">
-                <div className="p-3 bg-sky-50 border border-sky-200 rounded-2xl text-xs text-sky-900 font-semibold flex items-center justify-between dark:bg-sky-950/40 dark:border-sky-900/60 dark:text-sky-300">
+                <div className="p-3 bg-[#EBF3EF]/60 border border-[#CFE1D6] rounded-2xl text-xs text-[#2D5A46] font-semibold flex items-center justify-between dark:bg-[#15221B]/40 dark:border-[#22392D] dark:text-[#52B788]">
                   <span className="flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-sky-600" />
+                    <Layers className="w-4 h-4 text-[#2D5A46]" />
                     <span>Toque no flashcard para revelar o gabarito e explicação</span>
                   </span>
-                  <span className="text-[11px] font-bold text-sky-700 dark:text-sky-300">
+                  <span className="text-[11px] font-bold text-[#2D5A46] dark:text-[#52B788]">
                     {part.flashcards.length} cards
                   </span>
                 </div>
@@ -438,8 +438,8 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                         onClick={() => toggleFlashcard(idx)}
                         className={`p-4 rounded-2xl border-2 transition-all cursor-pointer min-h-[140px] flex flex-col justify-between select-none ${
                           isFlipped
-                            ? 'bg-blue-600 border-blue-700 text-white shadow-md'
-                            : 'bg-white hover:bg-blue-50/50 border-blue-100 text-slate-800 shadow-sm dark:bg-slate-800/70 dark:hover:bg-slate-700/60 dark:border-slate-700 dark:text-slate-100'
+                            ? 'bg-[#2D5A46] border-[#21483A] text-white shadow-md'
+                            : 'bg-white hover:bg-[#EBF3EF]/50 border-[#E7E2D9] text-[#1C1917] shadow-sm dark:bg-[#232326]/70 dark:hover:bg-[#333338]/60 dark:border-[#2C2C30] dark:text-[#FAF9F5]'
                         }`}
                       >
                         <div>
@@ -447,14 +447,14 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                             className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
                               isFlipped
                                 ? 'bg-white/20 text-white'
-                                : 'bg-blue-100 text-blue-800 dark:bg-sky-950/60 dark:text-sky-300'
+                                : 'bg-[#EBF3EF] text-[#2D5A46] dark:bg-[#15221B]/60 dark:text-[#52B788]'
                             }`}
                           >
                             {isFlipped ? 'Resposta & Conceito' : 'Pergunta de Prova'}
                           </span>
                           <p
                             className={`text-xs sm:text-sm font-bold mt-2 leading-relaxed ${
-                              isFlipped ? 'text-white' : 'text-slate-800 dark:text-slate-100'
+                              isFlipped ? 'text-[#FAF9F5]' : 'text-[#1C1917] dark:text-[#FAF9F5]'
                             }`}
                           >
                             {isFlipped ? card.answer : card.question}
@@ -477,7 +477,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => goToTab('enem_dicas')}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#EFECE6] hover:bg-[#E5DFD5] text-[#57534E] font-bold text-xs transition-colors cursor-pointer dark:bg-[#232326] dark:hover:bg-[#333338] dark:text-[#D6D3CD]"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Dicas ENEM</span>
@@ -497,12 +497,12 @@ export const DetailModal: React.FC<DetailModalProps> = ({
             {/* TAB 4: QUESTÃO INÉDITA ENEM */}
             {activeTab === 'questao' && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 dark:bg-slate-800/60 dark:border-slate-700">
-                  <div className="flex items-center justify-between text-xs font-black text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                <div className="p-4 bg-[#EFECE6]/60 border border-[#E7E2D9] rounded-2xl space-y-2 dark:bg-[#232326]/60 dark:border-[#2C2C30]">
+                  <div className="flex items-center justify-between text-xs font-black text-[#78716C] uppercase tracking-wider dark:text-[#A8A29E]">
                     <span>Ciências da Natureza e suas Tecnologias</span>
-                    <span className="text-blue-600 font-bold dark:text-sky-400">Matriz de Habilidades</span>
+                    <span className="text-[#2D5A46] font-bold dark:text-[#52B788]">Matriz de Habilidades</span>
                   </div>
-                  <p className="text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed dark:text-slate-100">
+                  <p className="text-xs sm:text-sm font-semibold text-[#1C1917] leading-relaxed dark:text-[#FAF9F5]">
                     {part.enemQuestion.statement}
                   </p>
                 </div>
@@ -512,7 +512,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   {part.enemQuestion.options.map((opt, index) => {
                     const isSelected = selectedOption === index;
                     let optionStyle =
-                      'bg-white hover:bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-800/60 dark:hover:bg-slate-700/60 dark:border-slate-700 dark:text-slate-100';
+                      'bg-white hover:bg-[#EFECE6] border-[#E7E2D9] text-[#1C1917] dark:bg-[#232326]/60 dark:hover:bg-[#333338]/60 dark:border-[#2C2C30] dark:text-[#FAF9F5]';
 
                     if (selectedOption !== null) {
                       if (opt.isCorrect) {
@@ -523,7 +523,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                           'bg-rose-50 border-rose-500 text-rose-950 font-bold ring-2 ring-rose-300';
                       } else {
                         optionStyle =
-                          'bg-slate-50 border-slate-200 text-slate-400 opacity-60 dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-500';
+                          'bg-[#EFECE6] border-[#E7E2D9] text-[#A8A29E] opacity-60 dark:bg-[#232326]/40 dark:border-[#2C2C30] dark:text-[#78716C]';
                       }
                     }
 
@@ -535,7 +535,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                         disabled={selectedOption !== null}
                         className={`w-full p-3.5 rounded-2xl border text-left text-xs sm:text-sm transition-all flex items-start gap-3 cursor-pointer ${optionStyle}`}
                       >
-                        <span className="w-6 h-6 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs shrink-0 text-slate-700 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+                        <span className="w-6 h-6 rounded-lg bg-[#EFECE6] border border-[#E7E2D9] flex items-center justify-center font-bold text-xs shrink-0 text-[#57534E] dark:bg-[#3B3B40] dark:border-[#44403C] dark:text-[#D6D3CD]">
                           {String.fromCharCode(65 + index)}
                         </span>
                         <span className="flex-1 mt-0.5 font-medium">{opt.text}</span>
@@ -552,9 +552,9 @@ export const DetailModal: React.FC<DetailModalProps> = ({
 
                 {/* Explanation Box */}
                 {showExplanation && selectedOption !== null && (
-                  <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-2 dark:bg-sky-950/50 dark:border-sky-900/60">
+                  <div className="p-4 rounded-2xl bg-[#EBF3EF] border border-[#CFE1D6] space-y-2 dark:bg-[#15221B]/50 dark:border-[#22392D]">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase text-blue-900 tracking-wider dark:text-sky-300">
+                      <span className="text-xs font-black uppercase text-[#2D5A46] tracking-wider dark:text-[#52B788]">
                         Comentário da Resolução ENEM:
                       </span>
                       <button
@@ -564,15 +564,15 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                           setShowExplanation(false);
                           sounds.playPop();
                         }}
-                        className="text-xs text-blue-600 hover:text-blue-800 underline font-bold cursor-pointer dark:text-sky-400 dark:hover:text-sky-300"
+                        className="text-xs text-[#2D5A46] hover:text-[#21483A] underline font-bold cursor-pointer dark:text-[#52B788] dark:hover:text-[#52B788]"
                       >
                         Tentar Novamente
                       </button>
                     </div>
-                    <p className="text-xs text-slate-700 leading-relaxed font-medium dark:text-slate-300">
+                    <p className="text-xs text-[#44403C] leading-relaxed font-medium dark:text-[#D6D3CD]">
                       {part.enemQuestion.options[selectedOption].explanation}
                     </p>
-                    <p className="text-xs text-blue-900 font-semibold pt-1 border-t border-blue-200 dark:text-sky-300 dark:border-sky-900/60">
+                    <p className="text-xs text-[#2D5A46] font-semibold pt-1 border-t border-[#CFE1D6] dark:text-[#52B788] dark:border-[#22392D]">
                       💡 {part.enemQuestion.generalExplanation}
                     </p>
                   </div>
@@ -582,7 +582,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => goToTab('flashcards')}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#EFECE6] hover:bg-[#E5DFD5] text-[#57534E] font-bold text-xs transition-colors cursor-pointer dark:bg-[#232326] dark:hover:bg-[#333338] dark:text-[#D6D3CD]"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Flashcards</span>
@@ -590,7 +590,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleNavigatePart(nextPart)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                   >
                     <span>Próximo Órgão: {nextPart.name}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -601,15 +601,15 @@ export const DetailModal: React.FC<DetailModalProps> = ({
           </div>
 
           {/* Footer Navigation Bar: Previous / Next Structure Stepper (Zero Scrollbars) */}
-          <div className="p-3 bg-slate-50 border-t border-blue-100 flex items-center justify-between gap-2 shrink-0 dark:bg-slate-800/80 dark:border-slate-700">
+          <div className="p-3 bg-[#EFECE6] border-t border-[#E7E2D9] flex items-center justify-between gap-2 shrink-0 dark:bg-[#232326]/80 dark:border-[#2C2C30]">
             {/* Previous Organ Button */}
             <button
               type="button"
               onClick={() => handleNavigatePart(prevPart)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-sm dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-600 dark:hover:border-sky-600 dark:text-slate-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#EBF3EF] border border-[#E7E2D9] hover:border-[#CFE1D6] text-[#57534E] text-xs font-bold transition-all cursor-pointer shadow-sm dark:bg-[#232326] dark:hover:bg-[#333338] dark:border-[#2C2C30] dark:hover:border-[#22392D] dark:text-[#D6D3CD]"
               title={`Ver ${prevPart.name}`}
             >
-              <ChevronLeft className="w-4 h-4 text-blue-600" />
+              <ChevronLeft className="w-4 h-4 text-[#2D5A46]" />
               <span className="text-sm">{prevPart.icon}</span>
               <span className="hidden sm:inline truncate max-w-[110px]">{prevPart.name}</span>
             </button>
@@ -622,9 +622,9 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                   sounds.playPop();
                   setShowQuickPicker(!showQuickPicker);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 text-xs font-extrabold transition-all cursor-pointer dark:bg-sky-950/50 dark:hover:bg-sky-900/50 dark:border-sky-900/60 dark:text-sky-300"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EBF3EF] hover:bg-[#E5DFD5] border border-[#CFE1D6] text-[#2D5A46] text-xs font-extrabold transition-all cursor-pointer dark:bg-[#15221B]/50 dark:hover:bg-[#22392D]/50 dark:border-[#22392D] dark:text-[#52B788]"
               >
-                <List className="w-3.5 h-3.5 text-blue-600" />
+                <List className="w-3.5 h-3.5 text-[#2D5A46]" />
                 <span>
                   Estrutura {currentPartIndex + 1} de {allParts.length}
                 </span>
@@ -637,11 +637,11 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 sm:w-80 bg-white rounded-2xl shadow-xl border-2 border-blue-200 p-2.5 z-40 max-h-64 overflow-y-auto dark:bg-slate-800 dark:border-slate-600"
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 sm:w-80 bg-white rounded-2xl shadow-xl border-2 border-[#E7E2D9] p-2.5 z-40 max-h-64 overflow-y-auto dark:bg-[#232326] dark:border-[#44403C]"
                   >
-                    <div className="text-[11px] font-black text-slate-500 uppercase px-2 py-1 flex items-center justify-between dark:text-slate-400">
+                    <div className="text-[11px] font-black text-[#78716C] uppercase px-2 py-1 flex items-center justify-between dark:text-[#A8A29E]">
                       <span>Ir direto para órgão:</span>
-                      <span className="text-blue-600 font-bold dark:text-sky-400">{allParts.length} itens</span>
+                      <span className="text-[#2D5A46] font-bold dark:text-[#52B788]">{allParts.length} itens</span>
                     </div>
                     <div className="grid grid-cols-2 gap-1 mt-1">
                       {allParts.map((p) => {
@@ -653,8 +653,8 @@ export const DetailModal: React.FC<DetailModalProps> = ({
                             onClick={() => handleNavigatePart(p)}
                             className={`p-2 rounded-xl text-left text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
                               isCurrent
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'bg-slate-50 hover:bg-blue-50 text-slate-800 dark:bg-slate-700/60 dark:hover:bg-slate-600/60 dark:text-slate-200'
+                                ? 'bg-[#2D5A46] text-white shadow-sm'
+                                : 'bg-[#EFECE6] hover:bg-[#EBF3EF] text-[#1C1917] dark:bg-[#3B3B40]/60 dark:hover:bg-[#44403C]/60 dark:text-[#D6D3CD]'
                             }`}
                           >
                             <span className="text-base">{p.icon}</span>
@@ -672,12 +672,12 @@ export const DetailModal: React.FC<DetailModalProps> = ({
             <button
               type="button"
               onClick={() => handleNavigatePart(nextPart)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-sm dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-600 dark:hover:border-sky-600 dark:text-slate-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#EBF3EF] border border-[#E7E2D9] hover:border-[#CFE1D6] text-[#57534E] text-xs font-bold transition-all cursor-pointer shadow-sm dark:bg-[#232326] dark:hover:bg-[#333338] dark:border-[#2C2C30] dark:hover:border-[#22392D] dark:text-[#D6D3CD]"
               title={`Ver ${nextPart.name}`}
             >
               <span className="hidden sm:inline truncate max-w-[110px]">{nextPart.name}</span>
               <span className="text-sm">{nextPart.icon}</span>
-              <ChevronRight className="w-4 h-4 text-blue-600" />
+              <ChevronRight className="w-4 h-4 text-[#2D5A46]" />
             </button>
           </div>
         </motion.div>

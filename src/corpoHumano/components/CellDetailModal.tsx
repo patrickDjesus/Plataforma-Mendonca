@@ -105,13 +105,13 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
       id: 'citologia' as TabType,
       label: 'Bioquímica & Citologia',
       shortLabel: 'Citologia',
-      icon: <BookOpen className="w-3.5 h-3.5 text-blue-600" />,
+      icon: <BookOpen className="w-3.5 h-3.5 text-[#2D5A46]" />,
     },
     {
       id: 'vida_real' as TabType,
       label: '🔬 Na Vida Real (Ultraestrutura)',
       shortLabel: '🔬 Vida Real',
-      icon: <Microscope className="w-3.5 h-3.5 text-indigo-600" />,
+      icon: <Microscope className="w-3.5 h-3.5 text-[#52B788]" />,
     },
     {
       id: 'enem_dicas' as TabType,
@@ -123,7 +123,7 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
       id: 'flashcards' as TabType,
       label: `Flashcards (${organelle.flashcards.length})`,
       shortLabel: 'Flashcards',
-      icon: <Sparkles className="w-3.5 h-3.5 text-sky-600" />,
+      icon: <Sparkles className="w-3.5 h-3.5 text-[#52B788]" />,
     },
     {
       id: 'questao' as TabType,
@@ -145,7 +145,7 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
             sounds.stopNarration();
             onClose();
           }}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+          className="fixed inset-0 bg-[#18181B]/60 backdrop-blur-sm"
         />
 
         {/* Modal Card */}
@@ -154,7 +154,7 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border-2 border-blue-200 overflow-hidden z-10 my-auto flex flex-col max-h-[92vh] dark:bg-slate-900 dark:border-slate-700"
+          className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border-2 border-[#E7E2D9] overflow-hidden z-10 my-auto flex flex-col max-h-[92vh] dark:bg-[#18181B] dark:border-[#2C2C30]"
         >
           {/* Header Banner */}
           <div
@@ -187,7 +187,7 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
                 onClick={handleReadAloud}
                 className={`p-2.5 rounded-2xl border transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
                   isPlayingAudio
-                    ? 'bg-amber-400 text-amber-950 border-amber-300 animate-pulse'
+                    ? 'bg-[#21483A] text-white border-[#21483A] animate-pulse'
                     : 'bg-white/15 hover:bg-white/25 border-white/20 text-white'
                 }`}
                 title={isPlayingAudio ? 'Parar Áudio' : 'Ouvir Explicação'}
@@ -212,7 +212,7 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
           </div>
 
           {/* Clean Segmented Tab Bar - Zero Horizontal Scrollbars */}
-          <div className="bg-slate-100/90 p-2 border-b border-slate-200 shrink-0 dark:bg-slate-800/90 dark:border-slate-700">
+          <div className="bg-[#EFECE6]/90 p-2 border-b border-[#E7E2D9] shrink-0 dark:bg-[#232326]/90 dark:border-[#2C2C30]">
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
               {tabsConfig.map((tab) => {
                 const isSelected = activeTab === tab.id;
@@ -223,8 +223,8 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
                     onClick={() => goToTab(tab.id)}
                     className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                       isSelected
-                        ? 'bg-white text-blue-700 border-blue-300 shadow-sm ring-2 ring-blue-200/60 font-black dark:bg-slate-800 dark:text-sky-400 dark:border-slate-600 dark:ring-sky-500/30'
-                        : 'bg-slate-200/50 hover:bg-white/80 border-transparent text-slate-600 hover:text-slate-900 dark:bg-slate-800/50 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-white'
+                        ? 'bg-white text-[#2D5A46] border-[#CFE1D6] shadow-sm ring-2 ring-[#CFE1D6]/60 font-black dark:bg-[#232326] dark:text-[#52B788] dark:border-[#3B3B40] dark:ring-[#52B788]/30'
+                        : 'bg-[#E7E2D9]/50 hover:bg-white/80 border-transparent text-[#57534E] hover:text-[#1C1917] dark:bg-[#2C2C30]/50 dark:hover:bg-[#333338] dark:text-[#A8A29E] dark:hover:text-[#FAF9F5]'
                     }`}
                   >
                     {tab.icon}
@@ -236,34 +236,34 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
           </div>
 
           {/* Modal Tab Contents (Scrollable) */}
-          <div className="p-5 sm:p-6 overflow-y-auto flex-1 flex flex-col gap-5 scrollbar-thin dark:text-slate-200">
+          <div className="p-5 sm:p-6 overflow-y-auto flex-1 flex flex-col gap-5 scrollbar-thin dark:text-[#FAF9F5]">
             {/* TAB 1: BIOQUÍMICA & CITOLOGIA */}
             {activeTab === 'citologia' && (
               <div className="flex flex-col gap-4 animate-in fade-in duration-200">
                 {/* Easy Analogy & Quick Summary Card */}
                 {organelle.simpleAnalogy && (
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-2 border-amber-300 shadow-sm space-y-2.5">
-                    <div className="flex items-center gap-2 text-amber-900 font-black font-display text-base dark:text-amber-300">
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-[#EBF3EF] via-[#EBF3EF]/80 to-[#EBF3EF] border-2 border-[#CFE1D6] shadow-sm space-y-2.5">
+                    <div className="flex items-center gap-2 text-[#2D5A46] font-black font-display text-base dark:text-[#52B788]">
                       <span className="text-xl">💡</span>
                       <h3>Para Entender Fácil (Sem Complicação)</h3>
                     </div>
-                    <p className="text-slate-800 font-semibold text-sm leading-relaxed dark:text-slate-100">
+                    <p className="text-[#44403C] font-semibold text-sm leading-relaxed dark:text-[#D6D3CD]">
                       {organelle.simpleAnalogy}
                     </p>
 
                     {/* Easy Steps if available */}
                     {organelle.easySteps && organelle.easySteps.length > 0 && (
-                      <div className="pt-2 border-t border-amber-200/80 mt-2 space-y-1.5">
-                        <h4 className="text-[11px] font-black uppercase text-amber-900 tracking-wider">
+                      <div className="pt-2 border-t border-[#CFE1D6] mt-2 space-y-1.5">
+                        <h4 className="text-[11px] font-black uppercase text-[#2D5A46] tracking-wider">
                           Como funciona na prática (passo a passo):
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {organelle.easySteps.map((step, idx) => (
                             <div
                               key={idx}
-                              className="p-2.5 rounded-xl bg-white/90 border border-amber-200 text-xs font-bold text-slate-800 flex items-start gap-2 shadow-xs dark:bg-slate-800/90 dark:border-amber-700 dark:text-slate-100"
+                              className="p-2.5 rounded-xl bg-white/90 border border-[#CFE1D6] text-xs font-bold text-[#44403C] flex items-start gap-2 shadow-xs dark:bg-[#18181B]/90 dark:border-[#22392D] dark:text-[#D6D3CD]"
                             >
-                              <span className="w-5 h-5 rounded-full bg-amber-500 text-white font-black text-[11px] flex items-center justify-center shrink-0">
+                              <span className="w-5 h-5 rounded-full bg-[#2D5A46] text-white font-black text-[11px] flex items-center justify-center shrink-0">
                                 {idx + 1}
                               </span>
                               <span className="leading-snug">{step}</span>
@@ -276,15 +276,15 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
                 )}
 
                 {/* Tagline Box */}
-                <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200 flex items-start gap-3 dark:bg-sky-950/50 dark:border-sky-900/60">
-                  <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-base shrink-0 mt-0.5">
+                <div className="p-4 rounded-2xl bg-[#EBF3EF]/80 border border-[#CFE1D6] flex items-start gap-3 dark:bg-[#15221B]/50 dark:border-[#22392D]">
+                  <div className="w-8 h-8 rounded-xl bg-[#2D5A46] text-white flex items-center justify-center font-bold text-base shrink-0 mt-0.5">
                     🔬
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-blue-900 uppercase tracking-wider dark:text-sky-300">
+                    <h4 className="text-xs font-black text-[#2D5A46] uppercase tracking-wider dark:text-[#52B788]">
                       O que ela faz na célula
                     </h4>
-                    <p className="text-sm font-bold text-slate-800 leading-snug dark:text-slate-100">
+                    <p className="text-sm font-bold text-[#1C1917] leading-snug dark:text-[#FAF9F5]">
                       {organelle.tagline}
                     </p>
                   </div>
@@ -292,38 +292,38 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
 
                 {/* Full Physiology Explanation */}
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 dark:text-slate-100">
-                    <Layers className="w-4 h-4 text-blue-600" />
+                  <h3 className="text-sm font-black text-[#1C1917] uppercase tracking-wider flex items-center gap-2 dark:text-[#FAF9F5]">
+                    <Layers className="w-4 h-4 text-[#2D5A46]" />
                     Como Ela Funciona (Citologia Descomplicada)
                   </h3>
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 text-sm leading-relaxed font-medium dark:bg-slate-800/60 dark:border-slate-700 dark:text-slate-300">
+                  <div className="p-4 rounded-2xl bg-[#EFECE6]/60 border border-[#E7E2D9] text-[#44403C] text-sm leading-relaxed font-medium dark:bg-[#232326]/60 dark:border-[#2C2C30] dark:text-[#D6D3CD]">
                     {organelle.fullFunction}
                   </div>
                 </div>
 
                 {/* Cellular Biochemistry Mechanism */}
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 dark:text-slate-100">
-                    <Zap className="w-4 h-4 text-amber-500" />
+                  <h3 className="text-sm font-black text-[#1C1917] uppercase tracking-wider flex items-center gap-2 dark:text-[#FAF9F5]">
+                    <Zap className="w-4 h-4 text-[#2D5A46]" />
                     Bioquímica e Reações Químicas Explicadas
                   </h3>
-                  <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 text-slate-800 text-sm leading-relaxed font-medium dark:bg-amber-950/40 dark:border-amber-800/60 dark:text-amber-100">
+                  <div className="p-4 rounded-2xl bg-[#EBF3EF]/60 border border-[#CFE1D6] text-[#44403C] text-sm leading-relaxed font-medium dark:bg-[#15221B]/40 dark:border-[#22392D] dark:text-[#D6D3CD]">
                     {organelle.biochemistryMecanismo}
                   </div>
                 </div>
 
                 {/* Key Keywords Badges */}
                 <div className="flex flex-col gap-2">
-                  <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                  <h4 className="text-xs font-black text-[#78716C] uppercase tracking-wider dark:text-[#A8A29E]">
                     Termos Recorrentes nas Provas de Ciências da Natureza:
                   </h4>
                   <div className="flex items-center gap-2 flex-wrap">
                     {organelle.enemKeywords.map((kw, i) => (
                       <span
                         key={i}
-                        className="px-3 py-1 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700"
+                        className="px-3 py-1 rounded-xl bg-[#E7E2D9]/80 text-[#57534E] text-xs font-bold border border-[#D6D0C5] flex items-center gap-1 dark:bg-[#232326] dark:text-[#D6D3CD] dark:border-[#2C2C30]"
                       >
-                        <span className="text-blue-600 dark:text-sky-400">#</span>
+                        <span className="text-[#2D5A46] dark:text-[#52B788]">#</span>
                         {kw}
                       </span>
                     ))}
@@ -335,7 +335,7 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => goToTab('vida_real')}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                   >
                     <span>Avançar: Ver Esquema & Ultraestrutura</span>
                     <ArrowRight className="w-4 h-4" />
@@ -360,7 +360,7 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => goToTab('citologia')}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#EFECE6] hover:bg-[#E5DFD5] text-[#57534E] font-bold text-xs transition-colors cursor-pointer dark:bg-[#232326] dark:hover:bg-[#333338] dark:text-[#D6D3CD]"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Bioquímica & Citologia</span>
@@ -368,7 +368,7 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => goToTab('enem_dicas')}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                   >
                     <span>Avançar: Dicas ENEM & Pegadinhas</span>
                     <ArrowRight className="w-4 h-4" />
@@ -381,11 +381,11 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
             {activeTab === 'enem_dicas' && (
               <div className="flex flex-col gap-4 animate-in fade-in duration-200">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 dark:text-slate-100">
+                  <h3 className="text-sm font-black text-[#1C1917] uppercase tracking-wider flex items-center gap-2 dark:text-[#FAF9F5]">
                     <AlertTriangle className="w-4 h-4 text-amber-500" />
                     Mapeamento de Distratores & Pegadinhas Clássicas
                   </h3>
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  <span className="text-xs font-bold text-[#78716C] dark:text-[#A8A29E]">
                     {organelle.enemTips.length} pontos de atenção
                   </span>
                 </div>
@@ -396,24 +396,24 @@ export const CellDetailModal: React.FC<CellDetailModalProps> = ({
                       key={idx}
 className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                         tip.type === 'pegadinha'
-                          ? 'bg-rose-50/80 border-rose-200 text-slate-800 dark:bg-rose-950/40 dark:border-rose-800/60 dark:text-rose-100'
+                          ? 'bg-rose-50/80 border-rose-200 text-[#1C1917] dark:bg-rose-950/40 dark:border-rose-800/60 dark:text-rose-100'
                           : tip.type === 'frequente'
-                          ? 'bg-blue-50/80 border-blue-200 text-slate-800 dark:bg-sky-950/40 dark:border-sky-800/60 dark:text-sky-100'
-                          : 'bg-emerald-50/80 border-emerald-200 text-slate-800 dark:bg-emerald-950/40 dark:border-emerald-800/60 dark:text-emerald-100'
+                          ? 'bg-[#EBF3EF]/80 border-[#CFE1D6] text-[#2D5A46] dark:bg-[#15221B]/40 dark:border-[#22392D] dark:text-[#52B788]'
+                          : 'bg-emerald-50/80 border-emerald-200 text-[#1C1917] dark:bg-emerald-950/40 dark:border-emerald-800/60 dark:text-emerald-100'
                     }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5 font-display dark:text-slate-100">
+                        <span className="text-xs font-black uppercase tracking-wider text-[#1C1917] flex items-center gap-1.5 font-display dark:text-[#FAF9F5]">
                           {tip.type === 'pegadinha' && '⚠️ Cuidado: Pegadinha de Prova'}
                           {tip.type === 'frequente' && '📌 Padrão Muito Recorrente'}
                           {tip.type === 'conceito_chave' && '🎯 Fundamento Indispensável'}
                         </span>
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-white border border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-white border border-[#E7E2D9] dark:bg-[#3B3B40] dark:border-[#44403C] dark:text-[#D6D3CD]">
                           {tip.type}
                         </span>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">{tip.title}</h4>
-                      <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium dark:text-slate-300">
+                      <h4 className="text-sm font-bold text-[#1C1917] dark:text-[#FAF9F5]">{tip.title}</h4>
+                      <p className="text-xs sm:text-sm text-[#44403C] leading-relaxed font-medium dark:text-[#D6D3CD]">
                         {tip.description}
                       </p>
                     </div>
@@ -424,7 +424,7 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                   <button
                     type="button"
                     onClick={() => goToTab('vida_real')}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#EFECE6] hover:bg-[#E5DFD5] text-[#57534E] font-bold text-xs transition-colors cursor-pointer dark:bg-[#232326] dark:hover:bg-[#333338] dark:text-[#D6D3CD]"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Microscopia Real</span>
@@ -432,7 +432,7 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                   <button
                     type="button"
                     onClick={() => goToTab('flashcards')}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                   >
                     <span>Avançar: Flashcards de Memorização</span>
                     <ArrowRight className="w-4 h-4" />
@@ -446,10 +446,10 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
               <div className="flex flex-col gap-4 animate-in fade-in duration-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider dark:text-slate-100">
+                    <h3 className="text-sm font-black text-[#1C1917] uppercase tracking-wider dark:text-[#FAF9F5]">
                       Memorização Ativa & Repetição Espaçada
                     </h3>
-                    <p className="text-xs text-slate-500 font-semibold dark:text-slate-400">
+                    <p className="text-xs text-[#78716C] font-semibold dark:text-[#A8A29E]">
                       Clique no cartão para virar e conferir a resposta ideal
                     </p>
                   </div>
@@ -459,7 +459,7 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                       sounds.playPop();
                       setFlashcardFlipped({});
                     }}
-                    className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-xl border border-blue-200 cursor-pointer dark:text-sky-400 dark:hover:text-sky-300 dark:bg-sky-950/50 dark:border-sky-900/60"
+                    className="flex items-center gap-1 text-xs font-bold text-[#2D5A46] hover:text-[#21483A] bg-[#EBF3EF] px-2.5 py-1 rounded-xl border border-[#CFE1D6] cursor-pointer dark:text-[#52B788] dark:hover:text-[#52B788] dark:bg-[#15221B]/50 dark:border-[#22392D]"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Desvirar Todos</span>
@@ -475,8 +475,8 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                         onClick={() => toggleFlashcard(idx)}
                         className={`min-h-[160px] p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between select-none shadow-sm ${
                           isFlipped
-                            ? 'bg-gradient-to-br from-blue-700 to-indigo-700 text-white border-blue-800 shadow-blue-500/20'
-                            : 'bg-white hover:bg-blue-50/60 border-slate-200 text-slate-800 hover:border-blue-300 dark:bg-slate-800/70 dark:hover:bg-slate-700/60 dark:border-slate-700 dark:text-slate-100 dark:hover:border-sky-700'
+                            ? 'bg-gradient-to-br from-[#2D5A46] to-[#1E3E30] text-white border-[#21483A] shadow-[#2D5A46]/20'
+                            : 'bg-white hover:bg-[#EBF3EF]/60 border-[#E7E2D9] text-[#1C1917] hover:border-[#CFE1D6] dark:bg-[#232326]/70 dark:hover:bg-[#333338]/60 dark:border-[#2C2C30] dark:text-[#FAF9F5] dark:hover:border-[#22392D]'
                         }`}
                       >
                         <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider opacity-80">
@@ -484,7 +484,7 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                           <span>Card #{idx + 1}</span>
                         </div>
 
-                        <p className={`text-sm font-bold my-auto leading-relaxed ${isFlipped ? 'text-blue-50' : 'text-slate-900 dark:text-slate-100'}`}>
+                        <p className={`text-sm font-bold my-auto leading-relaxed ${isFlipped ? 'text-[#EBF3EF]' : 'text-[#1C1917] dark:text-[#FAF9F5]'}`}>
                           {isFlipped ? card.back : card.front}
                         </p>
 
@@ -501,7 +501,7 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                   <button
                     type="button"
                     onClick={() => goToTab('enem_dicas')}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#EFECE6] hover:bg-[#E5DFD5] text-[#57534E] font-bold text-xs transition-colors cursor-pointer dark:bg-[#232326] dark:hover:bg-[#333338] dark:text-[#D6D3CD]"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Dicas ENEM</span>
@@ -523,20 +523,20 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
               <div className="flex flex-col gap-4 animate-in fade-in duration-200">
                 {/* Competence Tag */}
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <span className="px-3 py-1 rounded-xl bg-blue-50 text-blue-700 text-xs font-black border border-blue-200 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-900/60">
+                  <span className="px-3 py-1 rounded-xl bg-[#EBF3EF] text-[#2D5A46] text-xs font-black border border-[#CFE1D6] dark:bg-[#15221B]/50 dark:text-[#52B788] dark:border-[#22392D]">
                     {organelle.enemQuestion.competenceSkill}
                   </span>
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  <span className="text-xs font-bold text-[#78716C] dark:text-[#A8A29E]">
                     Estilo Padrão INEP / ENEM
                   </span>
                 </div>
 
                 {/* Question Context & Prompt */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col gap-2.5 dark:bg-slate-800/60 dark:border-slate-700">
-                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium dark:text-slate-300">
+                <div className="p-4 rounded-2xl bg-[#EFECE6]/60 border border-[#E7E2D9] flex flex-col gap-2.5 dark:bg-[#232326]/60 dark:border-[#2C2C30]">
+                  <p className="text-xs sm:text-sm text-[#44403C] leading-relaxed font-medium dark:text-[#D6D3CD]">
                     {organelle.enemQuestion.context}
                   </p>
-                  <p className="text-sm sm:text-base font-black text-slate-900 font-display dark:text-slate-100">
+                  <p className="text-sm sm:text-base font-black text-[#1C1917] font-display dark:text-[#FAF9F5]">
                     {organelle.enemQuestion.question}
                   </p>
                 </div>
@@ -555,7 +555,7 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                             ? opt.isCorrect
                               ? 'bg-emerald-50 border-emerald-500 text-emerald-900 shadow-md ring-2 ring-emerald-200 dark:bg-emerald-950/50 dark:border-emerald-500 dark:text-emerald-100 dark:ring-emerald-900/60'
                               : 'bg-rose-50 border-rose-500 text-rose-900 shadow-md ring-2 ring-rose-200 dark:bg-rose-950/50 dark:border-rose-500 dark:text-rose-100 dark:ring-rose-900/60'
-                            : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-800 hover:border-blue-300 dark:bg-slate-800/60 dark:hover:bg-slate-700/60 dark:border-slate-700 dark:text-slate-100'
+                            : 'bg-white hover:bg-[#EFECE6] border-[#E7E2D9] text-[#1C1917] hover:border-[#CFE1D6] dark:bg-[#232326]/60 dark:hover:bg-[#333338]/60 dark:border-[#2C2C30] dark:text-[#FAF9F5]'
                         }`}
                       >
                         <div
@@ -564,7 +564,7 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                               ? opt.isCorrect
                                 ? 'bg-emerald-600 text-white'
                                 : 'bg-rose-600 text-white'
-                              : 'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600'
+                              : 'bg-[#EFECE6] text-[#57534E] border border-[#E7E2D9] dark:bg-[#3B3B40] dark:text-[#D6D3CD] dark:border-[#44403C]'
                           }`}
                         >
                           {opt.letter}
@@ -601,12 +601,12 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
 
                 {/* General Resolution Box */}
                 {showExplanation && (
-                  <div className="p-4 rounded-2xl bg-blue-50 border-2 border-blue-200 flex flex-col gap-1.5 dark:bg-sky-950/50 dark:border-sky-900/60">
-                    <h4 className="text-xs font-black text-blue-900 uppercase tracking-wider flex items-center gap-1.5 dark:text-sky-300">
-                      <Award className="w-4 h-4 text-blue-600" />
+                  <div className="p-4 rounded-2xl bg-[#EBF3EF] border-2 border-[#CFE1D6] flex flex-col gap-1.5 dark:bg-[#15221B]/50 dark:border-[#22392D]">
+                    <h4 className="text-xs font-black text-[#2D5A46] uppercase tracking-wider flex items-center gap-1.5 dark:text-[#52B788]">
+                      <Award className="w-4 h-4 text-[#2D5A46]" />
                       Gabarito Comentado & Estratégia de Resolução
                     </h4>
-                    <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium dark:text-slate-100">
+                    <p className="text-xs sm:text-sm text-[#1C1917] leading-relaxed font-medium dark:text-[#FAF9F5]">
                       {organelle.enemQuestion.generalExplanation}
                     </p>
                   </div>
@@ -616,7 +616,7 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                   <button
                     type="button"
                     onClick={() => goToTab('flashcards')}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#EFECE6] hover:bg-[#E5DFD5] text-[#57534E] font-bold text-xs transition-colors cursor-pointer dark:bg-[#232326] dark:hover:bg-[#333338] dark:text-[#D6D3CD]"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Voltar aos Flashcards</span>
@@ -624,7 +624,7 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                   <button
                     type="button"
                     onClick={() => handleNavigateOrganelle(nextOrganelle)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                   >
                     <span>Próxima Organela: {nextOrganelle.name}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -635,15 +635,15 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
           </div>
 
           {/* Footer Next/Prev Organelle Navigation Bar (Zero Scrollbars) */}
-          <div className="bg-slate-50 p-3.5 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0 dark:bg-slate-800/80 dark:border-slate-700">
+          <div className="bg-[#EFECE6] p-3.5 border-t border-[#E7E2D9] flex items-center justify-between gap-2 shrink-0 dark:bg-[#232326]/80 dark:border-[#2C2C30]">
             {/* Previous Organelle Button */}
             <button
               type="button"
               onClick={() => handleNavigateOrganelle(prevOrganelle)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-sm dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-600 dark:hover:border-sky-600 dark:text-slate-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#EBF3EF] border border-[#E7E2D9] hover:border-[#CFE1D6] text-[#57534E] text-xs font-bold transition-all cursor-pointer shadow-sm dark:bg-[#232326] dark:hover:bg-[#333338] dark:border-[#2C2C30] dark:hover:border-[#22392D] dark:text-[#D6D3CD]"
               title={`Ver ${prevOrganelle.name}`}
             >
-              <ChevronLeft className="w-4 h-4 text-blue-600" />
+              <ChevronLeft className="w-4 h-4 text-[#2D5A46]" />
               <span className="text-sm">{prevOrganelle.icon}</span>
               <span className="hidden sm:inline truncate max-w-[110px]">{prevOrganelle.name}</span>
             </button>
@@ -656,9 +656,9 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                   sounds.playPop();
                   setShowQuickPicker(!showQuickPicker);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 text-xs font-extrabold transition-all cursor-pointer dark:bg-sky-950/50 dark:hover:bg-sky-900/50 dark:border-sky-900/60 dark:text-sky-300"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EBF3EF] hover:bg-[#E5DFD5] border border-[#CFE1D6] text-[#2D5A46] text-xs font-extrabold transition-all cursor-pointer dark:bg-[#15221B]/50 dark:hover:bg-[#22392D]/50 dark:border-[#22392D] dark:text-[#52B788]"
               >
-                <List className="w-3.5 h-3.5 text-blue-600" />
+                <List className="w-3.5 h-3.5 text-[#2D5A46]" />
                 <span>
                   Organela {currentIdx + 1} de {allOrganelles.length}
                 </span>
@@ -671,11 +671,11 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 sm:w-80 bg-white rounded-2xl shadow-xl border-2 border-blue-200 p-2.5 z-40 max-h-64 overflow-y-auto dark:bg-slate-800 dark:border-slate-600"
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 sm:w-80 bg-white rounded-2xl shadow-xl border-2 border-[#E7E2D9] p-2.5 z-40 max-h-64 overflow-y-auto dark:bg-[#232326] dark:border-[#44403C]"
                   >
-                    <div className="text-[11px] font-black text-slate-500 uppercase px-2 py-1 flex items-center justify-between dark:text-slate-400">
+                    <div className="text-[11px] font-black text-[#78716C] uppercase px-2 py-1 flex items-center justify-between dark:text-[#A8A29E]">
                       <span>Ir direto para organela:</span>
-                      <span className="text-blue-600 font-bold dark:text-sky-400">{allOrganelles.length} itens</span>
+                      <span className="text-[#2D5A46] font-bold dark:text-[#52B788]">{allOrganelles.length} itens</span>
                     </div>
                     <div className="grid grid-cols-2 gap-1 mt-1">
                       {allOrganelles.map((o) => {
@@ -687,8 +687,8 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
                             onClick={() => handleNavigateOrganelle(o)}
                             className={`p-2 rounded-xl text-left text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
                               isCurrent
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'bg-slate-50 hover:bg-blue-50 text-slate-800 dark:bg-slate-700/60 dark:hover:bg-slate-600/60 dark:text-slate-200'
+                                ? 'bg-[#2D5A46] text-white shadow-sm'
+                                : 'bg-[#EFECE6] hover:bg-[#EBF3EF] text-[#1C1917] dark:bg-[#3B3B40]/60 dark:hover:bg-[#44403C]/60 dark:text-[#D6D3CD]'
                             }`}
                           >
                             <span className="text-base">{o.icon}</span>
@@ -706,12 +706,12 @@ className={`p-4 rounded-2xl border-2 flex flex-col gap-1.5 ${
             <button
               type="button"
               onClick={() => handleNavigateOrganelle(nextOrganelle)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-sm dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-600 dark:hover:border-sky-600 dark:text-slate-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#EBF3EF] border border-[#E7E2D9] hover:border-[#CFE1D6] text-[#57534E] text-xs font-bold transition-all cursor-pointer shadow-sm dark:bg-[#232326] dark:hover:bg-[#333338] dark:border-[#2C2C30] dark:hover:border-[#22392D] dark:text-[#D6D3CD]"
               title={`Ver ${nextOrganelle.name}`}
             >
               <span className="hidden sm:inline truncate max-w-[110px]">{nextOrganelle.name}</span>
               <span className="text-sm">{nextOrganelle.icon}</span>
-              <ChevronRight className="w-4 h-4 text-blue-600" />
+              <ChevronRight className="w-4 h-4 text-[#2D5A46]" />
             </button>
           </div>
         </motion.div>

@@ -461,7 +461,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             angle: 60,
             spread: 55,
             origin: { x: 0.1, y: 0.7 },
-            colors: ['#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#10B981']
+            colors: ['#F59E0B', '#EF4444', '#2D5A46', '#52B788', '#10B981']
           });
           // Canhão direito
           confetti({
@@ -469,7 +469,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             angle: 120,
             spread: 55,
             origin: { x: 0.9, y: 0.7 },
-            colors: ['#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#10B981']
+            colors: ['#F59E0B', '#EF4444', '#2D5A46', '#52B788', '#10B981']
           });
           // Explosão central com estrelas
           setTimeout(() => {
@@ -478,7 +478,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
               spread: 100,
               origin: { y: 0.6 },
               shapes: ['circle'],
-              colors: ['#FBBF24', '#38BDF8', '#4ADE80', '#A78BFA']
+              colors: ['#FBBF24', '#6BCFA0', '#4ADE80', '#2D5A46']
             });
           }, 200);
         } catch { /* ignored */ }
@@ -490,7 +490,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             particleCount: 75,
             spread: 80,
             origin: { y: 0.65 },
-            colors: ['#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#10B981']
+            colors: ['#F59E0B', '#EF4444', '#2D5A46', '#52B788', '#10B981']
           });
         } catch { /* ignored */ }
       } else if (nextStreak >= 3) {
@@ -500,7 +500,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             particleCount: 35,
             spread: 60,
             origin: { y: 0.75 },
-            colors: ['#06B6D4', '#8B5CF6', '#10B981']
+            colors: ['#52B788', '#2D5A46', '#10B981']
           });
         } catch { /* ignored */ }
       }
@@ -1208,7 +1208,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-[300000] px-5 py-3 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-2xl shadow-2xl text-xs font-extrabold flex items-center gap-2.5 border border-slate-700/50 dark:border-slate-300/50 backdrop-blur-md"
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-[300000] px-5 py-3 bg-[#18181B] dark:bg-[#FAF9F5] text-white dark:text-[#1C1917] rounded-2xl shadow-2xl text-xs font-extrabold flex items-center gap-2.5 border border-[#3B3B40]/50 dark:border-[#D6D0C5]/50 backdrop-blur-md"
           >
             <CheckCircle2 className="w-4 h-4 text-emerald-400 dark:text-emerald-600 shrink-0" />
             <span>{successToast}</span>
@@ -1224,18 +1224,18 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setZoomImageUrl(null)}
-            className="fixed inset-0 z-[400000] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out"
+            className="fixed inset-0 z-[400000] bg-[#121214]/90 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out"
           >
             <motion.div
               initial={{ scale: 0.92 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.92 }}
-              className="relative max-w-4xl max-h-[85vh] bg-slate-900 rounded-3xl overflow-hidden p-3 border border-slate-800 shadow-2xl"
+              className="relative max-w-4xl max-h-[85vh] bg-[#18181B] rounded-3xl overflow-hidden p-3 border border-[#2C2C30] shadow-2xl"
             >
               <img src={zoomImageUrl} alt="Visualização ampliada" className="max-h-[80vh] w-auto object-contain rounded-2xl mx-auto" />
               <button
                 onClick={() => setZoomImageUrl(null)}
-                className="absolute top-5 right-5 p-2 bg-slate-800/90 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                className="absolute top-5 right-5 p-2 bg-[#18181B]/90 hover:bg-[#333338] text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
                 ✕ Fechar
               </button>
@@ -1264,7 +1264,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
       {/* 1. SELETOR PRINCIPAL DE ABAS (CENTRO DE TREINO vs DASHBOARD vs ESTÚDIO DO PROFESSOR) */}
       <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-6">
-        <div className="inline-flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 overflow-x-auto no-scrollbar w-full lg:w-auto">
+        <div className="inline-flex items-center gap-1 p-1 bg-[#EFECE6] dark:bg-[#232326]/80 rounded-2xl border border-[#E7E2D9]/80 dark:border-[#3B3B40]/80 overflow-x-auto no-scrollbar w-full lg:w-auto">
           <button
             type="button"
             onClick={() => {
@@ -1273,11 +1273,11 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             }}
             className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'game'
-                ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-[#18181B] text-[#2D5A46] dark:text-[#52B788] shadow-xs'
+                : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917] dark:hover:text-[#FAF9F5]'
             }`}
           >
-            <Zap className="w-4 h-4 text-cyan-500 fill-cyan-500" />
+            <Zap className="w-4 h-4 text-[#2D5A46] fill-[#2D5A46]" />
             <span>Centro de Treino</span>
           </button>
 
@@ -1289,8 +1289,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             }}
             className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'dashboard'
-                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-[#18181B] text-emerald-600 dark:text-emerald-400 shadow-xs'
+                : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917] dark:hover:text-[#FAF9F5]'
             }`}
           >
             <BarChart3 className="w-4 h-4 text-emerald-500" />
@@ -1305,8 +1305,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             }}
             className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'leaderboard'
-                ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-[#18181B] text-amber-600 dark:text-amber-400 shadow-xs'
+                : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917] dark:hover:text-[#FAF9F5]'
             }`}
           >
             <Trophy className="w-4 h-4 text-amber-500" />
@@ -1321,11 +1321,11 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             }}
             className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'teacher'
-                ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-[#18181B] text-[#2D5A46] dark:text-[#52B788] shadow-xs'
+                : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917] dark:hover:text-[#FAF9F5]'
             }`}
           >
-            <GraduationCap className="w-4 h-4 text-purple-500" />
+            <GraduationCap className="w-4 h-4 text-[#2D5A46]" />
             <span>Estúdio de Criação ({customQuestions.length})</span>
           </button>
         </div>
@@ -1344,8 +1344,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             <Trophy className="w-3.5 h-3.5 text-amber-500" />
             <span>Recorde: {highScore} pts</span>
           </button>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200/80 dark:border-cyan-900/60 text-cyan-700 dark:text-cyan-300 text-xs font-bold">
-            <Flame className="w-3.5 h-3.5 text-cyan-500" />
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 text-amber-700 dark:text-amber-300 text-xs font-bold">
+            <Flame className="w-3.5 h-3.5 text-amber-500" />
             <span>{streakCount} Dias Seguidos</span>
           </div>
         </div>
@@ -1464,17 +1464,17 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           className="space-y-6"
         >
           {/* Header do Estúdio */}
-          <div className="bg-gradient-to-r from-purple-950/80 via-slate-900 to-indigo-950/80 border border-purple-500/30 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+          <div className="bg-gradient-to-r from-[#2D5A46] via-[#21483A] to-[#1E3E30] border border-[#CFE1D6]/30 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
             <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-2 max-w-xl">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold border border-purple-500/40">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF3EF]/20 text-[#52B788] text-xs font-bold border border-[#CFE1D6]/40">
                   <GraduationCap className="w-3.5 h-3.5" />
                   <span>Laboratório de Autoria do Professor</span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-extrabold text-white font-display">
                   {editingQuestionId ? '✏️ Editando Questão do Banco' : '✨ Criador de Questões Autorais'}
                 </h2>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-[#D6D3CD] leading-relaxed">
                   Defina enunciados, alternativas, gabarito instantâneo, fórmulas e **anexe imagens ilustrativas por URL** para enriquecer o banco de treinos.
                 </p>
               </div>
@@ -1484,20 +1484,20 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                 <button
                   type="button"
                   onClick={loadExamplePhysics}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-400/30 text-xs font-bold transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#EBF3EF]/20 hover:bg-[#EBF3EF]/30 text-[#E7E5E4] border border-[#CFE1D6]/30 text-xs font-bold transition-all cursor-pointer"
                   title="Carregar exemplo ilustrado de Física"
                 >
-                  <ImageIcon className="w-3.5 h-3.5 text-purple-300" />
+                  <ImageIcon className="w-3.5 h-3.5 text-[#52B788]" />
                   <span>Exemplo Física (c/ Imagem)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={loadExampleBiology}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border border-blue-400/30 text-xs font-bold transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#EBF3EF]/20 hover:bg-[#EBF3EF]/30 text-[#E7E5E4] border border-[#CFE1D6]/30 text-xs font-bold transition-all cursor-pointer"
                   title="Carregar exemplo de Biologia Celular"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-blue-300" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#52B788]" />
                   <span>Exemplo Bio</span>
                 </button>
 
@@ -1529,7 +1529,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                 <button
                   type="button"
                   onClick={clearForm}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#15221B]/80 hover:bg-[#15221B] text-[#D6D3CD] border border-[#22392D] text-xs font-bold transition-all cursor-pointer"
                   title="Limpar e criar nova questão"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -1542,11 +1542,11 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           {/* ========================================================================= */}
           {/* WIZARD MULTIETAPAS DE CRIAÇÃO DO PROFESSOR COM PREVIEW EM CARD AO VIVO    */}
           {/* ========================================================================= */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-md space-y-6">
+          <div className="bg-white dark:bg-[#18181B] rounded-3xl p-6 sm:p-8 border border-[#E7E2D9]/80 dark:border-[#2C2C30] shadow-md space-y-6">
             
             {/* 🧭 BARRA DE ETAPAS (PROGRESS STEPPER) */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1">
+              <div className="flex items-center justify-between text-xs font-extrabold text-[#78716C] dark:text-[#A8A29E] uppercase tracking-wider px-1">
                 <span>Passo {wizardStep} de 4</span>
                 <span>{wizardStep === 1 ? 'Identificação & Enunciado' : wizardStep === 2 ? 'Mídias & Fórmulas' : wizardStep === 3 ? 'Alternativas & Gabarito' : 'Card Preview & Salvar'}</span>
               </div>
@@ -1573,26 +1573,26 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       }}
                       className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
                         isActive
-                          ? 'bg-purple-50 dark:bg-purple-950/70 border-purple-500 ring-2 ring-purple-400/20 shadow-xs'
+                          ? 'bg-[#EBF3EF] dark:bg-[#15221B]/70 border-[#2D5A46] ring-2 ring-[#2D5A46]/20 shadow-xs'
                           : isDone
-                          ? 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-purple-300'
-                          : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200/60 dark:border-slate-800 opacity-70 hover:opacity-100'
+                          ? 'bg-[#EFECE6] dark:bg-[#232326]/60 border-[#E7E2D9] dark:border-[#3B3B40] hover:border-[#CFE1D6]'
+                          : 'bg-[#EFECE6]/50 dark:bg-[#232326]/30 border-[#E7E2D9]/60 dark:border-[#2C2C30] opacity-70 hover:opacity-100'
                       }`}
                     >
                       <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
                         isActive
-                          ? 'bg-purple-600 text-white shadow-xs'
+                          ? 'bg-[#2D5A46] text-white shadow-xs'
                           : isDone
                           ? 'bg-emerald-600 text-white'
-                          : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                          : 'bg-[#E7E2D9] dark:bg-[#333338] text-[#57534E] dark:text-[#A8A29E]'
                       }`}>
                         {isDone ? <Check className="w-4 h-4" /> : s.step}
                       </div>
                       <div className="min-w-0">
-                        <span className={`text-xs font-bold block truncate ${isActive ? 'text-purple-700 dark:text-purple-300' : 'text-slate-800 dark:text-slate-200'}`}>
+                        <span className={`text-xs font-bold block truncate ${isActive ? 'text-[#224A38] dark:text-[#52B788]' : 'text-[#1C1917] dark:text-[#E7E5E4]'}`}>
                           {s.title}
                         </span>
-                        <span className="text-[10px] text-slate-400 block truncate">
+                        <span className="text-[10px] text-[#A8A29E] block truncate">
                           {s.desc}
                         </span>
                       </div>
@@ -1614,13 +1614,13 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#D6D3CD] uppercase tracking-wider mb-1.5">
                         Disciplina / Matéria *
                       </label>
                       <select
                         value={formSubject}
                         onChange={(e) => setFormSubject(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full bg-[#EFECE6] dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#3B3B40] rounded-xl px-3 py-2.5 text-xs text-[#1C1917] dark:text-[#FAF9F5] font-semibold focus:outline-none focus:ring-2 focus:ring-[#2D5A46]"
                       >
                         {SUBJECT_OPTIONS.map((s) => (
                           <option key={s} value={s}>{s}</option>
@@ -1634,13 +1634,13 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                           value={formCustomSubject}
                           onChange={(e) => setFormCustomSubject(e.target.value)}
                           placeholder="Digite o nome da disciplina..."
-                          className="mt-2 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white font-medium"
+                          className="mt-2 w-full bg-[#EFECE6] dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#3B3B40] rounded-xl px-3 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] font-medium"
                         />
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#D6D3CD] uppercase tracking-wider mb-1.5">
                         Tópico ou Assunto Específico *
                       </label>
                       <input
@@ -1649,12 +1649,12 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                         value={formTopic}
                         onChange={(e) => setFormTopic(e.target.value)}
                         placeholder="Ex: Circuitos Elétricos, Estequiometria..."
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full bg-[#EFECE6] dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#3B3B40] rounded-xl px-3 py-2.5 text-xs text-[#1C1917] dark:text-[#FAF9F5] font-medium placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#D6D3CD] uppercase tracking-wider mb-1.5">
                         Grau de Dificuldade
                       </label>
                       <div className="grid grid-cols-3 gap-1.5">
@@ -1668,7 +1668,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                                 ? d === 'Fácil' ? 'bg-emerald-500 text-white border-emerald-600 shadow-xs' :
                                   d === 'Médio' ? 'bg-amber-500 text-white border-amber-600 shadow-xs' :
                                   'bg-rose-500 text-white border-rose-600 shadow-xs'
-                                : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                                : 'bg-[#EFECE6] dark:bg-[#232326] text-[#57534E] dark:text-[#A8A29E] border-[#E7E2D9] dark:border-[#3B3B40] hover:bg-[#EFECE6]'
                             }`}
                           >
                             {d}
@@ -1680,10 +1680,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                      <label className="text-xs font-extrabold text-[#44403C] dark:text-[#D6D3CD] uppercase tracking-wider">
                         Enunciado do Problema / Pergunta *
                       </label>
-                      <span className="text-[11px] text-slate-400 font-mono">
+                      <span className="text-[11px] text-[#A8A29E] font-mono">
                         {formStatement.length} caracteres
                       </span>
                     </div>
@@ -1693,16 +1693,16 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       value={formStatement}
                       onChange={(e) => setFormStatement(e.target.value)}
                       placeholder="Escreva com clareza a contextualização e a pergunta central que o aluno deverá responder..."
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none font-medium leading-relaxed"
+                      className="w-full bg-[#EFECE6] dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#3B3B40] rounded-2xl p-4 text-xs sm:text-sm text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46] resize-none font-medium leading-relaxed"
                     />
                   </div>
 
                   {/* Barra de Navegação do Passo 1 */}
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <div className="pt-4 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex items-center justify-between">
                     <button
                       type="button"
                       onClick={clearForm}
-                      className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                      className="px-4 py-2 text-xs font-bold text-[#78716C] hover:text-[#44403C] dark:hover:text-[#D6D3CD] transition-colors"
                     >
                       Limpar
                     </button>
@@ -1717,7 +1717,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                         playSound('click');
                         setWizardStep(2);
                       }}
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold shadow-md shadow-purple-500/20 transition-all cursor-pointer"
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-extrabold shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                     >
                       <span>Avançar para Mídias & Fórmulas</span>
                       <ChevronRight className="w-4 h-4" />
@@ -1734,10 +1734,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                   className="space-y-5"
                 >
                   {/* Seção de Imagem por URL */}
-                  <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-purple-50/60 to-pink-50/40 dark:from-purple-950/20 dark:to-pink-950/20 border border-purple-200/70 dark:border-purple-900/50 space-y-3">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#EBF3EF]/60 to-[#EBF3EF]/40 dark:from-[#15221B]/20 dark:to-[#15221B]/20 border border-[#CFE1D6]/70 dark:border-[#22392D]/50 space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
-                        <ImageIcon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <label className="text-xs font-extrabold text-[#1C1917] dark:text-[#E7E5E4] flex items-center gap-1.5 uppercase tracking-wider">
+                        <ImageIcon className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
                         <span>Imagem Ilustrativa de Referência (URL Pública)</span>
                       </label>
                       {formImageUrl && (
@@ -1747,7 +1747,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       )}
                     </div>
 
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <p className="text-[11px] text-[#78716C] dark:text-[#A8A29E]">
                       Adicione links diretos de fotos, esquemas elétricos, mapas, fórmulas químicas ou gráficos (Unsplash, Imgur, CDN escolar).
                     </p>
 
@@ -1757,7 +1757,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                         value={formImageUrl}
                         onChange={(e) => setFormImageUrl(e.target.value)}
                         placeholder="https://images.unsplash.com/... ou link direto da imagem"
-                        className="w-full bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-900/80 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono"
+                        className="w-full bg-white dark:bg-[#18181B] border border-[#CFE1D6] dark:border-[#22392D]/80 rounded-xl px-3 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46] font-mono"
                       />
                       {formImageUrl && (
                         <button
@@ -1766,7 +1766,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                             setFormImageUrl('');
                             setFormImageCaption('');
                           }}
-                          className="p-2 bg-white dark:bg-slate-800 text-rose-500 rounded-xl border border-rose-200 dark:border-rose-900 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+                          className="p-2 bg-white dark:bg-[#232326] text-rose-500 rounded-xl border border-rose-200 dark:border-rose-900 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
                           title="Remover Imagem"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1780,13 +1780,13 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                         value={formImageCaption}
                         onChange={(e) => setFormImageCaption(e.target.value)}
                         placeholder="Legenda da Imagem (Ex: Figura 1: Esquema de associação de resistores)"
-                        className="w-full bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:outline-none"
+                        className="w-full bg-white/90 dark:bg-[#18181B]/90 border border-[#E7E2D9] dark:border-[#3B3B40] rounded-xl px-3 py-1.5 text-xs text-[#44403C] dark:text-[#D6D3CD] placeholder-[#A8A29E] focus:outline-none"
                       />
                     )}
 
                     {/* Live Preview da Imagem */}
                     {formImageUrl && (
-                      <div className="mt-2 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center">
+                      <div className="mt-2 p-3 bg-white dark:bg-[#18181B] rounded-xl border border-[#E7E2D9] dark:border-[#2C2C30] flex flex-col items-center justify-center">
                         <img
                           src={formImageUrl}
                           alt="Preview"
@@ -1802,7 +1802,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                           <span>Não foi possível carregar a imagem deste link direto. Verifique a URL.</span>
                         </div>
                         {formImageCaption && (
-                          <p className="text-[11px] text-slate-500 italic mt-2 text-center">
+                          <p className="text-[11px] text-[#78716C] italic mt-2 text-center">
                             {formImageCaption}
                           </p>
                         )}
@@ -1812,8 +1812,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
                   {/* Bloco de Código / Fórmulas Opcional */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-                      <FileQuestion className="w-3.5 h-3.5 text-slate-400" />
+                    <label className="block text-xs font-bold text-[#44403C] dark:text-[#D6D3CD] mb-1.5 flex items-center gap-1.5">
+                      <FileQuestion className="w-3.5 h-3.5 text-[#A8A29E]" />
                       <span>Equação, Fórmula Matemática ou Linha de Código (Opcional)</span>
                     </label>
                     <textarea
@@ -1821,19 +1821,19 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       value={formCodeSnippet}
                       onChange={(e) => setFormCodeSnippet(e.target.value)}
                       placeholder="Ex: P_total = V · I = Req · I²   ou   ΔS = v₀·t + (a·t²)/2"
-                      className="w-full bg-slate-950 text-cyan-300 font-mono text-xs rounded-xl p-3 border border-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none shadow-inner"
+                      className="w-full bg-[#121214] text-[#52B788] font-mono text-xs rounded-xl p-3 border border-[#2C2C30] focus:outline-none focus:ring-2 focus:ring-[#2D5A46] resize-none shadow-inner"
                     />
                   </div>
 
                   {/* Barra de Navegação do Passo 2 */}
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <div className="pt-4 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex items-center justify-between">
                     <button
                       type="button"
                       onClick={() => {
                         playSound('click');
                         setWizardStep(1);
                       }}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#57534E] dark:text-[#A8A29E] hover:bg-[#EFECE6] dark:hover:bg-[#333338] transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       <span>Voltar para Enunciado</span>
@@ -1845,7 +1845,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                         playSound('click');
                         setWizardStep(3);
                       }}
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold shadow-md shadow-purple-500/20 transition-all cursor-pointer"
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-extrabold shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                     >
                       <span>Avançar para Alternativas</span>
                       <ChevronRight className="w-4 h-4" />
@@ -1863,10 +1863,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <h4 className="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                      <h4 className="text-xs font-extrabold text-[#44403C] dark:text-[#D6D3CD] uppercase tracking-wider">
                         Opções de Resposta & Gabarito *
                       </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <p className="text-[11px] text-[#78716C] dark:text-[#A8A29E]">
                         Clique na letra (A, B, C, D, E) para definir qual alternativa é a correta.
                       </p>
                     </div>
@@ -1875,7 +1875,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       <button
                         type="button"
                         onClick={() => setFormEnableOptionE(!formEnableOptionE)}
-                        className="text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
+                        className="text-[11px] font-bold text-[#2D5A46] dark:text-[#52B788] hover:underline cursor-pointer"
                       >
                         {formEnableOptionE ? '− Remover Alternativa E' : '+ Adicionar Alternativa E (Padrão ENEM)'}
                       </button>
@@ -1893,8 +1893,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                           key={letter}
                           className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-all ${
                             isCorrect
-                              ? 'bg-purple-50/80 dark:bg-purple-950/60 border-purple-500 ring-2 ring-purple-400/20 shadow-xs'
-                              : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+                              ? 'bg-[#EBF3EF]/80 dark:bg-[#15221B]/60 border-[#2D5A46] ring-2 ring-[#2D5A46]/20 shadow-xs'
+                              : 'bg-[#EFECE6] dark:bg-[#232326]/60 border-[#E7E2D9] dark:border-[#3B3B40]'
                           }`}
                         >
                           <button
@@ -1905,8 +1905,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                             }}
                             className={`w-9 h-9 rounded-xl font-black text-xs flex items-center justify-center shrink-0 transition-all cursor-pointer ${
                               isCorrect
-                                ? 'bg-purple-600 text-white shadow-xs scale-105'
-                                : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:bg-slate-100 hover:scale-102'
+                                ? 'bg-[#2D5A46] text-white shadow-xs scale-105'
+                                : 'bg-white dark:bg-[#333338] text-[#44403C] dark:text-[#D6D3CD] border border-[#E7E2D9] dark:border-[#3B3B40] hover:bg-[#EFECE6] hover:scale-102'
                             }`}
                             title={`Clique para definir Alternativa ${letter} como Gabarito Correto`}
                           >
@@ -1921,7 +1921,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                               setFormOptions((prev) => ({ ...prev, [letter]: e.target.value }))
                             }
                             placeholder={`Escreva o texto da alternativa ${letter}...`}
-                            className="w-full bg-transparent text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none font-medium"
+                            className="w-full bg-transparent text-xs sm:text-sm text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none font-medium"
                           />
 
                           {isCorrect ? (
@@ -1935,7 +1935,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                                 playSound('correct');
                                 setFormCorrectOption(letter);
                               }}
-                              className="text-[10px] font-bold text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 shrink-0 cursor-pointer"
+                              className="text-[10px] font-bold text-[#A8A29E] hover:text-[#2D5A46] dark:hover:text-[#52B788] shrink-0 cursor-pointer"
                             >
                               Marcar como correto
                             </button>
@@ -1946,14 +1946,14 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                   </div>
 
                   {/* Barra de Navegação do Passo 3 */}
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <div className="pt-4 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex items-center justify-between">
                     <button
                       type="button"
                       onClick={() => {
                         playSound('click');
                         setWizardStep(2);
                       }}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#57534E] dark:text-[#A8A29E] hover:bg-[#EFECE6] dark:hover:bg-[#333338] transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       <span>Voltar para Mídias</span>
@@ -1969,7 +1969,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                         playSound('click');
                         setWizardStep(4);
                       }}
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold shadow-md shadow-purple-500/20 transition-all cursor-pointer"
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-extrabold shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
                     >
                       <span>Avançar para Preview do Card</span>
                       <ChevronRight className="w-4 h-4" />
@@ -1988,7 +1988,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                   {/* Resolução e Dica Pedagógica */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#D6D3CD] uppercase tracking-wider mb-1.5">
                         Resolução Comentada da Questão
                       </label>
                       <textarea
@@ -1996,12 +1996,12 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                         value={formExplanation}
                         onChange={(e) => setFormExplanation(e.target.value)}
                         placeholder="Explique passo a passo o raciocínio para o aluno aprender..."
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none leading-relaxed"
+                        className="w-full bg-[#EFECE6] dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#3B3B40] rounded-xl p-3 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46] resize-none leading-relaxed"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                      <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#D6D3CD] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                         <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
                         <span>Dica Sináptica (Ao Errar a Questão)</span>
                       </label>
@@ -2010,30 +2010,30 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                         value={formAiHint}
                         onChange={(e) => setFormAiHint(e.target.value)}
                         placeholder="Dica orientadora que apoia o aluno sem entregar o gabarito..."
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none leading-relaxed"
+                        className="w-full bg-[#EFECE6] dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#3B3B40] rounded-xl p-3 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46] resize-none leading-relaxed"
                       />
                     </div>
                   </div>
 
                   {/* 📱 CARD PREVIEW INTERATIVO AO VIVO */}
-                  <div className="p-4 sm:p-6 rounded-3xl bg-slate-50 dark:bg-slate-950/60 border-2 border-purple-200 dark:border-purple-900/60 space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-3">
+                  <div className="p-4 sm:p-6 rounded-3xl bg-[#EFECE6] dark:bg-[#121214]/60 border-2 border-[#CFE1D6] dark:border-[#22392D]/60 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E7E2D9]/80 dark:border-[#2C2C30] pb-3">
                       <div className="flex items-center gap-2">
-                        <Eye className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                        <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                        <Eye className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
+                        <span className="text-xs font-extrabold text-[#1C1917] dark:text-[#E7E5E4] uppercase tracking-wider">
                           Card Preview Interativo ao Vivo
                         </span>
                       </div>
 
                       {/* Alternador de Modo: Aluno vs Professor */}
-                      <div className="flex items-center gap-1 p-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center gap-1 p-1 bg-white dark:bg-[#232326] rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40]">
                         <button
                           type="button"
                           onClick={() => setPreviewRole('student')}
                           className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                             previewRole === 'student'
-                              ? 'bg-purple-600 text-white shadow-xs'
-                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                              ? 'bg-[#2D5A46] text-white shadow-xs'
+                              : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
                           }`}
                         >
                           👁️ Modo Simulado (Visão do Aluno)
@@ -2043,8 +2043,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                           onClick={() => setPreviewRole('teacher')}
                           className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                             previewRole === 'teacher'
-                              ? 'bg-purple-600 text-white shadow-xs'
-                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                              ? 'bg-[#2D5A46] text-white shadow-xs'
+                              : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
                           }`}
                         >
                           👨‍🏫 Gabarito & Metadados
@@ -2053,15 +2053,15 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                     </div>
 
                     {/* CARD SIMULADO (Visão idêntica ao treino real) */}
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                    <div className="bg-white dark:bg-[#18181B] rounded-2xl p-5 sm:p-6 border border-[#E7E2D9] dark:border-[#2C2C30] shadow-sm space-y-4">
                       
                       {/* Topo do Card */}
                       <div className="flex items-center justify-between text-xs">
-                        <span className="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800">
+                        <span className="px-2.5 py-1 rounded-lg bg-[#EBF3EF] dark:bg-[#15221B]/60 text-[#224A38] dark:text-[#52B788] font-bold border border-[#CFE1D6] dark:border-[#22392D]">
                           {formSubject === 'Personalizado' ? (formCustomSubject || 'Personalizado') : formSubject}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="text-slate-400 font-medium">{formTopic || 'Tópico Geral'}</span>
+                          <span className="text-[#A8A29E] font-medium">{formTopic || 'Tópico Geral'}</span>
                           <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
                             formDifficulty === 'Fácil' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' :
                             formDifficulty === 'Médio' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300' :
@@ -2073,20 +2073,20 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       </div>
 
                       {/* Enunciado */}
-                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-relaxed">
+                      <p className="text-sm font-semibold text-[#1C1917] dark:text-[#FAF9F5] leading-relaxed">
                         {formStatement || 'O enunciado aparecerá aqui...'}
                       </p>
 
                       {/* Imagem do Card Preview */}
                       {formImageUrl && (
-                        <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex flex-col items-center p-2 relative">
+                        <div className="rounded-xl overflow-hidden border border-[#E7E2D9] dark:border-[#2C2C30] bg-[#EFECE6] dark:bg-[#121214] flex flex-col items-center p-2 relative">
                           <img
                             src={formImageUrl}
                             alt="Ilustração da Questão"
                             className="max-h-56 w-auto object-contain rounded-lg shadow-2xs"
                           />
                           {formImageCaption && (
-                            <p className="text-[11px] text-slate-500 italic mt-1.5 text-center">
+                            <p className="text-[11px] text-[#78716C] italic mt-1.5 text-center">
                               {formImageCaption}
                             </p>
                           )}
@@ -2095,7 +2095,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
                       {/* Bloco de Código / Fórmula */}
                       {formCodeSnippet && (
-                        <div className="bg-slate-950 rounded-xl p-3 border border-slate-800 font-mono text-xs text-cyan-300">
+                        <div className="bg-[#121214] rounded-xl p-3 border border-[#2C2C30] font-mono text-xs text-[#52B788]">
                           {formCodeSnippet}
                         </div>
                       )}
@@ -2108,7 +2108,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                           const isSelectedInStudentMode = previewSelectedOption === letter;
 
                           // Estilização no Modo Aluno vs Modo Professor
-                          let optionClass = 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200';
+                          let optionClass = 'bg-[#EFECE6] dark:bg-[#232326]/60 border-[#E7E2D9] dark:border-[#3B3B40] text-[#1C1917] dark:text-[#E7E5E4]';
                           
                           if (previewRole === 'teacher') {
                             if (isCorrect) {
@@ -2122,7 +2122,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                                 optionClass = 'bg-rose-50 dark:bg-rose-950/70 border-rose-500 text-rose-900 dark:text-rose-200 font-bold line-through';
                               }
                             } else if (isSelectedInStudentMode) {
-                              optionClass = 'bg-purple-50 dark:bg-purple-950/70 border-purple-500 text-purple-900 dark:text-purple-200 font-bold';
+                              optionClass = 'bg-[#EBF3EF] dark:bg-[#15221B]/70 border-[#2D5A46] text-[#224A38] dark:text-[#52B788] font-bold';
                             }
                           }
 
@@ -2143,8 +2143,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                                   (previewRole === 'teacher' && isCorrect) || (previewIsConfirmed && isCorrect)
                                     ? 'bg-emerald-600 text-white'
                                     : isSelectedInStudentMode
-                                    ? 'bg-purple-600 text-white'
-                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                    ? 'bg-[#2D5A46] text-white'
+                                    : 'bg-[#E7E2D9] dark:bg-[#333338] text-[#44403C] dark:text-[#D6D3CD]'
                                 }`}>
                                   {letter}
                                 </span>
@@ -2185,7 +2185,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                                   setPreviewIsConfirmed(false);
                                   setPreviewShowHint(false);
                                 }}
-                                className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                                className="px-3 py-1.5 rounded-lg bg-[#E7E2D9] dark:bg-[#333338] text-xs font-bold text-[#44403C] dark:text-[#E7E5E4] cursor-pointer"
                               >
                                 Testar Novamente
                               </button>
@@ -2202,7 +2202,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                                   }
                                   setPreviewIsConfirmed(true);
                                 }}
-                                className="px-4 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-bold disabled:opacity-40 cursor-pointer shadow-xs"
+                                className="px-4 py-1.5 rounded-lg bg-[#2D5A46] text-white text-xs font-bold disabled:opacity-40 cursor-pointer shadow-xs"
                               >
                                 Simular Resposta
                               </button>
@@ -2236,14 +2236,14 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                   </div>
 
                   {/* Barra de Navegação e Botão de Salvar da Etapa 4 */}
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                  <div className="pt-4 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex flex-wrap items-center justify-between gap-3">
                     <button
                       type="button"
                       onClick={() => {
                         playSound('click');
                         setWizardStep(3);
                       }}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#57534E] dark:text-[#A8A29E] hover:bg-[#EFECE6] dark:hover:bg-[#333338] transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       <span>Voltar para Alternativas</span>
@@ -2251,7 +2251,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
                     <button
                       type="submit"
-                      className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-extrabold shadow-lg shadow-purple-500/25 transition-all cursor-pointer scale-102"
+                      className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#2D5A46] to-[#1E3E30] hover:from-[#21483A] hover:to-[#1E3E30] text-white text-xs font-extrabold shadow-lg shadow-[#2D5A46]/25 transition-all cursor-pointer scale-102"
                     >
                       <Plus className="w-4 h-4" />
                       <span>{editingQuestionId ? 'Atualizar Questão no Banco' : 'Salvar no Meu Banco de Questões'}</span>
@@ -2263,11 +2263,11 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
           </div>
 
           {/* GAVETA / PAINEL DE QUESTÕES SALVAS */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#18181B] rounded-3xl p-6 border border-[#E7E2D9]/80 dark:border-[#2C2C30] shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-purple-500" />
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white font-display">
+                <BookOpen className="w-4 h-4 text-[#2D5A46]" />
+                <h3 className="text-sm font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">
                   Suas Questões Salvas ({customQuestions.length})
                 </h3>
               </div>
@@ -2296,14 +2296,14 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                   type="button"
                   onClick={toggleSelectAllVisible}
                   disabled={filteredQuestions.length === 0}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EFECE6] dark:bg-[#232326] text-[#44403C] dark:text-[#D6D3CD] border border-[#E7E2D9] dark:border-[#3B3B40] text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
                   title={filteredQuestions.length > 0 && filteredQuestions.every(q => selectedQuestionIds.includes(q.id)) ? 'Desmarcar todas' : 'Selecionar todas as visíveis'}
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788]" />
                   <span>{filteredQuestions.length > 0 && filteredQuestions.every(q => selectedQuestionIds.includes(q.id)) ? 'Desmarcar todas' : 'Selecionar todas'}</span>
                 </button>
 
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] font-bold text-[#78716C] dark:text-[#A8A29E]">
                   {selectedQuestionIds.length > 0 ? `${selectedQuestionIds.length} selecionada(s)` : ''}
                 </span>
               </div>
@@ -2331,7 +2331,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                     <button
                       type="button"
                       onClick={() => setConfirmDeleteSelected(false)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold cursor-pointer"
+                      className="px-3 py-1.5 rounded-xl bg-[#E7E2D9] dark:bg-[#333338] text-[#44403C] dark:text-[#E7E5E4] text-xs font-bold cursor-pointer"
                     >
                       Cancelar
                     </button>
@@ -2343,20 +2343,20 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             {/* Filtros da Lista */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <div className="flex-1 min-w-[200px] relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={teacherSearch}
                   onChange={(e) => setTeacherSearch(e.target.value)}
                   placeholder="Buscar questão por termo ou tópico..."
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-slate-800 dark:text-slate-200"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#EFECE6] dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#3B3B40] rounded-xl outline-none text-[#1C1917] dark:text-[#E7E5E4]"
                 />
               </div>
 
               <select
                 value={teacherSubjectFilter}
                 onChange={(e) => setTeacherSubjectFilter(e.target.value)}
-                className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-800 dark:text-slate-200 font-semibold focus:outline-none"
+                className="text-xs bg-[#EFECE6] dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#3B3B40] rounded-xl px-2.5 py-1.5 text-[#1C1917] dark:text-[#E7E5E4] font-semibold focus:outline-none"
               >
                 <option value="all">Todas as Disciplinas</option>
                 {Array.from(new Set(customQuestions.map(q => q.subject))).map(s => (
@@ -2376,8 +2376,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                     onClick={() => toggleQuestionSelection(q.id)}
                     className={`p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all cursor-pointer border ${
                       isSelected
-                        ? 'bg-cyan-50/80 dark:bg-cyan-950/50 border-cyan-400 ring-2 ring-cyan-400/25'
-                        : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                        ? 'bg-[#EBF3EF]/80 dark:bg-[#15221B]/50 border-[#2D5A46] ring-2 ring-[#2D5A46]/25'
+                        : 'bg-[#EFECE6]/70 dark:bg-[#232326]/40 border-[#E7E2D9]/80 dark:border-[#2C2C30] hover:border-[#D6D0C5] dark:hover:border-[#3B3B40]'
                     }`}
                   >
                     {/* Checkbox de multiseleção */}
@@ -2385,8 +2385,8 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       onClick={(e) => e.stopPropagation()}
                       className={`w-6 h-6 rounded-lg shrink-0 flex items-center justify-center border transition-all cursor-pointer mt-0.5 ${
                         isSelected
-                          ? 'bg-cyan-600 border-cyan-600 text-white'
-                          : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-cyan-500'
+                          ? 'bg-[#2D5A46] border-[#2D5A46] text-white'
+                          : 'bg-white dark:bg-[#232326] border-[#D6D0C5] dark:border-[#3B3B40] hover:border-[#2D5A46]'
                       }`}
                       title="Alternar seleção"
                     >
@@ -2395,10 +2395,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
 
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#EBF3EF] dark:bg-[#15221B]/80 text-[#224A38] dark:text-[#52B788]">
                           {q.subject}
                         </span>
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{q.topic}</span>
+                        <span className="text-xs font-bold text-[#1C1917] dark:text-[#E7E5E4]">{q.topic}</span>
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                           q.difficulty === 'Fácil' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50' :
                           q.difficulty === 'Médio' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/50' :
@@ -2407,12 +2407,12 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                           {q.difficulty}
                         </span>
                         {q.imageUrl && (
-                          <span className="text-[10px] text-pink-600 font-bold flex items-center gap-0.5">
+                          <span className="text-[10px] text-[#2D5A46] font-bold flex items-center gap-0.5">
                             <ImageIcon className="w-3 h-3" /> Imagem
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-1">
+                      <p className="text-xs text-[#57534E] dark:text-[#D6D3CD] line-clamp-1">
                         {q.statement}
                       </p>
                     </div>
@@ -2421,7 +2421,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); handleEditQuestionInForm(q); }}
-                        className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 border border-slate-200 dark:border-slate-600 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#333338] text-[#2D5A46] dark:text-[#52B788] hover:bg-[#EBF3EF] border border-[#E7E2D9] dark:border-[#3B3B40] text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                         <span>Editar</span>
@@ -2441,7 +2441,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                 })}
               </div>
             ) : (
-              <div className="p-8 text-center text-xs text-slate-400">
+              <div className="p-8 text-center text-xs text-[#A8A29E]">
                 Nenhuma questão encontrada com os filtros selecionados.
               </div>
             )}
@@ -2457,14 +2457,14 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowImportModal(false)}
-            className="fixed inset-0 z-[400000] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+            className="fixed inset-0 z-[400000] bg-[#121214]/80 backdrop-blur-md flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.94, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.94, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6 sm:p-8"
+              className="w-full max-w-2xl bg-white dark:bg-[#18181B] rounded-3xl border border-[#E7E2D9] dark:border-[#3B3B40] shadow-2xl p-6 sm:p-8"
             >
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex items-center gap-3">
@@ -2472,10 +2472,10 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                     <FileJson className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-slate-100 font-display">
+                    <h3 className="text-lg font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">
                       Importar Questões via JSON
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
                       Cole o JSON com suas questões (ideal para colar o que a IA gerou).
                     </p>
                   </div>
@@ -2483,7 +2483,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowImportModal(false)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer"
+                  className="text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] p-1 cursor-pointer"
                   aria-label="Fechar"
                 >
                   <X className="w-5 h-5" />
@@ -2495,7 +2495,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                 onChange={(e) => setImportJsonText(e.target.value)}
                 spellCheck={false}
                 placeholder='Cole aqui o JSON de questões, ex: [{"subject": "...", "statement": "...", "options": [{"text": "...", "isCorrect": true, "explanation": "..."}]}]'
-                className="w-full h-56 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-xs font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:focus:ring-amber-400/30 focus:border-amber-500 resize-y"
+                className="w-full h-56 bg-[#EFECE6] dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#3B3B40] rounded-2xl p-4 text-xs font-mono text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] dark:placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:focus:ring-amber-400/30 focus:border-amber-500 resize-y"
               />
 
               <div className="mt-3">
@@ -2527,7 +2527,7 @@ export const TreinoGamificacao: React.FC<TreinoGamificacaoProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowImportModal(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-[#57534E] dark:text-[#D6D3CD] bg-[#EFECE6] dark:bg-[#232326] hover:bg-[#E7E2D9] dark:hover:bg-[#3B3B40] transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>

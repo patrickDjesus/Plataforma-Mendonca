@@ -149,20 +149,20 @@ export const StudyTimeSummaryCard: React.FC<StudyTimeSummaryCardProps> = ({
   }, [analytics, dailyTargetMinutes]);
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[28px] p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:shadow-lg hover:shadow-indigo-500/10 hover:border-indigo-300 dark:hover:border-indigo-700/60 transition-all duration-300 relative overflow-hidden flex flex-col gap-5">
+    <div className="bg-white dark:bg-[#18181B] rounded-[28px] p-5 sm:p-6 border border-[#E7E2D9]/80 dark:border-[#2C2C30] shadow-2xs hover:shadow-lg hover:shadow-[#2D5A46]/10 hover:border-[#2D5A46]/50 dark:hover:border-[#2D5A46]/60 transition-all duration-300 relative overflow-hidden flex flex-col gap-5">
       
       {/* Background Glow suave */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#2D5A46]/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Header com Título e Ação de Ajuste */}
       <div className="flex items-center justify-between z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-xs">
+          <div className="w-10 h-10 rounded-2xl bg-[#EBF3EF] dark:bg-[#15221B]/60 text-[#2D5A46] dark:text-[#52B788] flex items-center justify-center shadow-xs">
             <Clock className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
+              <h3 className="text-base font-bold font-display text-[#1C1917] dark:text-[#FAF9F5]">
                 Tempo Total de Estudo (Últimos 7 dias)
               </h3>
               {stats7Days.isCompleted && (
@@ -171,7 +171,7 @@ export const StudyTimeSummaryCard: React.FC<StudyTimeSummaryCardProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            <p className="text-xs text-[#78716C] dark:text-[#A8A29E] font-medium">
               Acompanhamento de dedicação semanal e meta diária configurável
             </p>
           </div>
@@ -179,7 +179,7 @@ export const StudyTimeSummaryCard: React.FC<StudyTimeSummaryCardProps> = ({
 
         <button
           onClick={() => setIsEditingTarget(!isEditingTarget)}
-          className="text-xs font-semibold text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5"
+          className="text-xs font-semibold text-[#78716C] hover:text-[#2D5A46] dark:text-[#A8A29E] dark:hover:text-[#52B788] p-2 rounded-xl hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors cursor-pointer flex items-center gap-1.5"
           title="Ajustar Meta Diária de Estudo"
         >
           <Sliders className="w-3.5 h-3.5" />
@@ -194,15 +194,15 @@ export const StudyTimeSummaryCard: React.FC<StudyTimeSummaryCardProps> = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 z-10"
+            className="p-4 bg-[#EFECE6] dark:bg-[#232326]/80 rounded-2xl border border-[#E7E2D9] dark:border-[#3B3B40] space-y-3 z-10"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span className="text-xs font-bold text-[#44403C] dark:text-[#D6D3CD]">
                 Selecione seu alvo diário de estudo:
               </span>
               <button
                 onClick={() => setIsEditingTarget(false)}
-                className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="text-[11px] text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4]"
               >
                 Fechar
               </button>
@@ -215,8 +215,8 @@ export const StudyTimeSummaryCard: React.FC<StudyTimeSummaryCardProps> = ({
                   onClick={() => handleSaveDailyTarget(mins)}
                   className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
                     dailyTargetMinutes === mins
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800'
+                      ? 'bg-[#2D5A46] text-white shadow-xs'
+                      : 'bg-white dark:bg-[#18181B] text-[#44403C] dark:text-[#D6D3CD] hover:bg-[#EBF3EF] dark:hover:bg-[#15221B]/40 border border-[#E7E2D9] dark:border-[#2C2C30]'
                   }`}
                 >
                   {dailyTargetMinutes === mins && <Check className="w-3.5 h-3.5" />}
@@ -232,43 +232,43 @@ export const StudyTimeSummaryCard: React.FC<StudyTimeSummaryCardProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 z-10">
         
         {/* Card 1: Total 7 Dias */}
-        <div className="bg-gradient-to-br from-indigo-50/70 to-blue-50/70 dark:from-indigo-950/30 dark:to-blue-950/30 p-3.5 rounded-2xl border border-indigo-100 dark:border-indigo-900/50 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-indigo-700 dark:text-indigo-300 mb-1">
+        <div className="bg-gradient-to-br from-[#EBF3EF]/70 to-[#CFE1D6]/70 dark:from-[#15221B]/30 dark:to-[#22392D]/30 p-3.5 rounded-2xl border border-[#DCE9E1] dark:border-[#22392D]/50 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#2D5A46] dark:text-[#52B788] mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider">Últimos 7 Dias</span>
             <Calendar className="w-3.5 h-3.5" />
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 dark:text-white font-display">
+          <div className="text-2xl font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">
             {stats7Days.formatted7Days}
           </div>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+          <span className="text-[10px] text-[#78716C] dark:text-[#A8A29E] mt-1">
             {stats7Days.sessionsCount} sessões registradas
           </span>
         </div>
 
         {/* Card 2: Média Diária */}
-        <div className="bg-slate-50/80 dark:bg-slate-800/50 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-600 dark:text-slate-300 mb-1">
+        <div className="bg-[#EFECE6]/80 dark:bg-[#232326]/50 p-3.5 rounded-2xl border border-[#E7E2D9] dark:border-[#2C2C30] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#57534E] dark:text-[#D6D3CD] mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider">Média Diária</span>
             <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 dark:text-white font-display">
+          <div className="text-2xl font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">
             {stats7Days.dailyAverageMin} min
           </div>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+          <span className="text-[10px] text-[#78716C] dark:text-[#A8A29E] mt-1">
             Ritmo constante por dia
           </span>
         </div>
 
         {/* Card 3: Tempo de Hoje */}
-        <div className="bg-slate-50/80 dark:bg-slate-800/50 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-600 dark:text-slate-300 mb-1">
+        <div className="bg-[#EFECE6]/80 dark:bg-[#232326]/50 p-3.5 rounded-2xl border border-[#E7E2D9] dark:border-[#2C2C30] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#57534E] dark:text-[#D6D3CD] mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider">Hoje Estudado</span>
             <Flame className="w-3.5 h-3.5 text-amber-500" />
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 dark:text-white font-display">
+          <div className="text-2xl font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">
             {stats7Days.formattedToday}
           </div>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+          <span className="text-[10px] text-[#78716C] dark:text-[#A8A29E] mt-1">
             Meta: {dailyTargetMinutes} min
           </span>
         </div>
@@ -278,40 +278,40 @@ export const StudyTimeSummaryCard: React.FC<StudyTimeSummaryCardProps> = ({
       {/* ========================================================================= */}
       {/* BARRA DE PROGRESSO DA META DIÁRIA (DAILY STUDY GOAL PROGRESS BAR) */}
       {/* ========================================================================= */}
-      <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2.5 z-10">
+      <div className="bg-[#EFECE6] dark:bg-[#232326]/40 p-4 rounded-2xl border border-[#E7E2D9]/80 dark:border-[#2C2C30] space-y-2.5 z-10">
         
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            <span className="font-bold text-slate-800 dark:text-slate-200">
+            <Target className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
+            <span className="font-bold text-[#1C1917] dark:text-[#E7E5E4]">
               Progresso da Meta Diária (Daily Study Goal)
             </span>
           </div>
-          <div className="flex items-center gap-1.5 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+          <div className="flex items-center gap-1.5 font-mono font-bold text-[#2D5A46] dark:text-[#52B788]">
             <span>{stats7Days.todayMinutes}</span>
-            <span className="text-slate-400 font-normal">/</span>
+            <span className="text-[#A8A29E] font-normal">/</span>
             <span>{dailyTargetMinutes} min</span>
-            <span className="ml-1 text-[11px] px-1.5 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-sans">
+            <span className="ml-1 text-[11px] px-1.5 py-0.5 rounded-md bg-[#CFE1D6] dark:bg-[#22392D]/60 text-[#2D5A46] dark:text-[#52B788] font-sans">
               {stats7Days.progressPercent}%
             </span>
           </div>
         </div>
 
         {/* Visual Progress Bar com gradiente dinâmico e animação */}
-        <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden relative shadow-inner">
+        <div className="w-full h-3 bg-[#E7E2D9] dark:bg-[#3B3B40] rounded-full overflow-hidden relative shadow-inner">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${stats7Days.progressPercent}%` }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
             className={`h-full rounded-full transition-all duration-500 ${
               stats7Days.isCompleted
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-sm shadow-emerald-500/30'
-                : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-500 shadow-sm shadow-indigo-500/30'
+                ? 'bg-gradient-to-r from-[#2D5A46] to-[#52B788] shadow-sm shadow-emerald-500/30'
+                : 'bg-gradient-to-r from-[#2D5A46] via-[#52B788] to-[#6BCFA0] shadow-sm shadow-[#2D5A46]/30'
             }`}
           />
         </div>
 
-        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+        <div className="flex items-center justify-between text-[11px] text-[#78716C] dark:text-[#A8A29E] pt-0.5">
           <span>
             {stats7Days.isCompleted ? (
               <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
@@ -324,7 +324,7 @@ export const StudyTimeSummaryCard: React.FC<StudyTimeSummaryCardProps> = ({
 
           <button
             onClick={onStartTraining}
-            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-bold flex items-center gap-1 cursor-pointer transition-colors"
+            className="text-[#2D5A46] dark:text-[#52B788] hover:text-[#21483A] dark:hover:text-[#6BCFA0] font-bold flex items-center gap-1 cursor-pointer transition-colors"
           >
             <span>Estudar agora</span>
             <Play className="w-2.5 h-2.5 fill-current" />

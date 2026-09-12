@@ -55,18 +55,18 @@ export const CellOrganellesList: React.FC<CellOrganellesListProps> = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-3xl p-5 border-2 border-blue-100 shadow-lg shadow-blue-900/5 flex flex-col gap-4 dark:bg-slate-900 dark:border-slate-800">
+    <div className="w-full bg-white rounded-3xl p-5 border-2 border-[#E7E2D9] shadow-lg shadow-[#2D5A46]/5 flex flex-col gap-4 dark:bg-[#18181B] dark:border-[#2C2C30]">
       {/* Title & Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold shadow-inner dark:bg-sky-950/50 dark:border-sky-900/60 dark:text-sky-300">
+          <div className="w-10 h-10 rounded-2xl bg-[#EBF3EF] border border-[#CFE1D6] text-[#2D5A46] flex items-center justify-center text-lg font-bold shadow-inner dark:bg-[#15221B]/50 dark:border-[#22392D] dark:text-[#52B788]">
             🔬
           </div>
           <div>
-            <h2 className="text-lg font-black text-slate-900 tracking-tight font-display dark:text-white">
+            <h2 className="text-lg font-black text-[#1C1917] tracking-tight font-display dark:text-[#FAF9F5]">
               Fichário de Citologia & Organelas
             </h2>
-            <p className="text-xs text-slate-500 font-semibold dark:text-slate-400">
+            <p className="text-xs text-[#78716C] font-semibold dark:text-[#A8A29E]">
               Selecione uma organela para explorar bioquímica celular e itens do ENEM
             </p>
           </div>
@@ -75,19 +75,19 @@ export const CellOrganellesList: React.FC<CellOrganellesListProps> = ({
 
       {/* Search Bar Input */}
       <div className="relative w-full">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2D5A46] pointer-events-none" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Buscar por organela, enzima (catalase, ATP-sintase), ATP, osmose, acrossomo..."
-          className="w-full pl-10 pr-9 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-xs sm:text-sm font-semibold rounded-2xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400 dark:bg-slate-800/70 dark:hover:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 dark:border-slate-700 dark:focus:border-sky-500 dark:focus:ring-sky-900/40 dark:placeholder:text-slate-500"
+          className="w-full pl-10 pr-9 py-2.5 bg-[#EFECE6]/60 hover:bg-[#EFECE6]/90 focus:bg-white text-[#1C1917] text-xs sm:text-sm font-semibold rounded-2xl border border-[#E7E2D9] focus:border-[#2D5A46] focus:ring-4 focus:ring-[#CFE1D6] outline-none transition-all placeholder:text-[#A8A29E] dark:bg-[#232326]/70 dark:hover:bg-[#232326] dark:focus:bg-[#232326] dark:text-[#FAF9F5] dark:border-[#2C2C30] dark:focus:border-[#52B788] dark:focus:ring-[#22392D]/40 dark:placeholder:text-[#A8A29E]"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => setSearchQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-colors cursor-pointer dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#E7E2D9] hover:bg-[#D6D0C5] text-[#57534E] flex items-center justify-center transition-colors cursor-pointer dark:bg-[#3B3B40] dark:hover:bg-[#44403C] dark:text-[#D6D3CD]"
             title="Limpar busca"
           >
             <X className="w-3 h-3" />
@@ -97,9 +97,9 @@ export const CellOrganellesList: React.FC<CellOrganellesListProps> = ({
 
       {/* Category Filter Chips - Clean structured symmetrical grid */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
-          <span className="flex items-center gap-1.5 text-slate-600 font-extrabold dark:text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
+        <div className="flex items-center justify-between text-xs font-bold text-[#78716C] dark:text-[#A8A29E]">
+          <span className="flex items-center gap-1.5 text-[#57534E] font-extrabold dark:text-[#D6D3CD]">
+            <span className="w-2 h-2 rounded-full bg-[#2D5A46]" />
             <span>Filtrar por função celular:</span>
           </span>
           {selectedCategory !== 'todas' && (
@@ -109,7 +109,7 @@ export const CellOrganellesList: React.FC<CellOrganellesListProps> = ({
                 sounds.playPop();
                 setSelectedCategory('todas');
               }}
-              className="text-blue-600 hover:text-blue-800 text-[11px] font-extrabold hover:underline cursor-pointer flex items-center gap-1 dark:text-sky-400 dark:hover:text-sky-300"
+              className="text-[#2D5A46] hover:text-[#21483A] text-[11px] font-extrabold hover:underline cursor-pointer flex items-center gap-1 dark:text-[#52B788] dark:hover:text-[#52B788]"
             >
               <X className="w-3 h-3" />
               <span>Limpar filtro</span>
@@ -135,8 +135,8 @@ export const CellOrganellesList: React.FC<CellOrganellesListProps> = ({
                 }}
                 className={`py-2 px-2.5 rounded-xl font-bold transition-all flex items-center justify-between gap-1.5 cursor-pointer border text-xs text-left ${
                   isSelected
-                    ? 'bg-blue-600 border-blue-700 text-white shadow-sm shadow-blue-500/25 ring-2 ring-blue-200/80 font-black dark:ring-sky-500/40'
-                    : 'bg-slate-50 hover:bg-blue-50/70 border-slate-200 text-slate-700 hover:text-blue-800 hover:border-blue-200 dark:bg-slate-800/60 dark:hover:bg-slate-700/70 dark:border-slate-700 dark:text-slate-200 dark:hover:text-sky-300 dark:hover:border-sky-700'
+                    ? 'bg-[#2D5A46] border-[#21483A] text-white shadow-sm shadow-[#2D5A46]/25 ring-2 ring-[#CFE1D6]/80 font-black dark:ring-[#52B788]/40'
+                    : 'bg-[#EFECE6] hover:bg-[#EBF3EF]/70 border-[#E7E2D9] text-[#57534E] hover:text-[#2D5A46] hover:border-[#CFE1D6] dark:bg-[#232326]/60 dark:hover:bg-[#333338]/70 dark:border-[#2C2C30] dark:text-[#D6D3CD] dark:hover:text-[#52B788] dark:hover:border-[#22392D]'
                 }`}
               >
                 <div className="flex items-center gap-1.5 truncate">
@@ -147,7 +147,7 @@ export const CellOrganellesList: React.FC<CellOrganellesListProps> = ({
                   className={`text-[10px] px-1.5 py-0.5 rounded-full font-black shrink-0 ${
                     isSelected
                       ? 'bg-white/25 text-white'
-                      : 'bg-slate-200/70 text-slate-600 dark:bg-slate-700/70 dark:text-slate-300'
+                      : 'bg-[#E7E2D9]/70 text-[#57534E] dark:bg-[#3B3B40]/70 dark:text-[#D6D3CD]'
                   }`}
                 >
                   {count}
@@ -169,20 +169,20 @@ export const CellOrganellesList: React.FC<CellOrganellesListProps> = ({
                 onClick={() => handleOrganelleClick(item)}
                 className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-2.5 text-left group ${
                   isSelected
-                    ? 'bg-blue-50/90 border-blue-500 shadow-md ring-2 ring-blue-300/50 dark:bg-sky-950/50 dark:border-sky-500 dark:ring-sky-500/30'
-                    : 'bg-white hover:bg-slate-50/80 border-slate-200/90 hover:border-blue-300 shadow-sm dark:bg-slate-900 dark:hover:bg-slate-800/80 dark:border-slate-800 dark:hover:border-sky-700'
+                    ? 'bg-[#EBF3EF]/90 border-[#2D5A46] shadow-md ring-2 ring-[#CFE1D6] dark:bg-[#15221B] dark:border-[#52B788] dark:ring-[#52B788]/30'
+                    : 'bg-white hover:bg-[#EBF3EF]/50 border-[#E7E2D9]/90 hover:border-[#CFE1D6] shadow-sm dark:bg-[#18181B] dark:hover:bg-[#232326]/80 dark:border-[#2C2C30] dark:hover:border-[#22392D]'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-blue-100 border border-slate-200 flex items-center justify-center text-xl shadow-inner transition-colors shrink-0 dark:bg-slate-800 dark:group-hover:bg-slate-700 dark:border-slate-700">
+                    <div className="w-10 h-10 rounded-xl bg-[#EFECE6] group-hover:bg-[#EBF3EF] border border-[#E7E2D9] flex items-center justify-center text-xl shadow-inner transition-colors shrink-0 dark:bg-[#232326] dark:group-hover:bg-[#333338] dark:border-[#2C2C30]">
                       {item.icon}
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-slate-900 group-hover:text-blue-700 transition-colors font-display leading-tight dark:text-white dark:group-hover:text-sky-400">
+                      <h3 className="text-sm font-black text-[#1C1917] group-hover:text-[#2D5A46] transition-colors font-display leading-tight dark:text-[#FAF9F5] dark:group-hover:text-[#52B788]">
                         {item.name}
                       </h3>
-                      <span className="text-[10px] font-bold text-slate-500 line-clamp-1 dark:text-slate-400">
+                      <span className="text-[10px] font-bold text-[#78716C] line-clamp-1 dark:text-[#A8A29E]">
                         {item.categoryLabel}
                       </span>
                     </div>
@@ -199,24 +199,24 @@ export const CellOrganellesList: React.FC<CellOrganellesListProps> = ({
                   })()}
                 </div>
 
-                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-medium dark:text-slate-300">
+                <p className="text-xs text-[#57534E] line-clamp-2 leading-relaxed font-medium dark:text-[#D6D3CD]">
                   {item.shortDesc}
                 </p>
 
                 {/* Key Concepts Badges */}
-                <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between pt-1 border-t border-[#E7E2D9] dark:border-[#2C2C30]">
                   <div className="flex items-center gap-1 overflow-hidden">
                     {item.enemKeywords.slice(0, 2).map((kw, i) => (
                       <span
                         key={i}
-                        className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 truncate max-w-[110px] dark:bg-slate-800 dark:text-slate-300"
+                        className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#E7E2D9]/80 text-[#57534E] truncate max-w-[110px] dark:bg-[#232326] dark:text-[#D6D3CD]"
                       >
                         {kw}
                       </span>
                     ))}
                   </div>
 
-                  <span className="text-xs font-bold text-blue-600 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform shrink-0 dark:text-sky-400">
+                  <span className="text-xs font-bold text-[#2D5A46] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform shrink-0 dark:text-[#52B788]">
                     Detalhes <ChevronRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
@@ -226,15 +226,15 @@ export const CellOrganellesList: React.FC<CellOrganellesListProps> = ({
         ) : (
           <div className="col-span-full py-8 text-center flex flex-col items-center justify-center gap-2">
             <span className="text-3xl">🔍</span>
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Nenhuma organela encontrada para &quot;{searchQuery}&quot;</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Tente buscar por termos como ATP, núcleo, membrana, catalase, etc.</p>
+            <p className="text-sm font-bold text-[#57534E] dark:text-[#D6D3CD]">Nenhuma organela encontrada para &quot;{searchQuery}&quot;</p>
+            <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">Tente buscar por termos como ATP, núcleo, membrana, catalase, etc.</p>
             <button
               type="button"
               onClick={() => {
                 setSearchQuery('');
                 setSelectedCategory('todas');
               }}
-              className="mt-2 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 transition-colors dark:bg-sky-950/50 dark:hover:bg-sky-900/50 dark:text-sky-300 dark:border-sky-900/60"
+              className="mt-2 px-3 py-1.5 rounded-xl bg-[#EBF3EF] hover:bg-[#E5DFD5] text-[#2D5A46] text-xs font-bold border border-[#CFE1D6] transition-colors dark:bg-[#15221B]/50 dark:hover:bg-[#22392D]/50 dark:text-[#52B788] dark:border-[#22392D]"
             >
               Redefinir Filtros
             </button>

@@ -72,7 +72,7 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/65 backdrop-blur-sm"
+          className="fixed inset-0 bg-[#1C1917]/65 backdrop-blur-sm"
         />
 
         {/* Modal Container */}
@@ -80,19 +80,19 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden z-10"
+          className="relative w-full max-w-md bg-white dark:bg-[#18181B] rounded-[28px] border border-[#E7E2D9]/80 dark:border-[#2C2C30] shadow-2xl overflow-hidden z-10"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-blue-50/50 dark:bg-blue-950/30">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#E7E2D9] dark:border-[#2C2C30] bg-[#EBF3EF]/50 dark:bg-[#15221B]/30">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-[#2D5A46] text-white flex items-center justify-center shadow-xs">
                 <BookOpen className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100 font-display">
+                <h3 className="font-bold text-sm text-[#1C1917] dark:text-[#FAF9F5] font-display">
                   Definir Significado de Palavra
                 </h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-[11px] text-[#78716C] dark:text-[#A8A29E]">
                   Aparecerá como balão interativo ao passar o mouse.
                 </p>
               </div>
@@ -100,7 +100,7 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-1.5 text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] rounded-xl hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -110,7 +110,7 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
           <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
             {/* Termo / Palavra */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-xs font-bold text-[#44403C] dark:text-[#E7E5E4] mb-1">
                 Palavra ou Termo *
               </label>
               <input
@@ -119,13 +119,13 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
                 value={term}
                 onChange={(e) => setTerm(e.target.value)}
                 placeholder="Ex: Derivada, Mitose, Entropia..."
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 font-bold"
+                className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl px-3 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 focus:border-[#2D5A46] font-bold"
               />
             </div>
 
             {/* Categoria */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-xs font-bold text-[#44403C] dark:text-[#E7E5E4] mb-1">
                 Categoria / Matéria
               </label>
               <input
@@ -133,13 +133,13 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 placeholder="Ex: Biologia, Cálculo, Termodinâmica..."
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl px-3 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 focus:border-[#2D5A46]"
               />
             </div>
 
             {/* Significado / Definição */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-xs font-bold text-[#44403C] dark:text-[#E7E5E4] mb-1">
                 Significado / Definição Conceitual (ou insira a imagem)
               </label>
               <textarea
@@ -147,14 +147,14 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
                 value={definition}
                 onChange={(e) => setDefinition(e.target.value)}
                 placeholder="Explique com clareza o que esta palavra significa neste contexto..."
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none leading-relaxed"
+                className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl p-3 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 focus:border-[#2D5A46] resize-none leading-relaxed"
               />
             </div>
 
             {/* Imagem do Conceito */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1">
-                <ImageIcon className="w-3.5 h-3.5 text-blue-500" />
+              <label className="block text-xs font-bold text-[#44403C] dark:text-[#E7E5E4] mb-1 flex items-center gap-1">
+                <ImageIcon className="w-3.5 h-3.5 text-[#2D5A46]" />
                 Imagem do Conceito (Opcional)
               </label>
               <input
@@ -162,10 +162,10 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="https://exemplo.com/diagrama.png"
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl px-3 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 focus:border-[#2D5A46]"
               />
               {imageUrl.trim() && (
-                <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                <div className="mt-2 rounded-xl overflow-hidden border border-[#E7E2D9] dark:border-[#2C2C30]">
                   <img
                     src={imageUrl.trim()}
                     alt="Pré-visualização"
@@ -178,7 +178,7 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
 
             {/* Exemplo Prático */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1">
+              <label className="block text-xs font-bold text-[#44403C] dark:text-[#E7E5E4] mb-1 flex items-center gap-1">
                 <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
                 Exemplo ou Analogia Prática (Opcional)
               </label>
@@ -187,23 +187,23 @@ export const AddGlossaryTermModal: React.FC<AddGlossaryTermModalProps> = ({
                 value={example}
                 onChange={(e) => setExample(e.target.value)}
                 placeholder="Ex: A velocidade instantânea do velocímetro do carro."
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl px-3 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 focus:border-[#2D5A46]"
               />
             </div>
 
             {/* Actions */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+            <div className="pt-2 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-[#57534E] dark:text-[#D6D3CD] hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-md shadow-[#2D5A46]/20 transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 Salvar Significado

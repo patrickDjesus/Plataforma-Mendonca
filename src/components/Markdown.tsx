@@ -21,7 +21,7 @@ function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
       nodes.push(
         <code
           key={k}
-          className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/80 text-[0.92em] font-mono text-rose-600 dark:text-rose-300"
+          className="px-1.5 py-0.5 rounded-md bg-[#EFECE6] dark:bg-[#3B3B40]/80 text-[0.92em] font-mono text-rose-600 dark:text-rose-300"
         >
           {match[1].slice(1, -1)}
         </code>
@@ -39,7 +39,7 @@ function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
           href={match[6]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 dark:text-blue-400 underline underline-offset-2 decoration-blue-400/50 hover:decoration-blue-600"
+          className="text-[#2D5A46] dark:text-[#52B788] underline underline-offset-2 decoration-[#2D5A46]/50 hover:decoration-[#21483A]"
         >
           {match[5]}
         </a>
@@ -73,12 +73,12 @@ const LIST_MARKER_RE = /^\s*([-*+])\s+(.*)$/;
 const ORDERED_MARKER_RE = /^\s*\d+[.)]\s+(.*)$/;
 
 const HEADING_CLASSES: Record<number, string> = {
-  1: 'text-xl font-extrabold mt-1 mb-1',
-  2: 'text-lg font-extrabold mt-1 mb-1',
-  3: 'text-base font-bold mt-1 mb-0.5',
-  4: 'text-sm font-bold mt-1 mb-0.5',
-  5: 'text-xs font-bold mt-1 mb-0.5 uppercase tracking-wide',
-  6: 'text-xs font-semibold mt-1 mb-0.5 uppercase tracking-wide opacity-80',
+  1: 'font-display text-xl font-extrabold mt-1 mb-1',
+  2: 'font-display text-lg font-extrabold mt-1 mb-1',
+  3: 'font-display text-base font-bold mt-1 mb-0.5',
+  4: 'font-display text-sm font-bold mt-1 mb-0.5',
+  5: 'font-display text-xs font-bold mt-1 mb-0.5 uppercase tracking-wide',
+  6: 'font-display text-xs font-semibold mt-1 mb-0.5 uppercase tracking-wide opacity-80',
 };
 
 function renderBlocks(content: string, keyPrefix: string): React.ReactNode[] {
@@ -108,7 +108,7 @@ function renderBlocks(content: string, keyPrefix: string): React.ReactNode[] {
       blocks.push(
         <pre
           key={k}
-          className="my-1.5 p-3 rounded-xl bg-slate-900 dark:bg-slate-950 text-emerald-100 text-[11px] leading-relaxed overflow-x-auto border border-slate-200 dark:border-slate-700"
+          className="my-1.5 p-3 rounded-xl bg-[#18181B] dark:bg-[#121214] text-emerald-100 text-[11px] leading-relaxed overflow-x-auto border border-[#E7E2D9] dark:border-[#3B3B40]"
         >
           <code>{codeLines.join('\n')}</code>
         </pre>
@@ -132,7 +132,7 @@ function renderBlocks(content: string, keyPrefix: string): React.ReactNode[] {
     const trimmed = line.trim();
     if (/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
       blocks.push(
-        <hr key={k} className="my-2 border-t border-slate-200 dark:border-slate-700" />
+        <hr key={k} className="my-2 border-t border-[#E7E2D9] dark:border-[#3B3B40]" />
       );
       i++;
       continue;
@@ -147,7 +147,7 @@ function renderBlocks(content: string, keyPrefix: string): React.ReactNode[] {
       blocks.push(
         <blockquote
           key={k}
-          className="my-1.5 pl-3 border-l-2 border-blue-400 dark:border-blue-500 text-slate-600 dark:text-slate-300 italic"
+          className="my-1.5 pl-3 border-l-2 border-[#2D5A46] dark:border-[#52B788] text-[#57534E] dark:text-[#D6D3CD] italic"
         >
           {renderInline(quoteLines.join('\n'), k)}
         </blockquote>

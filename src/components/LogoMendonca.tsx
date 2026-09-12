@@ -42,7 +42,7 @@ export const LogoMendonca: React.FC<LogoMendoncaProps> = ({
           />
         ) : (
           /* Fallback Vetorial Premium em SVG */
-          <div className="w-full h-full rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-purple-700 flex items-center justify-center text-white font-black shadow-md border border-white/20">
+          <div className="w-full h-full rounded-xl bg-gradient-to-br from-[#2D5A46] via-[#21483A] to-[#1E3E30] flex items-center justify-center text-white font-black shadow-md border border-white/20">
             <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4/5 h-4/5">
               <path
                 d="M8 32V10L20 22L32 10V32"
@@ -52,8 +52,8 @@ export const LogoMendonca: React.FC<LogoMendoncaProps> = ({
                 strokeLinejoin="round"
               />
               <circle cx="20" cy="8" r="3" fill="#FBBF24" />
-              <circle cx="8" cy="10" r="2.5" fill="#60A5FA" />
-              <circle cx="32" cy="10" r="2.5" fill="#60A5FA" />
+              <circle cx="8" cy="10" r="2.5" fill="#52B788" />
+              <circle cx="32" cy="10" r="2.5" fill="#52B788" />
             </svg>
           </div>
         )}
@@ -63,11 +63,11 @@ export const LogoMendonca: React.FC<LogoMendoncaProps> = ({
       {showText && (
         <div className={`flex flex-col ${centered ? 'items-center' : 'items-start'} leading-none`}>
           <div className="flex items-center gap-1">
-            <span className={`font-display font-black tracking-tight ${dim.textTitle} text-slate-900 dark:text-white`}>
+            <span className={`font-display font-black tracking-tight ${dim.textTitle} text-[#1C1917] dark:text-[#FAF9F5]`}>
               MENDONÇA
             </span>
           </div>
-          <span className={`${dim.textSub} text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase mt-0.5`}>
+          <span className={`${dim.textSub} text-[#78716C] dark:text-[#A8A29E] font-semibold tracking-wider uppercase mt-0.5`}>
             Plataforma de Estudos
           </span>
         </div>

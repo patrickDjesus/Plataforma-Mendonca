@@ -182,24 +182,24 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 340, opacity: 0 }}
       transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-      className="w-80 sm:w-88 h-full bg-white dark:bg-slate-900 border-l border-slate-200/80 dark:border-slate-800 shadow-xl flex flex-col shrink-0 overflow-hidden z-30 select-none"
+      className="w-80 sm:w-88 h-full bg-white dark:bg-[#18181B] border-l border-[#E7E2D9]/80 dark:border-[#2C2C30] shadow-xl flex flex-col shrink-0 overflow-hidden z-30 select-none"
     >
       {/* Header */}
-      <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between">
+      <div className="p-4 border-b border-[#EFECE6] dark:border-[#2C2C30] bg-[#EFECE6]/70 dark:bg-[#232326]/40 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#2D5A46] to-[#1E3E30] text-white flex items-center justify-center shadow-md">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-extrabold text-xs text-slate-900 dark:text-white font-display flex items-center gap-1.5">
+            <h3 className="font-extrabold text-xs text-[#1C1917] dark:text-[#FAF9F5] font-display flex items-center gap-1.5">
               Insight & Quiz AI
               {xpBonus > 0 && (
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788]">
                   +{xpBonus} XP
                 </span>
               )}
             </h3>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400">
+            <p className="text-[10px] text-[#78716C] dark:text-[#A8A29E]">
               Auto-teste em tempo real baseado no texto
             </p>
           </div>
@@ -207,7 +207,7 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
 
         <button
           onClick={onClose}
-          className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+          className="p-1.5 text-[#A8A29E] hover:text-[#44403C] dark:hover:text-[#E7E5E4] rounded-lg hover:bg-[#E5DFD5]/60 dark:hover:bg-[#333338] transition-colors cursor-pointer"
           title="Fechar Insights"
           aria-label="Fechar painel de insights"
         >
@@ -216,13 +216,13 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-100 dark:border-slate-800 px-3 pt-2 gap-1 bg-white dark:bg-slate-900">
+      <div className="flex border-b border-[#EFECE6] dark:border-[#2C2C30] px-3 pt-2 gap-1 bg-white dark:bg-[#18181B]">
         <button
           onClick={() => setActiveTab('quiz')}
           className={`flex-1 py-2 text-xs font-bold rounded-t-xl transition-colors cursor-pointer border-b-2 ${
             activeTab === 'quiz'
-              ? 'border-purple-600 text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-950/30'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+              ? 'border-[#2D5A46] text-[#2D5A46] dark:text-[#52B788] bg-[#EBF3EF]/50 dark:bg-[#15221B]/30'
+              : 'border-transparent text-[#78716C] hover:text-[#1C1917] dark:hover:text-[#D6D3CD]'
           }`}
         >
           🎯 Quiz Rápido ({questions.length})
@@ -231,8 +231,8 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
           onClick={() => setActiveTab('takeaways')}
           className={`flex-1 py-2 text-xs font-bold rounded-t-xl transition-colors cursor-pointer border-b-2 ${
             activeTab === 'takeaways'
-              ? 'border-purple-600 text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-950/30'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+              ? 'border-[#2D5A46] text-[#2D5A46] dark:text-[#52B788] bg-[#EBF3EF]/50 dark:bg-[#15221B]/30'
+              : 'border-transparent text-[#78716C] hover:text-[#1C1917] dark:hover:text-[#D6D3CD]'
           }`}
         >
           💡 Síntese & Fórmulas
@@ -244,13 +244,13 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
         {activeTab === 'quiz' ? (
           <>
             <div className="flex items-center justify-between text-xs">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <span className="text-[11px] font-bold text-[#78716C] dark:text-[#A8A29E]">
                 Fixação Ativa (Active Recall)
               </span>
               <button
                 onClick={handleRegenerate}
                 disabled={isGenerating}
-                className="flex items-center gap-1 text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1 text-[11px] font-bold text-[#2D5A46] dark:text-[#52B788] hover:text-[#224A38] cursor-pointer disabled:opacity-50"
               >
                 <RotateCcw className={`w-3 h-3 ${isGenerating ? 'animate-spin' : ''}`} />
                 <span>Gerar Novas</span>
@@ -269,13 +269,13 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
                     key={q.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3"
+                    className="p-3.5 rounded-2xl bg-[#EFECE6] dark:bg-[#232326]/60 border border-[#E7E2D9]/80 dark:border-[#3B3B40]/80 space-y-3"
                   >
                     <div className="flex items-start gap-2">
-                      <span className="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-[10px] font-black flex items-center justify-center shrink-0">
+                      <span className="w-5 h-5 rounded-md bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788] text-[10px] font-black flex items-center justify-center shrink-0">
                         {qIndex + 1}
                       </span>
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-snug">
+                      <p className="text-xs font-bold text-[#1C1917] dark:text-[#FAF9F5] leading-snug">
                         {q.question}
                       </p>
                     </div>
@@ -284,7 +284,7 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
                     <div className="space-y-1.5">
                       {q.options.map((opt, optIdx) => {
                         const isChosen = userSelected === optIdx;
-                        let btnClass = 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100';
+                        let btnClass = 'bg-white dark:bg-[#232326] border-[#E7E2D9] dark:border-[#3B3B40] text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5]';
 
                         if (isAnswered) {
                           if (optIdx === q.correctIdx) {
@@ -292,7 +292,7 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
                           } else if (isChosen && !isCorrect) {
                             btnClass = 'bg-rose-50 dark:bg-rose-950/80 border-rose-500 text-rose-900 dark:text-rose-100';
                           } else {
-                            btnClass = 'bg-white dark:bg-slate-800 opacity-60 border-slate-200 dark:border-slate-700 text-slate-500';
+                            btnClass = 'bg-white dark:bg-[#232326] opacity-60 border-[#E7E2D9] dark:border-[#3B3B40] text-[#78716C]';
                           }
                         }
 
@@ -344,7 +344,7 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
                           <span>{showHints[q.id] ? 'Ocultar Dica' : 'Ver Dica'}</span>
                         </button>
                         {showHints[q.id] && (
-                          <p className="text-[10px] text-slate-600 dark:text-slate-300 mt-1 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-900">
+                          <p className="text-[10px] text-[#44403C] dark:text-[#E7E5E4] mt-1 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-900">
                             {q.hint}
                           </p>
                         )}
@@ -358,34 +358,34 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
         ) : (
           /* Takeaways / Fórmulas Tab */
           <div className="space-y-4">
-            <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/70 dark:border-blue-800 space-y-2">
-              <span className="text-[10px] font-black uppercase text-blue-700 dark:text-blue-300 flex items-center gap-1">
+            <div className="p-3.5 rounded-2xl bg-[#EBF3EF]/80 dark:bg-[#15221B]/50 border border-[#CFE1D6]/70 dark:border-[#22392D] space-y-2">
+              <span className="text-[10px] font-black uppercase text-[#224A38] dark:text-[#52B788] flex items-center gap-1">
                 <Brain className="w-3.5 h-3.5" />
                 Conceito Chave
               </span>
-              <p className="text-xs font-bold text-slate-900 dark:text-white">
+              <p className="text-xs font-bold text-[#1C1917] dark:text-[#FAF9F5]">
                 {doc.title}
               </p>
-              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              <p className="text-[11px] text-[#57534E] dark:text-[#D6D3CD] leading-relaxed">
                 {doc.summary}
               </p>
             </div>
 
             {/* Fórmulas e Axiomas Extraídos */}
             <div className="space-y-2">
-              <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
+              <span className="text-[11px] font-extrabold text-[#44403C] dark:text-[#D6D3CD] uppercase tracking-wider block">
                 Fórmulas & Tópicos Relevantes
               </span>
               {doc.sections.filter(s => s.type === 'code' || s.formula).length > 0 ? (
                 doc.sections
                   .filter(s => s.type === 'code' || s.formula)
                   .map((s, idx) => (
-                    <div key={idx} className="bg-slate-950 rounded-xl p-2.5 text-cyan-300 font-mono text-xs border border-slate-800">
+                    <div key={idx} className="bg-[#121214] rounded-xl p-2.5 text-[#52B788] font-mono text-xs border border-[#2C2C30]">
                       <code>{s.formula || s.content}</code>
                     </div>
                   ))
               ) : (
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-[11px] text-slate-500">
+                <div className="p-3 rounded-xl bg-[#EFECE6] dark:bg-[#232326] text-[11px] text-[#78716C]">
                   Adicione blocos de fórmulas e código no editor para vê-los catalogados aqui.
                 </div>
               )}
@@ -396,7 +396,7 @@ export const DocInsightSidebar: React.FC<DocInsightSidebarProps> = ({
               <div className="pt-2">
                 <button
                   onClick={() => onNavigate('treino')}
-                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all"
+                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#2D5A46] to-[#1E3E30] hover:from-[#21483A] hover:to-[#1E3E30] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all"
                 >
                   <Zap className="w-3.5 h-3.5" />
                   <span>Abrir no Treino Completo</span>

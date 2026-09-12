@@ -85,17 +85,17 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
       ref={containerRef}
       onMouseMove={handleMouseMove}
       id="cartoon-body-viewer"
-      className="relative flex flex-col items-center justify-center w-full min-h-[560px] lg:min-h-[660px] bg-gradient-to-b from-blue-50/50 via-white to-sky-50/60 dark:from-sky-950/30 dark:via-slate-900 dark:to-blue-950/30 rounded-3xl p-4 border-2 border-blue-100 dark:border-slate-800 shadow-xl shadow-blue-900/5 dark:shadow-black/40 select-none overflow-hidden"
+      className="relative flex flex-col items-center justify-center w-full min-h-[560px] lg:min-h-[660px] bg-gradient-to-b from-[#EFECE6]/50 via-white to-[#EBF3EF]/60 dark:from-[#22392D]/30 dark:via-[#18181B] dark:to-[#121214]/60 rounded-3xl p-4 border-2 border-[#E7E2D9] dark:border-[#2C2C30] shadow-xl shadow-[#2D5A46]/5 dark:shadow-black/40 select-none overflow-hidden"
     >
       {/* Floating Info Pill & Biological Sex Switcher */}
       <div className="absolute top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-slate-900/90 shadow-sm border border-blue-200/80 dark:border-slate-700 text-xs font-bold text-blue-900 dark:text-sky-300 pointer-events-auto backdrop-blur-sm">
-          <Sparkles className="w-4 h-4 text-blue-600 animate-spin" style={{ animationDuration: '8s' }} />
+        <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-[#18181B]/90 shadow-sm border border-[#CFE1D6]/80 dark:border-[#2C2C30] text-xs font-bold text-[#2D5A46] dark:text-[#52B788] pointer-events-auto backdrop-blur-sm">
+          <Sparkles className="w-4 h-4 text-[#2D5A46] animate-spin" style={{ animationDuration: '8s' }} />
           <span>Toque na estrutura para ver a fisiologia e questões ENEM</span>
         </div>
 
         {/* Biological Sex Switcher */}
-        <div className="ml-auto flex items-center bg-white/95 p-1 rounded-2xl shadow-md border border-blue-100 dark:bg-slate-900/95 dark:border-slate-700 pointer-events-auto backdrop-blur-md">
+        <div className="ml-auto flex items-center bg-white/95 p-1 rounded-2xl shadow-md border border-[#E7E2D9] dark:bg-[#18181B]/95 dark:border-[#2C2C30] pointer-events-auto backdrop-blur-md">
           <button
             type="button"
             id="btn-sex-feminino"
@@ -106,7 +106,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
             className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
               selectedSex === 'feminino'
                 ? 'bg-rose-500 text-white shadow-sm ring-2 ring-rose-200 dark:ring-rose-900/60'
-                : 'text-slate-600 hover:bg-rose-50 hover:text-rose-700 dark:text-slate-300 dark:hover:bg-rose-950/40 dark:hover:text-rose-300'
+                : 'text-[#57534E] hover:bg-rose-50 hover:text-rose-700 dark:text-[#D6D3CD] dark:hover:bg-rose-950/40 dark:hover:text-rose-300'
             }`}
           >
             <span>👩</span>
@@ -121,8 +121,8 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
             }}
             className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
               selectedSex === 'masculino'
-                ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-200 dark:ring-sky-900/60'
-                : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-sky-950/40 dark:hover:text-sky-300'
+                ? 'bg-[#2D5A46] text-white shadow-sm ring-2 ring-[#CFE1D6] dark:ring-[#22392D]/60'
+                : 'text-[#57534E] hover:bg-[#EBF3EF] hover:text-[#2D5A46] dark:text-[#D6D3CD] dark:hover:bg-[#15221B]/40 dark:hover:text-[#52B788]'
             }`}
           >
             <span>👨</span>
@@ -138,18 +138,18 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 pointer-events-none bg-slate-900/95 backdrop-blur-md text-white px-4 py-2.5 rounded-2xl shadow-xl border border-blue-400/40 flex items-center gap-3 text-center max-w-sm"
+            className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 pointer-events-none bg-[#18181B]/95 backdrop-blur-md text-white px-4 py-2.5 rounded-2xl shadow-xl border border-[#52B788]/40 flex items-center gap-3 text-center max-w-sm"
           >
             <span className="text-2xl">{hoveredPartObj.icon}</span>
             <div className="text-left">
-              <p className="text-sm font-black text-sky-300 font-display">
+              <p className="text-sm font-black text-[#52B788] font-display">
                 {hoveredPartObj.name}
               </p>
-              <p className="text-xs text-slate-300 truncate max-w-[220px]">
+              <p className="text-xs text-[#D6D3CD] truncate max-w-[220px]">
                 {hoveredPartObj.tagline}
               </p>
             </div>
-            <span className="text-[10px] uppercase tracking-wider font-extrabold bg-blue-500/30 text-sky-200 px-2 py-0.5 rounded-full border border-sky-400/40 shrink-0">
+            <span className="text-[10px] uppercase tracking-wider font-extrabold bg-[#2D5A46]/30 text-[#CFE1D6] px-2 py-0.5 rounded-full border border-[#52B788]/40 shrink-0">
               Ver ENEM
             </span>
           </motion.div>
@@ -238,8 +238,8 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
 
             {/* Glowing filter for highlighted parts (high contrast, bright edge, no movement) */}
             <filter id="cartoonGlow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="#38bdf8" floodOpacity="1" />
-              <feDropShadow dx="0" dy="0" stdDeviation="10" floodColor="#0284c7" floodOpacity="0.8" />
+              <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="#52B788" floodOpacity="1" />
+              <feDropShadow dx="0" dy="0" stdDeviation="10" floodColor="#2D5A46" floodOpacity="0.8" />
             </filter>
             <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
               <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#0f172a" floodOpacity="0.12" />
@@ -263,7 +263,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
               onMouseLeave={() => setHoveredPartId(null)}
               d="M 175 250 C 130 270 110 330 115 390 C 120 440 115 480 110 520 C 105 540 125 550 135 540 C 145 500 150 450 150 400 C 150 350 175 290 190 270 Z"
               fill={isHighlighted('pele') ? '#ffe4d0' : 'url(#skinGrad)'}
-              stroke={isHighlighted('pele') ? '#0284c7' : '#0f172a'}
+              stroke={isHighlighted('pele') ? '#2D5A46' : '#0f172a'}
               strokeWidth={isHighlighted('pele') ? '5' : '4'}
               strokeLinejoin="round"
               className="cursor-pointer transition-colors duration-200"
@@ -276,7 +276,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
               onMouseLeave={() => setHoveredPartId(null)}
               d="M 325 250 C 370 270 390 330 385 390 C 380 440 385 480 390 520 C 395 540 375 550 365 540 C 355 500 350 450 350 400 C 350 350 325 290 310 270 Z"
               fill={isHighlighted('pele') ? '#ffe4d0' : 'url(#skinGrad)'}
-              stroke={isHighlighted('pele') ? '#0284c7' : '#0f172a'}
+              stroke={isHighlighted('pele') ? '#2D5A46' : '#0f172a'}
               strokeWidth={isHighlighted('pele') ? '5' : '4'}
               strokeLinejoin="round"
               className="cursor-pointer transition-colors duration-200"
@@ -348,8 +348,8 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
             <ellipse cx="250" cy="140" rx="72" ry="75" fill="url(#skinGrad)" stroke="#0f172a" strokeWidth="4.5" />
 
             {/* Cheeks blush */}
-            <circle cx="205" cy="155" r="14" fill={selectedSex === 'feminino' ? '#fb7185' : '#38bdf8'} opacity="0.3" />
-            <circle cx="295" cy="155" r="14" fill={selectedSex === 'feminino' ? '#fb7185' : '#38bdf8'} opacity="0.3" />
+            <circle cx="205" cy="155" r="14" fill={selectedSex === 'feminino' ? '#fb7185' : '#52B788'} opacity="0.3" />
+            <circle cx="295" cy="155" r="14" fill={selectedSex === 'feminino' ? '#fb7185' : '#52B788'} opacity="0.3" />
 
             {/* Cartoon Hair (Feminine Long Locks or Masculine Classic Crop) */}
             {selectedSex === 'feminino' ? (
@@ -405,26 +405,26 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
               filter={isHighlighted('musculos') ? 'url(#cartoonGlow)' : undefined}
             >
               {/* Pectorals */}
-              <path d="M 195 260 C 220 255 245 270 248 295 C 220 305 190 295 195 260 Z" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth={isHighlighted('musculos') ? '3.5' : '2.5'} opacity="0.95" />
-              <path d="M 305 260 C 280 255 255 270 252 295 C 280 305 310 295 305 260 Z" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth={isHighlighted('musculos') ? '3.5' : '2.5'} opacity="0.95" />
+              <path d="M 195 260 C 220 255 245 270 248 295 C 220 305 190 295 195 260 Z" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth={isHighlighted('musculos') ? '3.5' : '2.5'} opacity="0.95" />
+              <path d="M 305 260 C 280 255 255 270 252 295 C 280 305 310 295 305 260 Z" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth={isHighlighted('musculos') ? '3.5' : '2.5'} opacity="0.95" />
 
               {/* Abs (Six-pack) */}
               <g opacity="0.95">
-                <rect x="220" y="310" width="26" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth="2" />
-                <rect x="254" y="310" width="26" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth="2" />
-                <rect x="220" y="338" width="26" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth="2" />
-                <rect x="254" y="338" width="26" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth="2" />
-                <rect x="222" y="366" width="25" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth="2" />
-                <rect x="253" y="366" width="25" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth="2" />
+                <rect x="220" y="310" width="26" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth="2" />
+                <rect x="254" y="310" width="26" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth="2" />
+                <rect x="220" y="338" width="26" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth="2" />
+                <rect x="254" y="338" width="26" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth="2" />
+                <rect x="222" y="366" width="25" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth="2" />
+                <rect x="253" y="366" width="25" height="22" rx="6" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth="2" />
               </g>
 
               {/* Biceps */}
-              <ellipse cx="145" cy="330" rx="16" ry="24" transform="rotate(-15 145 330)" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth="2.5" opacity="0.95" />
-              <ellipse cx="355" cy="330" rx="16" ry="24" transform="rotate(15 355 330)" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth="2.5" opacity="0.95" />
+              <ellipse cx="145" cy="330" rx="16" ry="24" transform="rotate(-15 145 330)" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth="2.5" opacity="0.95" />
+              <ellipse cx="355" cy="330" rx="16" ry="24" transform="rotate(15 355 330)" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth="2.5" opacity="0.95" />
 
               {/* Quadriceps (Thighs) */}
-              <ellipse cx="205" cy="560" rx="20" ry="45" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth="2.5" opacity="0.95" />
-              <ellipse cx="295" cy="560" rx="20" ry="45" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#38bdf8' : '#9a3412'} strokeWidth="2.5" opacity="0.95" />
+              <ellipse cx="205" cy="560" rx="20" ry="45" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth="2.5" opacity="0.95" />
+              <ellipse cx="295" cy="560" rx="20" ry="45" fill="url(#muscleGrad)" stroke={isHighlighted('musculos') ? '#52B788' : '#9a3412'} strokeWidth="2.5" opacity="0.95" />
             </g>
           )}
 
@@ -439,7 +439,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
               filter={isHighlighted('ossos') ? 'url(#cartoonGlow)' : undefined}
             >
               {/* Skull Outline */}
-              <ellipse cx="250" cy="135" rx="55" ry="50" fill={isHighlighted('ossos') ? '#f0f9ff' : 'url(#boneGrad)'} stroke={isHighlighted('ossos') ? '#0284c7' : '#475569'} strokeWidth={isHighlighted('ossos') ? '4' : '3'} />
+              <ellipse cx="250" cy="135" rx="55" ry="50" fill={isHighlighted('ossos') ? '#F5F3EC' : 'url(#boneGrad)'} stroke={isHighlighted('ossos') ? '#2D5A46' : '#475569'} strokeWidth={isHighlighted('ossos') ? '4' : '3'} />
               {/* Eye Sockets skeleton */}
               <ellipse cx="230" cy="135" rx="12" ry="14" fill="#1e293b" />
               <ellipse cx="270" cy="135" rx="12" ry="14" fill="#1e293b" />
@@ -455,7 +455,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                     height="16"
                     rx="4"
                     fill={isHighlighted('ossos') ? '#e0f2fe' : 'url(#boneGrad)'}
-                    stroke={isHighlighted('ossos') ? '#0284c7' : '#475569'}
+                    stroke={isHighlighted('ossos') ? '#2D5A46' : '#475569'}
                     strokeWidth="2"
                   />
                 ))}
@@ -468,34 +468,34 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                     <path
                       d={`M 242 ${260 + i * 20} C 190 ${260 + i * 20} 185 ${280 + i * 20} 242 ${290 + i * 20}`}
                       fill="none"
-                      stroke={isHighlighted('ossos') ? '#38bdf8' : '#94a3b8'}
+                      stroke={isHighlighted('ossos') ? '#52B788' : '#94a3b8'}
                       strokeWidth={isHighlighted('ossos') ? '6' : '5'}
                       strokeLinecap="round"
                     />
                     <path
                       d={`M 258 ${260 + i * 20} C 310 ${260 + i * 20} 315 ${280 + i * 20} 258 ${290 + i * 20}`}
                       fill="none"
-                      stroke={isHighlighted('ossos') ? '#38bdf8' : '#94a3b8'}
+                      stroke={isHighlighted('ossos') ? '#52B788' : '#94a3b8'}
                       strokeWidth={isHighlighted('ossos') ? '6' : '5'}
                       strokeLinecap="round"
                     />
                   </g>
                 ))}
                 {/* Sternum (peito) */}
-                <rect x="246" y="255" width="8" height="90" rx="3" fill="#ffffff" stroke={isHighlighted('ossos') ? '#0284c7' : '#475569'} strokeWidth="2" />
+                <rect x="246" y="255" width="8" height="90" rx="3" fill="#ffffff" stroke={isHighlighted('ossos') ? '#2D5A46' : '#475569'} strokeWidth="2" />
               </g>
 
               {/* Pelvis (Bacia) */}
               <path
                 d="M 200 425 C 200 405 300 405 300 425 C 315 455 285 475 250 460 C 215 475 185 455 200 425 Z"
                 fill={isHighlighted('ossos') ? '#e0f2fe' : 'url(#boneGrad)'}
-                stroke={isHighlighted('ossos') ? '#0284c7' : '#475569'}
+                stroke={isHighlighted('ossos') ? '#2D5A46' : '#475569'}
                 strokeWidth={isHighlighted('ossos') ? '4' : '3'}
               />
 
               {/* Long Leg Bones (Femur) */}
-              <line x1="215" y1="460" x2="200" y2="600" stroke={isHighlighted('ossos') ? '#bae6fd' : '#cbd5e1'} strokeWidth="14" strokeLinecap="round" />
-              <line x1="285" y1="460" x2="300" y2="600" stroke={isHighlighted('ossos') ? '#bae6fd' : '#cbd5e1'} strokeWidth="14" strokeLinecap="round" />
+              <line x1="215" y1="460" x2="200" y2="600" stroke={isHighlighted('ossos') ? '#CFE1D6' : '#cbd5e1'} strokeWidth="14" strokeLinecap="round" />
+              <line x1="285" y1="460" x2="300" y2="600" stroke={isHighlighted('ossos') ? '#CFE1D6' : '#cbd5e1'} strokeWidth="14" strokeLinecap="round" />
             </g>
           )}
 
@@ -538,11 +538,11 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                 <path
                   d="M 215 125 C 205 110 210 85 235 80 C 245 70 265 70 275 85 C 295 85 300 110 285 125 C 295 140 285 155 270 155 C 255 160 245 160 230 155 C 215 150 205 135 215 125 Z"
                   fill="url(#brainGrad)"
-                  stroke={isHighlighted('cerebro') ? '#38bdf8' : '#581c87'}
+                  stroke={isHighlighted('cerebro') ? '#52B788' : '#581c87'}
                   strokeWidth={isHighlighted('cerebro') ? '4.5' : '3.5'}
                 />
-                <path d="M 230 95 Q 240 110 235 125 M 265 95 Q 260 110 265 125 M 245 90 Q 255 120 250 145" fill="none" stroke={isHighlighted('cerebro') ? '#60a5fa' : '#4c1d95'} strokeWidth="2.5" strokeLinecap="round" />
-                <circle cx="268" cy="74" r="3.5" fill="#38bdf8" className="animate-ping" style={{ animationDuration: '2s' }} />
+                <path d="M 230 95 Q 240 110 235 125 M 265 95 Q 260 110 265 125 M 245 90 Q 255 120 250 145" fill="none" stroke={isHighlighted('cerebro') ? '#52B788' : '#4c1d95'} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="268" cy="74" r="3.5" fill="#52B788" className="animate-ping" style={{ animationDuration: '2s' }} />
               </g>
 
               {/* 2. THYROID (Tireoide) */}
@@ -558,7 +558,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                 <path
                   d="M 240 220 C 235 215 228 220 232 230 C 235 235 245 232 250 228 C 255 232 265 235 268 230 C 272 220 265 215 260 220 C 255 225 245 225 240 220 Z"
                   fill={isHighlighted('tireoide') ? '#f43f5e' : '#f472b6'}
-                  stroke={isHighlighted('tireoide') ? '#38bdf8' : '#be185d'}
+                  stroke={isHighlighted('tireoide') ? '#52B788' : '#be185d'}
                   strokeWidth={isHighlighted('tireoide') ? '3.5' : '2.2'}
                 />
               </g>
@@ -576,17 +576,17 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                 <path
                   d="M 200 245 C 215 240 232 250 232 280 C 232 315 220 335 195 330 C 180 325 175 285 185 260 C 190 250 195 245 200 245 Z"
                   fill="url(#lungsGrad)"
-                  stroke={isHighlighted('pulmoes') ? '#38bdf8' : '#0369a1'}
+                  stroke={isHighlighted('pulmoes') ? '#52B788' : '#0369a1'}
                   strokeWidth={isHighlighted('pulmoes') ? '4.5' : '3'}
                 />
                 {/* Left Lung */}
                 <path
                   d="M 300 245 C 285 240 268 250 268 275 C 268 305 280 335 305 330 C 320 325 325 285 315 260 C 310 250 305 245 300 245 Z"
                   fill="url(#lungsGrad)"
-                  stroke={isHighlighted('pulmoes') ? '#38bdf8' : '#0369a1'}
+                  stroke={isHighlighted('pulmoes') ? '#52B788' : '#0369a1'}
                   strokeWidth={isHighlighted('pulmoes') ? '4.5' : '3'}
                 />
-                <path d="M 250 235 L 250 255 L 220 275 M 250 255 L 280 275" fill="none" stroke={isHighlighted('pulmoes') ? '#60a5fa' : '#0284c7'} strokeWidth="2.5" strokeLinecap="round" />
+                <path d="M 250 235 L 250 255 L 220 275 M 250 255 L 280 275" fill="none" stroke={isHighlighted('pulmoes') ? '#52B788' : '#0284c7'} strokeWidth="2.5" strokeLinecap="round" />
               </g>
 
               {/* 4. HEART (Coração) - Pulsing animation */}
@@ -601,7 +601,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                 <path
                   d="M 260 275 C 255 265 242 265 237 275 C 230 288 245 305 260 318 C 275 305 290 288 283 275 C 278 265 265 265 260 275 Z"
                   fill="url(#heartGrad)"
-                  stroke={isHighlighted('coracao') ? '#38bdf8' : '#881337'}
+                  stroke={isHighlighted('coracao') ? '#52B788' : '#881337'}
                   strokeWidth={isHighlighted('coracao') ? '4.5' : '3'}
                   className="drop-shadow-md"
                 />
@@ -622,7 +622,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                 <path
                   d="M 200 335 C 235 325 255 330 260 345 C 262 360 240 375 210 370 C 195 365 190 345 200 335 Z"
                   fill={isHighlighted('figado') ? '#d97706' : '#b45309'}
-                  stroke={isHighlighted('figado') ? '#38bdf8' : '#78350f'}
+                  stroke={isHighlighted('figado') ? '#52B788' : '#78350f'}
                   strokeWidth={isHighlighted('figado') ? '4' : '2.8'}
                 />
                 <path d="M 208 340 Q 230 334 245 338" fill="none" stroke="#fef08a" strokeWidth="2" opacity="0.6" strokeLinecap="round" />
@@ -640,7 +640,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                 <path
                   d="M 255 338 C 275 335 295 345 290 370 C 285 390 260 395 248 385 C 240 378 245 360 255 338 Z"
                   fill={isHighlighted('estomago') ? '#34d399' : '#10b981'}
-                  stroke={isHighlighted('estomago') ? '#38bdf8' : '#065f46'}
+                  stroke={isHighlighted('estomago') ? '#52B788' : '#065f46'}
                   strokeWidth={isHighlighted('estomago') ? '4' : '2.8'}
                 />
                 <circle cx="272" cy="365" r="4" fill="#a7f3d0" stroke="#047857" strokeWidth="1.5" />
@@ -658,7 +658,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                 <path
                   d="M 230 365 C 245 360 270 365 275 372 C 275 378 250 378 230 372 Z"
                   fill={isHighlighted('pancreas') ? '#fde047' : '#eab308'}
-                  stroke={isHighlighted('pancreas') ? '#38bdf8' : '#a16207'}
+                  stroke={isHighlighted('pancreas') ? '#52B788' : '#a16207'}
                   strokeWidth={isHighlighted('pancreas') ? '3.5' : '2'}
                 />
               </g>
@@ -674,13 +674,13 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
               >
                 <path
                   d="M 205 380 C 218 380 224 392 220 405 C 215 415 200 415 195 402 C 192 390 198 380 205 380 Z"
-                  fill={isHighlighted('rins') ? '#38bdf8' : '#0284c7'}
+                  fill={isHighlighted('rins') ? '#52B788' : '#0284c7'}
                   stroke={isHighlighted('rins') ? '#ffffff' : '#0369a1'}
                   strokeWidth={isHighlighted('rins') ? '3.5' : '2.5'}
                 />
                 <path
                   d="M 295 375 C 308 375 314 387 310 400 C 305 410 290 410 285 397 C 282 385 288 375 295 375 Z"
-                  fill={isHighlighted('rins') ? '#38bdf8' : '#0284c7'}
+                  fill={isHighlighted('rins') ? '#52B788' : '#0284c7'}
                   stroke={isHighlighted('rins') ? '#ffffff' : '#0369a1'}
                   strokeWidth={isHighlighted('rins') ? '3.5' : '2.5'}
                 />
@@ -732,7 +732,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                 className="cursor-pointer transition-all duration-200 hover:brightness-130 hover:saturate-150"
                 filter={isHighlighted('bexiga') ? 'url(#cartoonGlow)' : undefined}
               >
-                <ellipse cx="250" cy="480" rx="14" ry="12" fill={isHighlighted('bexiga') ? '#7dd3fc' : '#38bdf8'} stroke={isHighlighted('bexiga') ? '#0284c7' : '#0284c7'} strokeWidth={isHighlighted('bexiga') ? '3.5' : '2.5'} />
+                <ellipse cx="250" cy="480" rx="14" ry="12" fill={isHighlighted('bexiga') ? '#52B788' : '#38bdf8'} stroke={isHighlighted('bexiga') ? '#0284c7' : '#0284c7'} strokeWidth={isHighlighted('bexiga') ? '3.5' : '2.5'} />
               </g>
 
               {/* 12. SISTEMA IMUNOLÓGICO / BAÇO */}
@@ -745,7 +745,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                 filter={isHighlighted('imune') ? 'url(#cartoonGlow)' : undefined}
               >
                 {/* Spleen (Baço) on left upper quadrant */}
-                <ellipse cx="300" cy="350" rx="10" ry="16" transform="rotate(-20 300 350)" fill={isHighlighted('imune') ? '#a78bfa' : '#8b5cf6'} stroke={isHighlighted('imune') ? '#38bdf8' : '#6d28d9'} strokeWidth={isHighlighted('imune') ? '3.5' : '2.2'} />
+                <ellipse cx="300" cy="350" rx="10" ry="16" transform="rotate(-20 300 350)" fill={isHighlighted('imune') ? '#52B788' : '#8b5cf6'} stroke={isHighlighted('imune') ? '#52B788' : '#6d28d9'} strokeWidth={isHighlighted('imune') ? '3.5' : '2.2'} />
               </g>
 
               {/* 13. SISTEMA REPRODUTOR (Condicional por Sexo Biológico) */}
@@ -828,14 +828,14 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                   <path
                     d="M 244 526 C 235 505 238 480 248 485"
                     fill="none"
-                    stroke={isHighlighted('reprodutor_masculino') ? '#0284c7' : '#0369a1'}
+                    stroke={isHighlighted('reprodutor_masculino') ? '#2D5A46' : '#0369a1'}
                     strokeWidth={isHighlighted('reprodutor_masculino') ? '3' : '2'}
                     strokeDasharray="2 1"
                   />
                   <path
                     d="M 256 526 C 265 505 262 480 252 485"
                     fill="none"
-                    stroke={isHighlighted('reprodutor_masculino') ? '#0284c7' : '#0369a1'}
+                    stroke={isHighlighted('reprodutor_masculino') ? '#2D5A46' : '#0369a1'}
                     strokeWidth={isHighlighted('reprodutor_masculino') ? '3' : '2'}
                     strokeDasharray="2 1"
                   />
@@ -866,7 +866,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                     cy="528"
                     rx="4.5"
                     ry="6"
-                    fill={isHighlighted('reprodutor_masculino') ? '#38bdf8' : 'url(#testisGrad)'}
+                    fill={isHighlighted('reprodutor_masculino') ? '#52B788' : 'url(#testisGrad)'}
                     stroke="#0369a1"
                     strokeWidth="1.5"
                   />
@@ -876,7 +876,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
                     cy="528"
                     rx="4.5"
                     ry="6"
-                    fill={isHighlighted('reprodutor_masculino') ? '#38bdf8' : 'url(#testisGrad)'}
+                    fill={isHighlighted('reprodutor_masculino') ? '#52B788' : 'url(#testisGrad)'}
                     stroke="#0369a1"
                     strokeWidth="1.5"
                   />
@@ -901,20 +901,20 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
             >
               {blinking ? (
                 <>
-                  <path d="M 216 135 Q 228 142 240 135" fill="none" stroke={isHighlighted('olhos') ? '#0284c7' : '#0f172a'} strokeWidth="4" strokeLinecap="round" />
-                  <path d="M 260 135 Q 272 142 284 135" fill="none" stroke={isHighlighted('olhos') ? '#0284c7' : '#0f172a'} strokeWidth="4" strokeLinecap="round" />
+                  <path d="M 216 135 Q 228 142 240 135" fill="none" stroke={isHighlighted('olhos') ? '#2D5A46' : '#0f172a'} strokeWidth="4" strokeLinecap="round" />
+                  <path d="M 260 135 Q 272 142 284 135" fill="none" stroke={isHighlighted('olhos') ? '#2D5A46' : '#0f172a'} strokeWidth="4" strokeLinecap="round" />
                 </>
               ) : (
                 <>
                   {/* Left Eye Whites */}
-                  <ellipse cx="228" cy="135" rx="14" ry="16" fill="#ffffff" stroke={isHighlighted('olhos') ? '#0284c7' : '#0f172a'} strokeWidth={isHighlighted('olhos') ? '4' : '3'} />
+                  <ellipse cx="228" cy="135" rx="14" ry="16" fill="#ffffff" stroke={isHighlighted('olhos') ? '#2D5A46' : '#0f172a'} strokeWidth={isHighlighted('olhos') ? '4' : '3'} />
                   {/* Left Pupil + Blue Iris */}
                   <circle cx={228 + eyeOffset.x} cy={135 + eyeOffset.y} r="8" fill="#2563eb" />
                   <circle cx={228 + eyeOffset.x} cy={135 + eyeOffset.y} r="5" fill="#0f172a" />
                   <circle cx={226 + eyeOffset.x} cy={132 + eyeOffset.y} r="2.5" fill="#ffffff" />
 
                   {/* Right Eye Whites */}
-                  <ellipse cx="272" cy="135" rx="14" ry="16" fill="#ffffff" stroke={isHighlighted('olhos') ? '#0284c7' : '#0f172a'} strokeWidth={isHighlighted('olhos') ? '4' : '3'} />
+                  <ellipse cx="272" cy="135" rx="14" ry="16" fill="#ffffff" stroke={isHighlighted('olhos') ? '#2D5A46' : '#0f172a'} strokeWidth={isHighlighted('olhos') ? '4' : '3'} />
                   {/* Right Pupil + Blue Iris */}
                   <circle cx={272 + eyeOffset.x} cy={135 + eyeOffset.y} r="8" fill="#2563eb" />
                   <circle cx={272 + eyeOffset.x} cy={135 + eyeOffset.y} r="5" fill="#0f172a" />
@@ -939,7 +939,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
               <path
                 d="M 232 165 Q 250 162 268 165 C 268 185 232 185 232 165 Z"
                 fill={isHighlighted('boca') ? '#be123c' : '#991b1b'}
-                stroke={isHighlighted('boca') ? '#38bdf8' : '#0f172a'}
+                stroke={isHighlighted('boca') ? '#52B788' : '#0f172a'}
                 strokeWidth={isHighlighted('boca') ? '4.5' : '3.5'}
                 strokeLinejoin="round"
               />
@@ -951,14 +951,14 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
       </motion.div>
 
       {/* Floating Zoom & Reset controls bottom-right */}
-      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 bg-white/95 p-1 rounded-2xl shadow-md border border-blue-100 dark:bg-slate-900/95 dark:border-slate-700 backdrop-blur-md">
+      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 bg-white/95 p-1 rounded-2xl shadow-md border border-[#E7E2D9] dark:bg-[#18181B]/95 dark:border-[#2C2C30] backdrop-blur-md">
         <button
           type="button"
           onClick={() => {
             setZoomLevel((prev) => Math.min(1.4, prev + 0.15));
             sounds.playPop();
           }}
-          className="p-2 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-sky-950/40 dark:hover:text-sky-300 transition-colors cursor-pointer"
+          className="p-2 rounded-xl text-[#57534E] hover:bg-[#EBF3EF] hover:text-[#2D5A46] dark:text-[#D6D3CD] dark:hover:bg-[#15221B]/40 dark:hover:text-[#52B788] transition-colors cursor-pointer"
           title="Aproximar Zoom"
         >
           <ZoomIn className="w-4 h-4" />
@@ -969,7 +969,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
             setZoomLevel((prev) => Math.max(0.85, prev - 0.15));
             sounds.playPop();
           }}
-          className="p-2 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-sky-950/40 dark:hover:text-sky-300 transition-colors cursor-pointer"
+          className="p-2 rounded-xl text-[#57534E] hover:bg-[#EBF3EF] hover:text-[#2D5A46] dark:text-[#D6D3CD] dark:hover:bg-[#15221B]/40 dark:hover:text-[#52B788] transition-colors cursor-pointer"
           title="Afastar Zoom"
         >
           <ZoomOut className="w-4 h-4" />
@@ -980,7 +980,7 @@ export const CartoonBody: React.FC<CartoonBodyProps> = ({
             setZoomLevel(1);
             sounds.playPop();
           }}
-          className="p-2 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-sky-950/40 dark:hover:text-sky-300 transition-colors cursor-pointer"
+          className="p-2 rounded-xl text-[#57534E] hover:bg-[#EBF3EF] hover:text-[#2D5A46] dark:text-[#D6D3CD] dark:hover:bg-[#15221B]/40 dark:hover:text-[#52B788] transition-colors cursor-pointer"
           title="Resetar Posição"
         >
           <RotateCcw className="w-4 h-4" />

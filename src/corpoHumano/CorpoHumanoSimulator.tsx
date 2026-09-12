@@ -24,7 +24,7 @@ export const CorpoHumanoSimulator: React.FC<CorpoHumanoSimulatorProps> = ({ onBa
   const [selectedSex, setSelectedSex] = useState<BiologicalSex>('feminino');
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-50 via-blue-50/40 to-sky-50/60 dark:from-slate-950 dark:via-slate-900/70 dark:to-sky-950/30 p-3 sm:p-5 flex flex-col items-center overflow-y-auto">
+    <div className="w-full h-full bg-[#FAF8F5] dark:bg-[#121214] p-3 sm:p-5 flex flex-col items-center overflow-y-auto">
       <div className="w-full max-w-7xl flex flex-col gap-4">
         <Header activeTab={activeTab} onSelectTab={setActiveTab} />
 
@@ -94,7 +94,7 @@ export const CorpoHumanoSimulator: React.FC<CorpoHumanoSimulatorProps> = ({ onBa
           <div className="text-center pb-2">
             <button
               onClick={onBack}
-              className="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer shadow-2xs"
+              className="px-5 py-2.5 rounded-2xl bg-[#EFECE6] hover:bg-[#E5DFD5] dark:bg-[#232326] dark:hover:bg-[#333338] text-xs font-bold text-[#57534E] dark:text-[#D6D3CD] transition-colors cursor-pointer shadow-2xs"
             >
               ← Voltar aos documentos de Biologia
             </button>

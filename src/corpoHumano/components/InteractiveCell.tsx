@@ -37,10 +37,10 @@ export const InteractiveCell: React.FC<InteractiveCellProps> = ({
     const isSelected = selectedOrganelle?.id === id;
 
     if (isSelected) {
-      return 'filter brightness-125 drop-shadow-[0_0_12px_rgba(59,130,246,0.9)] stroke-blue-500 stroke-[3px] transition-all duration-200 cursor-pointer';
+      return 'filter brightness-125 drop-shadow-[0_0_12px_rgba(45,90,70,0.9)] stroke-[#2D5A46] stroke-[3px] transition-all duration-200 cursor-pointer';
     }
     if (isHovered) {
-      return 'filter brightness-120 drop-shadow-[0_0_8px_rgba(56,189,248,0.7)] stroke-sky-400 stroke-[2px] transition-all duration-150 cursor-pointer';
+      return 'filter brightness-120 drop-shadow-[0_0_8px_rgba(82,183,136,0.7)] stroke-[#52B788] stroke-[2px] transition-all duration-150 cursor-pointer';
     }
     return 'transition-all duration-200 cursor-pointer hover:brightness-110';
   };
@@ -50,13 +50,13 @@ export const InteractiveCell: React.FC<InteractiveCellProps> = ({
   return (
     <div
       id="interactive-cell-viewer"
-      className="relative w-full aspect-[4/3] sm:aspect-square max-w-[560px] mx-auto bg-gradient-to-b from-blue-50/70 via-sky-50/40 to-slate-50 rounded-3xl p-4 flex items-center justify-center border-2 border-blue-100 shadow-inner select-none overflow-hidden dark:from-slate-900 dark:via-slate-800/70 dark:to-slate-950 dark:border-slate-700"
+      className="relative w-full aspect-[4/3] sm:aspect-square max-w-[560px] mx-auto bg-gradient-to-b from-[#EBF3EF]/70 via-[#EBF3EF]/40 to-[#EFECE6] rounded-3xl p-4 flex items-center justify-center border-2 border-[#CFE1D6] shadow-inner select-none overflow-hidden dark:from-[#18181B] dark:via-[#232326]/70 dark:to-[#121214] dark:border-[#2C2C30]"
     >
       {/* Background Microscopic Grid Pattern */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
-          backgroundImage: `radial-gradient(#2563eb 1.5px, transparent 1.5px)`,
+          backgroundImage: `radial-gradient(#2D5A46 1.5px, transparent 1.5px)`,
           backgroundSize: '24px 24px',
         }}
       />
@@ -70,7 +70,7 @@ export const InteractiveCell: React.FC<InteractiveCellProps> = ({
             opacity: [0.3, 0.7, 0.3],
           }}
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-12 left-16 text-xs text-sky-400/60 font-mono font-bold"
+          className="absolute top-12 left-16 text-xs text-[#52B788]/60 font-mono font-bold"
         >
           ATP ⚡
         </motion.div>
@@ -81,7 +81,7 @@ export const InteractiveCell: React.FC<InteractiveCellProps> = ({
             opacity: [0.2, 0.6, 0.2],
           }}
           transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute bottom-16 right-20 text-xs text-indigo-400/50 font-mono font-bold"
+          className="absolute bottom-16 right-20 text-xs text-[#52B788]/50 font-mono font-bold"
         >
           H₂O 💧
         </motion.div>
@@ -91,15 +91,15 @@ export const InteractiveCell: React.FC<InteractiveCellProps> = ({
             opacity: [0.3, 0.8, 0.3],
           }}
           transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute top-28 right-16 text-xs text-amber-400/50 font-mono font-bold"
+          className="absolute top-28 right-16 text-xs text-[#2D5A46]/50 font-mono font-bold"
         >
           Na⁺ / K⁺ 🔋
         </motion.div>
       </div>
 
       {/* Helper Badges */}
-      <div className="absolute top-3 left-3 sm:left-4 z-20 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm border border-blue-200 text-slate-700 text-xs font-bold shadow-sm dark:bg-slate-900/90 dark:border-slate-700 dark:text-slate-200">
-        <Sparkles className="w-3.5 h-3.5 text-blue-600 animate-pulse dark:text-sky-400" />
+      <div className="absolute top-3 left-3 sm:left-4 z-20 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm border border-[#CFE1D6] text-[#57534E] text-xs font-bold shadow-sm dark:bg-[#18181B]/90 dark:border-[#2C2C30] dark:text-[#D6D3CD]">
+        <Sparkles className="w-3.5 h-3.5 text-[#2D5A46] animate-pulse dark:text-[#52B788]" />
         <span>Toque na organela para abrir</span>
       </div>
 
@@ -758,28 +758,28 @@ export const InteractiveCell: React.FC<InteractiveCellProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-4 left-4 right-4 z-30 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border-2 border-blue-200 flex items-center justify-between pointer-events-none dark:bg-slate-900/95 dark:border-slate-700 dark:shadow-black/40"
+            className="absolute bottom-4 left-4 right-4 z-30 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border-2 border-[#CFE1D6] flex items-center justify-between pointer-events-none dark:bg-[#18181B]/95 dark:border-[#2C2C30] dark:shadow-black/40"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-xl shadow-inner shrink-0 dark:bg-sky-950/50 dark:border-sky-900/60">
+              <div className="w-10 h-10 rounded-xl bg-[#EBF3EF] border border-[#CFE1D6] flex items-center justify-center text-xl shadow-inner shrink-0 dark:bg-[#15221B]/50 dark:border-[#22392D]">
                 {hoveredObj.icon}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-black text-slate-900 font-display dark:text-white">
+                  <span className="text-sm font-black text-[#1C1917] font-display dark:text-[#FAF9F5]">
                     {hoveredObj.name}
                   </span>
-                  <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-900/60">
+                  <span className="px-2 py-0.5 rounded-md bg-[#EBF3EF] text-[#2D5A46] text-[10px] font-bold border border-[#CFE1D6] dark:bg-[#15221B]/50 dark:text-[#52B788] dark:border-[#22392D]">
                     {hoveredObj.categoryLabel}
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 font-medium line-clamp-1 dark:text-slate-300">
+                <p className="text-xs text-[#57534E] font-medium line-clamp-1 dark:text-[#D6D3CD]">
                   {hoveredObj.tagline}
                 </p>
               </div>
             </div>
 
-            <div className="hidden sm:flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900/60">
+            <div className="hidden sm:flex items-center gap-1 text-xs font-bold text-[#2D5A46] bg-[#EBF3EF] px-3 py-1.5 rounded-xl border border-[#CFE1D6] dark:text-[#52B788] dark:bg-[#15221B]/50 dark:border-[#22392D]">
               <span>Ver Fisiologia ENEM</span>
               <span>→</span>
             </div>

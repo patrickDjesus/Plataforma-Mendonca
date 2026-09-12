@@ -179,7 +179,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/75 backdrop-blur-md"
+          className="fixed inset-0 bg-[#1C1917]/75 backdrop-blur-md"
         />
 
         {/* Modal Window */}
@@ -188,18 +188,18 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-          className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200/90 dark:border-slate-800 shadow-2xl overflow-hidden z-10 my-4 flex flex-col max-h-[92vh]"
+          className="relative w-full max-w-4xl bg-white dark:bg-[#18181B] rounded-[32px] border border-[#E7E2D9]/90 dark:border-[#2C2C30] shadow-2xl overflow-hidden z-10 my-4 flex flex-col max-h-[92vh]"
         >
           {/* Top Line Decorativa com a Cor da Disciplina */}
           <div 
             className="h-2 w-full shrink-0" 
             style={{ 
-              background: `linear-gradient(90deg, ${discipline.color}, #3B82F6, #8B5CF6)` 
+              background: `linear-gradient(90deg, ${discipline.color}, #2D5A46, #1E3E30)` 
             }} 
           />
 
           {/* Modal Header */}
-          <div className="flex items-center justify-between px-6 sm:px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 shrink-0">
+          <div className="flex items-center justify-between px-6 sm:px-8 py-5 border-b border-[#E7E2D9] dark:border-[#2C2C30] bg-[#EFECE6]/60 dark:bg-[#232326]/40 shrink-0">
             <div className="flex items-center gap-3.5">
               <div 
                 className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md font-bold shrink-0 text-xl"
@@ -209,7 +209,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-white font-display">
+                  <h3 className="font-extrabold text-lg text-[#1C1917] dark:text-[#FAF9F5] font-display">
                     Criar Novo Documento
                   </h3>
                   <span 
@@ -222,7 +222,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                     {discipline.name}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-xs text-[#78716C] dark:text-[#A8A29E] mt-0.5">
                   Página em branco personalizada para anotações, fórmulas e resumos
                 </p>
               </div>
@@ -230,7 +230,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2 text-[#A8A29E] hover:text-[#44403C] dark:hover:text-[#E7E5E4] rounded-xl hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors cursor-pointer"
               title="Fechar"
             >
               <X className="w-5 h-5" />
@@ -247,7 +247,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                 
                 {/* 1. Título do Documento com Seletor Extensivo de Emojis */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                  <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] uppercase tracking-wider">
                     Título do Documento <span className="text-red-500">*</span>
                   </label>
 
@@ -256,7 +256,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-2xl transition-all cursor-pointer shrink-0 shadow-2xs hover:scale-105"
+                      className="w-12 h-12 rounded-2xl bg-[#EFECE6] dark:bg-[#232326] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] border border-[#E7E2D9]/80 dark:border-[#3B3B40] flex items-center justify-center text-2xl transition-all cursor-pointer shrink-0 shadow-2xs hover:scale-105"
                       title="Explorar Coleção de Emojis"
                     >
                       {selectedEmoji}
@@ -269,17 +269,17 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                           initial={{ opacity: 0, scale: 0.95, y: 10 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                          className="absolute top-14 left-0 z-50 p-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl w-80 sm:w-96 space-y-3"
+                          className="absolute top-14 left-0 z-50 p-4 bg-white dark:bg-[#18181B] rounded-3xl border border-[#E7E2D9] dark:border-[#3B3B40] shadow-2xl w-80 sm:w-96 space-y-3"
                         >
-                          <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200 px-1 border-b border-slate-100 dark:border-slate-800 pb-2">
+                          <div className="flex items-center justify-between text-xs font-bold text-[#44403C] dark:text-[#E7E5E4] px-1 border-b border-[#E7E2D9] dark:border-[#2C2C30] pb-2">
                             <span className="flex items-center gap-1.5">
-                              <Smile className="w-4 h-4 text-blue-500" />
+                              <Smile className="w-4 h-4 text-[#2D5A46]" />
                               Escolha o Ícone do Documento
                             </span>
                             <button
                               type="button"
                               onClick={() => setShowEmojiPicker(false)}
-                              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
+                              className="text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] p-1"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -287,13 +287,13 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
 
                           {/* Campo de Busca Rápida de Emojis */}
                           <div className="relative">
-                            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#A8A29E]" />
                             <input
                               type="text"
                               value={emojiSearch}
                               onChange={(e) => setEmojiSearch(e.target.value)}
                               placeholder="Pesquisar ou colar emoji..."
-                              className="w-full pl-8 pr-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-full pl-8 pr-3 py-1.5 bg-[#EFECE6] dark:bg-[#232326] rounded-xl text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]"
                             />
                           </div>
 
@@ -304,8 +304,8 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                               onClick={() => setActiveCategoryTab('all')}
                               className={`px-2.5 py-1 rounded-lg font-bold shrink-0 transition-colors cursor-pointer ${
                                 activeCategoryTab === 'all'
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                                  ? 'bg-[#2D5A46] text-white'
+                                  : 'bg-[#EFECE6] dark:bg-[#232326] text-[#57534E] dark:text-[#A8A29E] hover:bg-[#E5DFD5]'
                               }`}
                             >
                               Todos
@@ -317,8 +317,8 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                                 onClick={() => setActiveCategoryTab(cat.id)}
                                 className={`px-2.5 py-1 rounded-lg font-bold shrink-0 transition-colors cursor-pointer flex items-center gap-1 ${
                                   activeCategoryTab === cat.id
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                                    ? 'bg-[#2D5A46] text-white'
+                                    : 'bg-[#EFECE6] dark:bg-[#232326] text-[#57534E] dark:text-[#A8A29E] hover:bg-[#E5DFD5]'
                                 }`}
                               >
                                 <span>{cat.icon}</span>
@@ -328,7 +328,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                           </div>
 
                           {/* Grid de Emojis */}
-                          <div className="grid grid-cols-7 gap-1.5 max-h-48 overflow-y-auto p-1 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                          <div className="grid grid-cols-7 gap-1.5 max-h-48 overflow-y-auto p-1 bg-[#EFECE6] dark:bg-[#232326]/50 rounded-2xl border border-[#E7E2D9] dark:border-[#2C2C30]">
                             {filteredEmojis.map((emoji, eIdx) => (
                               <button
                                 key={`${emoji}-${eIdx}`}
@@ -337,8 +337,8 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                                   setSelectedEmoji(emoji);
                                   setShowEmojiPicker(false);
                                 }}
-                                className={`w-9 h-9 rounded-xl text-lg flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-transform hover:scale-125 cursor-pointer ${
-                                  selectedEmoji === emoji ? 'bg-blue-200 dark:bg-blue-800 ring-2 ring-blue-500 scale-110' : ''
+                                className={`w-9 h-9 rounded-xl text-lg flex items-center justify-center hover:bg-[#EBF3EF] dark:hover:bg-[#15221B]/60 transition-transform hover:scale-125 cursor-pointer ${
+                                  selectedEmoji === emoji ? 'bg-[#EBF3EF] dark:bg-[#15221B] ring-2 ring-[#2D5A46] scale-110' : ''
                                 }`}
                               >
                                 {emoji}
@@ -357,14 +357,14 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder={`Ex: ${discipline.name}: Aula 01 - Fundamentos e Exemplos`}
-                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold shadow-2xs"
+                      className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-2xl px-4 py-3 text-sm text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 focus:border-[#2D5A46] font-semibold shadow-2xs"
                     />
                   </div>
 
                   {/* Barra Rápida de Emojis Populares */}
                   <div className="flex items-center gap-1.5 pt-1.5 overflow-x-auto pb-1">
-                    <span className="text-[11px] text-slate-400 mr-1 flex items-center gap-1 shrink-0">
-                      <Smile className="w-3.5 h-3.5 text-blue-500" /> Ícones Rápidos:
+                    <span className="text-[11px] text-[#A8A29E] mr-1 flex items-center gap-1 shrink-0">
+                      <Smile className="w-3.5 h-3.5 text-[#2D5A46]" /> Ícones Rápidos:
                     </span>
                     {ALL_EMOJIS.slice(0, 10).map((em) => (
                       <button
@@ -373,8 +373,8 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                         onClick={() => setSelectedEmoji(em)}
                         className={`text-sm px-2 py-1 rounded-xl transition-all cursor-pointer ${
                           selectedEmoji === em 
-                            ? 'bg-blue-600 text-white font-bold shadow-xs scale-110 ring-2 ring-blue-400' 
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:scale-105'
+                            ? 'bg-[#EBF3EF] dark:bg-[#15221B] font-bold shadow-xs scale-110 ring-2 ring-[#2D5A46]' 
+                            : 'bg-[#EFECE6] dark:bg-[#232326] text-[#57534E] dark:text-[#D6D3CD] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] hover:scale-105'
                         }`}
                       >
                         {em}
@@ -385,22 +385,22 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
 
                 {/* 2. Descrição / Resumo do Foco de Estudo (Opcional) */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
-                    Descrição ou Foco do Estudo <span className="text-[10px] text-slate-400 font-normal lowercase">(opcional)</span>
+                  <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] uppercase tracking-wider">
+                    Descrição ou Foco do Estudo <span className="text-[10px] text-[#A8A29E] font-normal lowercase">(opcional)</span>
                   </label>
                   <textarea
                     rows={2}
                     value={summary}
                     onChange={(e) => setSummary(e.target.value)}
                     placeholder={`Ex: Resumo dos conceitos centrais de ${discipline.name}, fórmulas e resoluções passo a passo...`}
-                    className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none shadow-2xs"
+                    className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-2xl p-3.5 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 focus:border-[#2D5A46] resize-none shadow-2xs"
                   />
                 </div>
 
                 {/* 3. Tags & Palavras-chave */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5 text-slate-400" />
+                  <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] uppercase tracking-wider flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-[#A8A29E]" />
                     Tags do Documento
                   </label>
 
@@ -415,11 +415,11 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                           onClick={() => handleToggleTagSuggestion(tag)}
                           className={`text-[11px] font-bold px-2.5 py-1 rounded-xl border transition-all cursor-pointer flex items-center gap-1 ${
                             isSelected
-                              ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-400 dark:border-blue-700 text-blue-700 dark:text-blue-300 shadow-2xs'
-                              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                              ? 'bg-[#EBF3EF] dark:bg-[#15221B]/60 border-[#CFE1D6] dark:border-[#22392D] text-[#224A38] dark:text-[#52B788] shadow-2xs'
+                              : 'bg-white dark:bg-[#232326] border-[#E7E2D9] dark:border-[#3B3B40] text-[#57534E] dark:text-[#A8A29E] hover:bg-[#EFECE6] dark:hover:bg-[#333338]'
                           }`}
                         >
-                          {isSelected ? <Check className="w-3 h-3 text-blue-600" /> : <Plus className="w-3 h-3 text-slate-400" />}
+                          {isSelected ? <Check className="w-3 h-3 text-[#2D5A46]" /> : <Plus className="w-3 h-3 text-[#A8A29E]" />}
                           <span>{tag}</span>
                         </button>
                       );
@@ -432,13 +432,13 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                     value={tagsInput}
                     onChange={(e) => setTagsInput(e.target.value)}
                     placeholder="Adicionar outras tags separadas por vírgula (ex: Genética, Eletrostática, Simulado)"
-                    className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs"
+                    className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-2xl px-3.5 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 focus:border-[#2D5A46] shadow-2xs"
                   />
                 </div>
 
                 {/* 4. Visibilidade / Privacidade */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                  <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] uppercase tracking-wider">
                     Privacidade do Caderno
                   </label>
                   <div className="grid grid-cols-2 gap-3">
@@ -448,19 +448,19 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                       onClick={() => setIsPublic(true)}
                       className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
                         isPublic
-                          ? 'bg-blue-50/80 dark:bg-blue-950/50 border-blue-500 dark:border-blue-600 shadow-sm ring-1 ring-blue-500/20'
-                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'
+                          ? 'bg-[#EBF3EF]/80 dark:bg-[#15221B]/50 border-[#2D5A46] dark:border-[#2D5A46] shadow-sm ring-1 ring-[#2D5A46]/20'
+                          : 'bg-white dark:bg-[#232326] border-[#E7E2D9] dark:border-[#3B3B40] hover:bg-[#EFECE6] dark:hover:bg-[#333338]'
                       }`}
                     >
-                      <div className={`p-2 rounded-xl shrink-0 ${isPublic ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
+                      <div className={`p-2 rounded-xl shrink-0 ${isPublic ? 'bg-[#2D5A46] text-white' : 'bg-[#EFECE6] dark:bg-[#3B3B40] text-[#78716C]'}`}>
                         <Globe className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                        <div className="text-xs font-bold text-[#1C1917] dark:text-[#FAF9F5] flex items-center gap-1">
                           Público
-                          {isPublic && <Check className="w-3 h-3 text-blue-600 dark:text-blue-400" />}
+                          {isPublic && <Check className="w-3 h-3 text-[#2D5A46] dark:text-[#52B788]" />}
                         </div>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
+                        <p className="text-[10px] text-[#78716C] dark:text-[#A8A29E] leading-tight mt-0.5">
                           Disponível para a comunidade do app
                         </p>
                       </div>
@@ -473,18 +473,18 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                       className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
                         !isPublic
                           ? 'bg-amber-50/80 dark:bg-amber-950/50 border-amber-500 dark:border-amber-600 shadow-sm ring-1 ring-amber-500/20'
-                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'
+                          : 'bg-white dark:bg-[#232326] border-[#E7E2D9] dark:border-[#3B3B40] hover:bg-[#EFECE6] dark:hover:bg-[#333338]'
                       }`}
                     >
-                      <div className={`p-2 rounded-xl shrink-0 ${!isPublic ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
+                      <div className={`p-2 rounded-xl shrink-0 ${!isPublic ? 'bg-amber-600 text-white' : 'bg-[#EFECE6] dark:bg-[#3B3B40] text-[#78716C]'}`}>
                         <Lock className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                        <div className="text-xs font-bold text-[#1C1917] dark:text-[#FAF9F5] flex items-center gap-1">
                           Privado
                           {!isPublic && <Check className="w-3 h-3 text-amber-600 dark:text-amber-400" />}
                         </div>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
+                        <p className="text-[10px] text-[#78716C] dark:text-[#A8A29E] leading-tight mt-0.5">
                           Apenas no seu caderno pessoal
                         </p>
                       </div>
@@ -497,17 +497,17 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
               {/* COLUNA DIREITA: PRÉVIA VISUAL DO CARD (5 colunas) */}
               <div className="lg:col-span-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#2D5A46]" />
                     Prévia do Documento
                   </span>
-                  <span className="text-[10px] text-slate-400 font-medium">
+                  <span className="text-[10px] text-[#A8A29E] font-medium">
                     Layout Padrão em Branco
                   </span>
                 </div>
 
                 {/* Card de Demonstração em Tempo Real */}
-                <div className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-850 dark:to-slate-900 rounded-[24px] p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-md space-y-4 relative overflow-hidden">
+                <div className="bg-gradient-to-b from-[#EFECE6] to-white dark:from-[#232326] dark:to-[#18181B] rounded-[24px] p-5 border border-[#E7E2D9]/90 dark:border-[#3B3B40]/80 shadow-md space-y-4 relative overflow-hidden">
                   
                   {/* Faixa decorativa superior */}
                   <div 
@@ -517,7 +517,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
 
                   {/* Header do Card */}
                   <div className="flex items-start justify-between gap-3 pt-1">
-                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm flex items-center justify-center text-2xl shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-[#232326] border border-[#E7E2D9]/80 dark:border-[#3B3B40] shadow-sm flex items-center justify-center text-2xl shrink-0">
                       {selectedEmoji}
                     </div>
 
@@ -533,7 +533,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                       </span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
                         isPublic 
-                          ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300' 
+                          ? 'bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788]' 
                           : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
                       }`}>
                         {isPublic ? <Globe className="w-2.5 h-2.5" /> : <Lock className="w-2.5 h-2.5" />}
@@ -544,10 +544,10 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
 
                   {/* Título & Resumo */}
                   <div className="space-y-1.5">
-                    <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white font-display line-clamp-2">
+                    <h4 className="font-bold text-sm sm:text-base text-[#1C1917] dark:text-[#FAF9F5] font-display line-clamp-2">
                       {title.trim() ? `${selectedEmoji} ${title}` : `${selectedEmoji} Título do Documento`}
                     </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-[#78716C] dark:text-[#A8A29E] line-clamp-2 leading-relaxed">
                       {summary.trim() 
                         ? summary 
                         : 'Documento limpo e pronto para receber suas anotações, fórmulas e resumos com suporte a barra Word e atalhos.'}
@@ -555,19 +555,19 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                   </div>
 
                   {/* Mini-Simulação do Documento em Branco com Destaque de Conceito */}
-                  <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700/80 space-y-2">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 border-b border-slate-100 dark:border-slate-700/60 pb-1.5">
+                  <div className="p-3 bg-white dark:bg-[#232326] rounded-xl border border-[#E7E2D9]/80 dark:border-[#3B3B40]/80 space-y-2">
+                    <div className="flex items-center justify-between text-[10px] font-bold text-[#A8A29E] border-b border-[#E7E2D9] dark:border-[#3B3B40]/60 pb-1.5">
                       <span className="flex items-center gap-1.5">
-                        <FileText className="w-3 h-3 text-slate-400" />
+                        <FileText className="w-3 h-3 text-[#A8A29E]" />
                         Página em Branco
                       </span>
-                      <span className="text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1">
+                      <span className="text-[#2D5A46] dark:text-[#52B788] font-semibold flex items-center gap-1">
                         <Sparkles className="w-2.5 h-2.5" /> Conceitos Ativos
                       </span>
                     </div>
-                    <div className="space-y-2 py-1 text-xs text-slate-600 dark:text-slate-300">
+                    <div className="space-y-2 py-1 text-xs text-[#57534E] dark:text-[#D6D3CD]">
                       <p className="leading-relaxed">
-                        Ao escrever termos como <span className="bg-blue-100 dark:bg-blue-950 text-blue-900 dark:text-blue-200 border-b border-blue-400 px-1 py-0.5 rounded font-medium">Logaritmo</span> ou <span className="bg-blue-100 dark:bg-blue-950 text-blue-900 dark:text-blue-200 border-b border-blue-400 px-1 py-0.5 rounded font-medium">Entropia</span>, eles são destacados com o significado instantâneo.
+                        Ao escrever termos como <span className="bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788] border-b border-[#2D5A46] px-1 py-0.5 rounded font-medium">Logaritmo</span> ou <span className="bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788] border-b border-[#2D5A46] px-1 py-0.5 rounded font-medium">Entropia</span>, eles são destacados com o significado instantâneo.
                       </p>
                     </div>
                   </div>
@@ -577,20 +577,20 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                     {combinedTags.slice(0, 4).map((tg) => (
                       <span
                         key={tg}
-                        className="text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60"
+                        className="text-[10px] font-medium bg-[#EFECE6] dark:bg-[#232326] text-[#57534E] dark:text-[#A8A29E] px-2 py-0.5 rounded-lg border border-[#E7E2D9]/60 dark:border-[#3B3B40]/60"
                       >
                         #{tg}
                       </span>
                     ))}
                     {combinedTags.length > 4 && (
-                      <span className="text-[10px] text-slate-400 font-medium px-1">
+                      <span className="text-[10px] text-[#A8A29E] font-medium px-1">
                         +{combinedTags.length - 4}
                       </span>
                     )}
                   </div>
 
                   {/* Meta do Documento */}
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
+                  <div className="pt-2 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex items-center justify-between text-[10px] text-[#A8A29E]">
                     <span className="flex items-center gap-1">
                       <User className="w-3 h-3" /> Você
                     </span>
@@ -605,8 +605,8 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
             </div>
 
             {/* Footer Actions */}
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
-              <div className="text-xs text-slate-400 flex items-center gap-1.5">
+            <div className="pt-4 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex flex-wrap items-center justify-between gap-3 shrink-0">
+              <div className="text-xs text-[#A8A29E] flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 inline-block" />
                 <span>Pronto para edição imediata no Caderno</span>
               </div>
@@ -615,7 +615,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-5 py-2.5 rounded-2xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="px-5 py-2.5 rounded-2xl text-xs font-bold text-[#57534E] dark:text-[#D6D3CD] hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -623,7 +623,7 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all cursor-pointer"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-bold shadow-md shadow-[#2D5A46]/25 transition-all cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Criar e Começar a Escrever</span>

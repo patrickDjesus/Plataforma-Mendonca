@@ -31,7 +31,7 @@ export const RealisticVectorGraphic: React.FC<RealisticVectorGraphicProps> = ({
   name = '',
   scientificName = '',
   icon = '🔬',
-  themeColor = '#3b82f6',
+  themeColor = '#2D5A46',
 }) => {
   switch (id) {
     // Orgãos

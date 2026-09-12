@@ -27,23 +27,23 @@ export const RealLifeVisualizer: React.FC<RealLifeVisualizerProps> = ({
   name,
   scientificName,
   icon,
-  themeColor = '#2563eb',
+  themeColor = '#2D5A46',
 }) => {
   const [isZoomed, setIsZoomed] = useState<boolean>(false);
 
   return (
     <div className="space-y-4">
       {/* Visual Header & Techniques */}
-      <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-[#18181B] text-white rounded-2xl border border-[#2C2C30] shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-400/30">
+          <div className="p-1.5 rounded-xl bg-[#2D5A46]/20 text-[#52B788] border border-[#52B788]/30">
             <Microscope className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-xs font-black uppercase tracking-wider text-slate-200 block">
+            <span className="text-xs font-black uppercase tracking-wider text-[#FAF9F5] block">
               Esquema Anatômico & Ultraestrutura
             </span>
-            <span className="text-[11px] text-blue-300 font-semibold">
+            <span className="text-[11px] text-[#52B788] font-semibold">
               {realLifeInfo?.sourceType || 'Diagrama Vetorial Científico em Alta Resolução'}
             </span>
           </div>
@@ -51,7 +51,7 @@ export const RealLifeVisualizer: React.FC<RealLifeVisualizerProps> = ({
 
         <div className="flex items-center gap-2">
           {realLifeInfo?.magnificationOrScale && (
-            <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-amber-300">
+            <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-[#232326] border border-[#2C2C30] text-[#52B788]">
               📏 {realLifeInfo.magnificationOrScale}
             </span>
           )}
@@ -70,8 +70,8 @@ export const RealLifeVisualizer: React.FC<RealLifeVisualizerProps> = ({
       </div>
 
       {/* Main Interactive Stage: Beautiful Custom Vector Graphic */}
-      <div className="relative rounded-3xl overflow-hidden bg-slate-950 border-2 border-slate-800 shadow-xl group">
-        <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full overflow-hidden flex items-center justify-center bg-slate-950 p-2">
+      <div className="relative rounded-3xl overflow-hidden bg-[#121214] border-2 border-[#2C2C30] shadow-xl group">
+        <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full overflow-hidden flex items-center justify-center bg-[#121214] p-2">
           <RealisticVectorGraphic
             id={id}
             name={name}
@@ -84,8 +84,8 @@ export const RealLifeVisualizer: React.FC<RealLifeVisualizerProps> = ({
           <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-white text-xs flex items-center gap-2 pointer-events-none">
             <span className="text-base">{icon}</span>
             <div className="leading-tight">
-              <p className="font-bold text-slate-100">{name}</p>
-              <p className="text-[10px] text-slate-400 italic">{scientificName}</p>
+              <p className="font-bold text-[#FAF9F5]">{name}</p>
+              <p className="text-[10px] text-[#A8A29E] italic">{scientificName}</p>
             </div>
           </div>
 
@@ -110,26 +110,26 @@ export const RealLifeVisualizer: React.FC<RealLifeVisualizerProps> = ({
       {realLifeInfo && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Analysis Card */}
-          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2 dark:bg-slate-900 dark:border-slate-800">
-            <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider dark:text-white">
-              <Compass className="w-4 h-4 text-blue-600 dark:text-sky-400" />
+          <div className="p-4 rounded-2xl bg-white border border-[#E7E2D9] shadow-sm space-y-2 dark:bg-[#18181B] dark:border-[#2C2C30]">
+            <div className="flex items-center gap-2 text-[#1C1917] font-bold text-xs uppercase tracking-wider dark:text-[#FAF9F5]">
+              <Compass className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
               <span>Como a ciência descreve esta estrutura</span>
             </div>
-            <p className="text-xs text-slate-700 leading-relaxed font-medium dark:text-slate-300">
+            <p className="text-xs text-[#44403C] leading-relaxed font-medium dark:text-[#D6D3CD]">
               {realLifeInfo.visualDescription}
             </p>
           </div>
 
           {/* Key Morphological Landmarks */}
-          <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200/80 shadow-sm space-y-2 dark:bg-sky-950/40 dark:border-sky-900/60">
-            <div className="flex items-center gap-2 text-blue-950 font-bold text-xs uppercase tracking-wider dark:text-sky-300">
-              <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-sky-400" />
+          <div className="p-4 rounded-2xl bg-[#EBF3EF]/60 border border-[#CFE1D6]/80 shadow-sm space-y-2 dark:bg-[#15221B]/40 dark:border-[#22392D]">
+            <div className="flex items-center gap-2 text-[#2D5A46] font-bold text-xs uppercase tracking-wider dark:text-[#52B788]">
+              <CheckCircle2 className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
               <span>Pontos morfológicos e ultraestruturas</span>
             </div>
             <ul className="space-y-1.5">
               {realLifeInfo.keyRealFeatures.map((feat, idx) => (
-                <li key={idx} className="flex items-start gap-1.5 text-xs text-slate-700 font-medium dark:text-slate-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0 dark:bg-sky-400" />
+                <li key={idx} className="flex items-start gap-1.5 text-xs text-[#44403C] font-medium dark:text-[#D6D3CD]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2D5A46] mt-1.5 shrink-0 dark:bg-[#52B788]" />
                   <span>{feat}</span>
                 </li>
               ))}
@@ -139,12 +139,12 @@ export const RealLifeVisualizer: React.FC<RealLifeVisualizerProps> = ({
       )}
 
       {/* Didactic Note: Why are models stylized? */}
-      <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-950 text-xs space-y-1 dark:bg-amber-950/40 dark:border-amber-900/60 dark:text-amber-100">
+      <div className="p-3.5 rounded-2xl bg-[#EBF3EF]/80 border border-[#CFE1D6] text-[#2D5A46] text-xs space-y-1 dark:bg-[#15221B]/40 dark:border-[#22392D] dark:text-[#52B788]">
         <div className="flex items-center gap-1.5 font-bold">
-          <Sparkles className="w-4 h-4 text-amber-600 shrink-0 dark:text-amber-400" />
+          <Sparkles className="w-4 h-4 text-[#2D5A46] shrink-0 dark:text-[#52B788]" />
           <span>Por que as ilustrações científicas usam esquemas vetoriais?</span>
         </div>
-        <p className="text-slate-700 leading-relaxed dark:text-slate-300">
+        <p className="text-[#44403C] leading-relaxed dark:text-[#D6D3CD]">
           Na biologia e no ENEM, diagramas vetoriais com destaque cromático facilitam identificar imediatamente as membranas, cristas, cisternas, túbulos e vasos condutores que seriam difíceis de discernir em fotos cinzentas de microscopia eletrônica!
         </p>
       </div>
@@ -157,14 +157,14 @@ export const RealLifeVisualizer: React.FC<RealLifeVisualizerProps> = ({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="relative max-w-4xl w-full max-h-[95vh] bg-slate-950 rounded-3xl overflow-hidden border border-slate-800 flex flex-col shadow-2xl"
+              className="relative max-w-4xl w-full max-h-[95vh] bg-[#121214] rounded-3xl overflow-hidden border border-[#2C2C30] flex flex-col shadow-2xl"
             >
-              <div className="p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-white shrink-0">
+              <div className="p-4 bg-[#18181B] border-b border-[#2C2C30] flex items-center justify-between text-white shrink-0">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{icon}</span>
                   <div>
                     <h3 className="font-bold text-sm sm:text-base text-white">{name} - Diagrama Vetorial</h3>
-                    <p className="text-xs text-slate-400">{scientificName}</p>
+                    <p className="text-xs text-[#A8A29E]">{scientificName}</p>
                   </div>
                 </div>
 
@@ -180,7 +180,7 @@ export const RealLifeVisualizer: React.FC<RealLifeVisualizerProps> = ({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-auto p-6 flex items-center justify-center bg-slate-950">
+              <div className="flex-1 overflow-auto p-6 flex items-center justify-center bg-[#121214]">
                 <div className="w-full max-w-2xl aspect-[4/3]">
                   <RealisticVectorGraphic
                     id={id}
@@ -193,7 +193,7 @@ export const RealLifeVisualizer: React.FC<RealLifeVisualizerProps> = ({
               </div>
 
               {realLifeInfo && (
-                <div className="p-3 bg-slate-900 text-xs text-slate-300 text-center border-t border-slate-800">
+                <div className="p-3 bg-[#18181B] text-xs text-[#D6D3CD] text-center border-t border-[#2C2C30]">
                   {realLifeInfo.visualDescription}
                 </div>
               )}

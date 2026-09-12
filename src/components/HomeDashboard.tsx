@@ -54,10 +54,10 @@ const FOCUS_PLANS: FocusPlan[] = [
     estimatedTime: '15 - 20 min diários',
     xpReward: 250,
     badge: '🥉 Bronze',
-    color: '#0284C7',
-    borderColor: 'border-sky-300 dark:border-sky-700',
-    bgGradient: 'from-sky-50 to-blue-50 dark:from-sky-950/40 dark:to-blue-950/40',
-    buttonColor: 'bg-sky-600 hover:bg-sky-700 text-white',
+    color: '#D97706',
+    borderColor: 'border-[#FDE68A] dark:border-[#5E441D]',
+    bgGradient: 'from-[#FEF3C7]/60 to-[#EBF3EF]/80 dark:from-[#2C210E] dark:to-[#15221B]',
+    buttonColor: 'bg-[#D97706] hover:bg-[#B45309] text-white',
     description: 'Consolidação gradual da rotina de estudos com foco na retenção de conceitos básicos e fórmulas fundamentais.',
     instructions: [
       'Resolver 50 questões no modo Treino durante os 7 dias da semana.',
@@ -75,10 +75,10 @@ const FOCUS_PLANS: FocusPlan[] = [
     estimatedTime: '35 - 45 min diários',
     xpReward: 600,
     badge: '🥈 Prata',
-    color: '#2563EB',
-    borderColor: 'border-blue-400 dark:border-blue-600',
-    bgGradient: 'from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40',
-    buttonColor: 'bg-blue-600 hover:bg-blue-700 text-white',
+    color: '#2D5A46',
+    borderColor: 'border-[#CFE1D6] dark:border-[#5A2C20]',
+    bgGradient: 'from-[#EBF3EF]/70 to-[#EBF3EF]/80 dark:from-[#15221B] dark:to-[#15221B]',
+    buttonColor: 'bg-[#2D5A46] hover:bg-[#21483A] text-white',
     description: 'Equilíbrio ideal entre velocidade e profundidade para estudantes que buscam alto rendimento e retenção no Grafo.',
     instructions: [
       'Resolver 100 questões no modo Treino ao longo de 7 dias.',
@@ -96,10 +96,10 @@ const FOCUS_PLANS: FocusPlan[] = [
     estimatedTime: '75 - 90 min diários',
     xpReward: 1500,
     badge: '🥇 Mestre Mendonça',
-    color: '#7C3AED',
-    borderColor: 'border-purple-400 dark:border-purple-600',
-    bgGradient: 'from-purple-50 to-violet-50 dark:from-purple-950/40 dark:to-violet-950/40',
-    buttonColor: 'bg-purple-600 hover:bg-purple-700 text-white',
+    color: '#6B4F67',
+    borderColor: 'border-[#DECEDC] dark:border-[#4A2F45]',
+    bgGradient: 'from-[#F4EFF3]/70 to-[#EDE4EC]/80 dark:from-[#20161F] dark:to-[#2A1E28]',
+    buttonColor: 'bg-[#6B4F67] hover:bg-[#553C51] text-white',
     description: 'Imersão intensiva e maratona de resolução para candidatos a cursos de alta concorrência (Medicina, Computação e Engenharia).',
     instructions: [
       'Resolver 200 questões de nível intermediário/avançado em 1 semana.',
@@ -186,7 +186,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
   }, [streakCount]);
 
   return (
-    <div ref={scrollContainerRef} className="flex-1 flex flex-col gap-6 overflow-y-auto pb-24 pr-1 relative select-none text-slate-900 dark:text-slate-100">
+    <div ref={scrollContainerRef} className="flex-1 flex flex-col gap-6 overflow-y-auto pb-24 pr-1 relative select-none text-[#1C1917] dark:text-[#FAF9F5]">
       
       {/* Grid Principal do Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
@@ -202,7 +202,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="relative rounded-[32px] overflow-hidden bg-gradient-to-br from-blue-700 via-indigo-800 to-slate-950 p-6 sm:p-8 flex flex-col justify-between shadow-xl shadow-blue-500/10 min-h-[220px]"
+            className="relative rounded-[32px] overflow-hidden bg-gradient-to-br from-[#2D5A46] via-[#1F7A5E] to-[#0E1712] p-6 sm:p-8 flex flex-col justify-between shadow-xl shadow-[#2D5A46]/10 min-h-[220px]"
           >
             <div className="z-10 flex flex-col max-w-2xl">
               
@@ -213,7 +213,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                     onClick={() => setIsExamDropdownOpen(!isExamDropdownOpen)}
                     className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 text-xs font-bold px-3.5 py-1.5 rounded-xl flex items-center gap-2 cursor-pointer transition-all"
                   >
-                    <span className="w-2 h-2 rounded-full bg-cyan-300 animate-ping" />
+                    <span className="w-2 h-2 rounded-full bg-[#6BCFA0] animate-ping" />
                     <span>{currentExam.name}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-white/70" />
                   </button>
@@ -224,9 +224,9 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                         initial={{ opacity: 0, y: 5, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
-                        className="absolute left-0 top-full mt-2 w-72 bg-slate-900/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-2 z-50 space-y-1 text-white"
+                        className="absolute left-0 top-full mt-2 w-72 bg-[#1C1917]/95 backdrop-blur-xl border border-[#E7E2D9]/20 rounded-2xl shadow-2xl p-2 z-50 space-y-1 text-white"
                       >
-                        <span className="text-[10px] uppercase font-bold text-slate-400 px-3 py-1 block">
+                        <span className="text-[10px] uppercase font-bold text-[#A8A29E] px-3 py-1 block">
                           Selecione o Exame Alvo:
                         </span>
                         {TARGET_EXAMS.map((exam) => (
@@ -238,12 +238,12 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                             }}
                             className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
                               exam.id === selectedExamId
-                                ? 'bg-blue-600 text-white font-bold'
-                                : 'hover:bg-white/10 text-slate-200'
+                                ? 'bg-[#2D5A46] text-white font-bold'
+                                : 'hover:bg-white/10 text-[#E7E5E4]'
                             }`}
                           >
                             <span className="truncate">{exam.shortName}</span>
-                            {exam.id === selectedExamId && <CheckCircle2 className="w-3.5 h-3.5 text-cyan-300" />}
+                            {exam.id === selectedExamId && <CheckCircle2 className="w-3.5 h-3.5 text-[#6BCFA0]" />}
                           </button>
                         ))}
                       </motion.div>
@@ -251,8 +251,8 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                   </AnimatePresence>
                 </div>
 
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 backdrop-blur-sm text-[11px] font-bold text-blue-200 border border-white/10">
-                  <Calendar className="w-3.5 h-3.5 text-cyan-300" />
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 backdrop-blur-sm text-[11px] font-bold text-[#C4DACB] border border-white/10">
+                  <Calendar className="w-3.5 h-3.5 text-[#6BCFA0]" />
                   <span>{new Date(currentExam.targetDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                 </div>
               </div>
@@ -261,13 +261,13 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-2 tracking-tight font-display flex flex-wrap items-baseline gap-2">
                 <span>Faltam {countdown.days} dias</span>
                 {countdown.days < 45 && (
-                  <span className="text-lg sm:text-xl font-normal text-cyan-300 font-mono">
+                  <span className="text-lg sm:text-xl font-normal text-[#6BCFA0] font-mono">
                     e {countdown.hours}h {countdown.minutes}m {countdown.seconds}s
                   </span>
                 )}
               </h2>
 
-              <p className="text-blue-100 text-xs sm:text-sm font-medium leading-relaxed">
+              <p className="text-[#C4DACB] text-xs sm:text-sm font-medium leading-relaxed">
                 {currentExam.tips}
               </p>
               
@@ -277,11 +277,11 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setIsFocusModalOpen(true)}
-                  className="bg-amber-400 hover:bg-amber-300 text-slate-950 px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-lg shadow-amber-400/20 flex items-center gap-2 cursor-pointer"
+                  className="bg-[#52B788] hover:bg-[#6BCFA0] text-[#0E1712] px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-lg shadow-[#52B788]/20 flex items-center gap-2 cursor-pointer"
                 >
-                  <Target className="w-4 h-4 text-slate-950" />
+                  <Target className="w-4 h-4 text-[#1C1917]" />
                   <span>Modo Foco Semanal</span>
-                  <span className="bg-slate-950/10 text-slate-900 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase">
+                  <span className="bg-[#1C1917]/10 text-[#1C1917] text-[10px] px-2 py-0.5 rounded-md font-bold uppercase">
                     {activeFocus.total}q / sem
                   </span>
                 </motion.button>
@@ -290,9 +290,9 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => onNavigate('treino')}
-                  className="bg-white text-blue-900 hover:bg-cyan-50 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                  className="bg-white text-[#224A38] hover:bg-[#EBF3EF] px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Play className="w-3.5 h-3.5 fill-blue-700" />
+                  <Play className="w-3.5 h-3.5 fill-[#2D5A46]" />
                   Ir para o Treino
                 </motion.button>
 
@@ -300,7 +300,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => onNavigate('caderno')}
-                  className="bg-blue-900/60 hover:bg-blue-900/80 text-white border border-white/20 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                  className="bg-[#0E1712]/60 hover:bg-[#0E1712]/80 text-white border border-white/20 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
                 >
                   Caderno de Disciplinas
                 </motion.button>
@@ -308,8 +308,8 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
             </div>
 
             {/* Ambient Background Circles */}
-            <div className="absolute right-[-20px] bottom-[-20px] opacity-20 w-64 h-64 border-[30px] border-white rounded-full pointer-events-none" />
-            <div className="absolute right-24 top-[-40px] opacity-10 w-48 h-48 border-[20px] border-cyan-200 rounded-full pointer-events-none" />
+            <div className="absolute right-[-20px] bottom-[-20px] opacity-20 w-64 h-64 border-[30px] border-[#52B788] rounded-full pointer-events-none" />
+            <div className="absolute right-24 top-[-40px] opacity-10 w-48 h-48 border-[20px] border-[#C4DACB] rounded-full pointer-events-none" />
           </motion.div>
           </ScrollFade>
 
@@ -357,13 +357,13 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
           
           {/* OFENSIVA SEMANAL */}
           <ScrollFade container={scrollContainerRef}>
-          <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200/80 dark:border-slate-800 p-6 shadow-2xs hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700/60 transition-all duration-300">
+          <div className="bg-[#FAF8F5] dark:bg-[#18181B] rounded-[32px] border border-[#E7E2D9] dark:border-[#2C2C30] p-6 shadow-xs hover:shadow-md hover:border-[#2D5A46] dark:hover:border-[#2D5A46] transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-orange-500 fill-orange-500" />
-                <span className="text-sm font-bold text-slate-800 dark:text-slate-100 font-display">Ofensiva Semanal</span>
+                <Flame className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788] fill-[#2D5A46] dark:fill-[#52B788]" />
+                <span className="text-sm font-bold text-[#1C1917] dark:text-[#FAF9F5] font-display">Ofensiva Semanal</span>
               </div>
-              <span className="text-xs text-slate-400 dark:text-slate-400 font-semibold uppercase tracking-wider">Nível {Math.min(7, Math.floor((streakCount || 1) / 2) + 1)}</span>
+              <span className="text-xs text-[#78716C] dark:text-[#A8A29E] font-semibold uppercase tracking-wider font-mono">Nível {Math.min(7, Math.floor((streakCount || 1) / 2) + 1)}</span>
             </div>
 
             <div className="flex justify-between items-center gap-1.5">
@@ -372,22 +372,22 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                   <div 
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
                       day.done
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200 dark:shadow-blue-950 scale-105'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-400'
+                        ? 'bg-[#2D5A46] text-white shadow-md shadow-[#CFE1D6] dark:shadow-[#22392D] scale-105'
+                        : 'bg-[#EFECE6] dark:bg-[#232326] text-[#8C7A6B] dark:text-[#A8A29E]'
                     }`}
                   >
                     {day.label}
                   </div>
-                  <span className="text-[9px] font-bold text-slate-400 dark:text-slate-400">
+                  <span className="text-[9px] font-bold text-[#8C7A6B] dark:text-[#57534E]">
                     {idx === 0 ? 'Seg' : idx === 6 ? 'Dom' : ''}
                   </span>
                 </div>
               ))}
             </div>
             
-            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-300">
+            <div className="mt-4 pt-3 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex items-center justify-between text-xs text-[#57534E] dark:text-[#D6D3CD]">
               <span>Sequência Ativa:</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">{streakCount} dias seguidos 🔥</span>
+              <span className="flex items-center gap-1.5 text-[#2D5A46] dark:text-[#52B788] font-bold"><Flame className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788] fill-[#2D5A46] dark:fill-[#52B788]" />{streakCount} dias seguidos</span>
             </div>
           </div>
           </ScrollFade>
@@ -408,7 +408,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsFocusModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-[#1C1917]/60 backdrop-blur-sm"
             />
 
             <motion.div
@@ -416,18 +416,18 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[36px] shadow-2xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 overflow-hidden z-10 max-h-[90vh] flex flex-col text-slate-900 dark:text-slate-100"
+              className="relative w-full max-w-4xl bg-[#FAF8F5] dark:bg-[#18181B] rounded-[36px] shadow-2xl border border-[#E7E2D9] dark:border-[#2C2C30] p-6 sm:p-8 overflow-hidden z-10 max-h-[90vh] flex flex-col text-[#1C1917] dark:text-[#FAF9F5]"
             >
-              <div className="flex items-center justify-between pb-5 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between pb-5 border-b border-[#E7E2D9] dark:border-[#2C2C30]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-xs">
+                  <div className="w-10 h-10 rounded-2xl bg-[#FEF3C7] dark:bg-[#3D2E14] text-[#D97706] dark:text-[#FBBF24] flex items-center justify-center shadow-xs border border-[#FDE68A] dark:border-[#5E441D]">
                     <Target className="w-6 h-6" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold font-display text-slate-900 dark:text-white">
+                    <h2 className="text-xl font-bold font-display text-[#1C1917] dark:text-[#FAF9F5]">
                       Modo Foco Semanal • Plataforma Mendonça
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    <p className="text-xs text-[#78716C] dark:text-[#A8A29E] font-medium">
                       Escolha seu nível de intensidade para os próximos 7 dias e ganhe XP bônus
                     </p>
                   </div>
@@ -435,7 +435,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
 
                 <button
                   onClick={() => setIsFocusModalOpen(false)}
-                  className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-9 h-9 rounded-xl bg-[#EFECE6] dark:bg-[#232326] hover:bg-[#E7E2D9] dark:hover:bg-[#2A2A2F] text-[#78716C] dark:text-[#D6D3CD] flex items-center justify-center transition-colors cursor-pointer"
                   title="Fechar"
                 >
                   <X className="w-5 h-5" />
@@ -455,53 +455,53 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                         className={`rounded-[28px] p-5 border-2 transition-all cursor-pointer flex flex-col justify-between relative ${
                           isSelected
                             ? `${plan.borderColor} bg-gradient-to-b ${plan.bgGradient} shadow-md`
-                            : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700'
+                            : 'border-[#E7E2D9] dark:border-[#2C2C30] bg-[#FAF8F5] dark:bg-[#18181B]/60 hover:border-[#2D5A46]'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider bg-white dark:bg-slate-800 shadow-2xs text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-700">
+                          <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider bg-white dark:bg-[#1E1E22] shadow-xs text-[#57534E] dark:text-[#D6D3CD] border border-[#E7E2D9] dark:border-[#333338]">
                             {plan.tag}
                           </span>
                           <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${
-                            isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800'
+                            isSelected ? 'bg-[#2D5A46] border-[#2D5A46] text-white' : 'border-[#D5CEBF] dark:border-[#38383E] bg-white dark:bg-[#1E1E22]'
                           }`}>
                             {isSelected && <CheckCircle2 className="w-4 h-4" />}
                           </div>
                         </div>
 
                         <div>
-                          <h3 className="text-lg font-bold font-display text-slate-900 dark:text-white">
+                          <h3 className="text-lg font-bold font-display text-[#1C1917] dark:text-[#FAF9F5]">
                             {plan.name}
                           </h3>
                           <div className="mt-2 flex items-baseline gap-1.5">
-                            <span className="text-3xl font-extrabold text-slate-900 dark:text-white font-display">
+                            <span className="text-3xl font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">
                               {plan.questionsTotal}
                             </span>
-                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">questões / semana</span>
+                            <span className="text-xs font-semibold text-[#78716C] dark:text-[#A8A29E]">questões / semana</span>
                           </div>
-                          <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+                          <p className="text-xs text-[#57534E] dark:text-[#A8A29E] mt-2 leading-relaxed">
                             {plan.description}
                           </p>
                         </div>
 
-                        <div className="mt-5 pt-4 border-t border-slate-200/60 dark:border-slate-800 space-y-2 text-xs">
-                          <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 font-medium">
-                            <span className="flex items-center gap-1.5 text-slate-500">
+                        <div className="mt-5 pt-4 border-t border-[#E7E2D9]/60 dark:border-[#333338] space-y-2 text-xs">
+                          <div className="flex items-center justify-between text-[#57534E] dark:text-[#A8A29E] font-medium">
+                            <span className="flex items-center gap-1.5 text-[#78716C]">
                               <Compass className="w-3.5 h-3.5" /> Ritmo:
                             </span>
-                            <span className="font-bold text-slate-800 dark:text-slate-200">{plan.dailyAverage}</span>
+                            <span className="font-bold text-[#1C1917] dark:text-[#E7E5E4]">{plan.dailyAverage}</span>
                           </div>
-                          <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 font-medium">
-                            <span className="flex items-center gap-1.5 text-slate-500">
+                          <div className="flex items-center justify-between text-[#57534E] dark:text-[#A8A29E] font-medium">
+                            <span className="flex items-center gap-1.5 text-[#78716C]">
                               <Clock className="w-3.5 h-3.5" /> Tempo diário:
                             </span>
-                            <span className="font-bold text-slate-800 dark:text-slate-200">{plan.estimatedTime}</span>
+                            <span className="font-bold text-[#1C1917] dark:text-[#E7E5E4]">{plan.estimatedTime}</span>
                           </div>
-                          <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 font-medium">
-                            <span className="flex items-center gap-1.5 text-slate-500">
-                              <Trophy className="w-3.5 h-3.5 text-amber-500" /> Recompensa:
+                          <div className="flex items-center justify-between text-[#57534E] dark:text-[#A8A29E] font-medium">
+                            <span className="flex items-center gap-1.5 text-[#78716C]">
+                              <Trophy className="w-3.5 h-3.5 text-[#D97706]" /> Recompensa:
                             </span>
-                            <span className="font-extrabold text-amber-600 dark:text-amber-400">+{plan.xpReward} XP ({plan.badge})</span>
+                            <span className="font-extrabold text-[#B45309] dark:text-[#FBBF24]">+{plan.xpReward} XP ({plan.badge})</span>
                           </div>
                         </div>
                       </motion.div>
@@ -510,15 +510,15 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                 </div>
 
                 {selectedFocusPlan && (
-                  <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/80">
-                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <div className="bg-[#EFECE6] dark:bg-[#232326] rounded-2xl p-5 border border-[#E7E2D9] dark:border-[#333338]">
+                    <h4 className="text-xs font-bold text-[#1C1917] dark:text-[#E7E5E4] uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-[#2D5A46]" />
                       O que você precisa fazer no plano selecionado:
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       {(FOCUS_PLANS.find(p => p.id === selectedFocusPlan)?.instructions || []).map((step, sIdx) => (
-                        <div key={sIdx} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200/60 dark:border-slate-700 shadow-2xs">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                        <div key={sIdx} className="flex items-start gap-2 text-xs text-[#57534E] dark:text-[#D6D3CD] bg-[#FAF8F5] dark:bg-[#18181B] p-3 rounded-xl border border-[#E7E2D9] dark:border-[#333338] shadow-xs">
+                          <CheckCircle2 className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788] shrink-0 mt-0.5" />
                           <span>{step}</span>
                         </div>
                       ))}
@@ -527,20 +527,20 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
                 )}
               </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p className="text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left">
+              <div className="pt-4 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-xs text-[#78716C] dark:text-[#A8A29E] text-center sm:text-left">
                   Você pode recalibrar sua meta a qualquer momento. O progresso é registrado a cada exercício concluído.
                 </p>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                   <button
                     onClick={() => setIsFocusModalOpen(false)}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-[#E7E2D9] dark:border-[#333338] text-[#57534E] dark:text-[#A8A29E] text-xs font-semibold hover:bg-[#EFECE6] dark:hover:bg-[#232326] cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleConfirmFocus}
-                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2"
+                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-bold shadow-md shadow-[#2D5A46]/20 cursor-pointer flex items-center justify-center gap-2"
                   >
                     <Target className="w-4 h-4" />
                     <span>Iniciar Foco Agora</span>

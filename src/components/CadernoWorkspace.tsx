@@ -627,31 +627,31 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
         >
           {/* Header da Galeria com Busca Rápida e Filtros de Categoria */}
           <ScrollFade container={galleryContainerRef}>
-          <div className="bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col gap-5">
+          <div className="bg-white dark:bg-[#18181B] rounded-[28px] p-6 border border-[#E7E2D9] dark:border-[#2C2C30] shadow-2xs flex flex-col gap-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded-xl bg-[#EBF3EF] dark:bg-[#15221B] text-[#2D5A46] dark:text-[#52B788] flex items-center justify-center font-bold">
                     <BookOpen className="w-4 h-4" />
                   </div>
-                  <h2 className="font-display font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white">
+                  <h2 className="font-display font-extrabold text-xl sm:text-2xl text-[#1C1917] dark:text-[#FAF9F5]">
                     Caderno Digital Integrado
                   </h2>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-xs sm:text-sm text-[#78716C] dark:text-[#A8A29E]">
                   Acesse seus cadernos organizados por matérias, resumos de aula e glossário conceitual
                 </p>
               </div>
 
               {/* Barra de Busca de Disciplinas */}
               <div className="relative w-full sm:w-72">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-[#A8A29E] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Buscar matéria ou tópico..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className="w-full bg-[#FAF8F5] dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#333338] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46] font-medium"
                 />
               </div>
             </div>
@@ -670,8 +670,8 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                   onClick={() => setSelectedCategory(cat.id as any)}
                   className={`px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-colors cursor-pointer ${
                     selectedCategory === cat.id
-                      ? 'bg-blue-600 text-white font-bold shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      ? 'bg-[#2D5A46] text-white font-bold shadow-xs'
+                      : 'bg-[#EFECE6] dark:bg-[#252529] text-[#57534E] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338]'
                   }`}
                 >
                   {cat.label}
@@ -731,7 +731,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                   className={`group relative rounded-[28px] border transition-colors duration-300 cursor-pointer flex flex-col justify-between overflow-hidden h-full min-h-[380px] select-none ${
                     isHovered
                       ? 'z-20'
-                      : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-2xs z-0'
+                      : 'bg-white dark:bg-[#18181B] border-[#E7E2D9] dark:border-[#2C2C30] shadow-2xs z-0'
                   }`}
                 >
                   {/* Fundo dinâmico animado com a cor da disciplina ao passar o mouse */}
@@ -744,7 +744,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                   />
                   {/* Fundo base para dark mode quando em hover */}
                   <div 
-                    className="absolute inset-0 bg-white dark:bg-slate-900 transition-opacity duration-300 pointer-events-none -z-10"
+                    className="absolute inset-0 bg-white dark:bg-[#18181B] transition-opacity duration-300 pointer-events-none -z-10"
                   />
 
                   {/* 1. Capa com Imagem de Alta Resolução + Gradient Overlay */}
@@ -769,12 +769,12 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
 
                     {/* Badges superiores na imagem */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-900 dark:text-white shadow-xs">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/90 dark:bg-[#18181B]/90 backdrop-blur-md text-[#1C1917] dark:text-[#FAF9F5] shadow-xs">
                         {discipline.category === 'enem' ? 'ENEM' : discipline.category === 'faculdade' ? 'Faculdade' : 'Pessoal'}
                       </span>
 
                       <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-white border border-white/10 flex items-center gap-1.5 shadow-xs">
-                        <FileText className="w-3 h-3 text-blue-400" />
+                        <FileText className="w-3 h-3 text-[#52B788]" />
                         {discipline.docCount} {discipline.docCount === 1 ? 'doc' : 'docs'}
                       </span>
                     </div>
@@ -783,7 +783,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                   {/* 2. Ícone Flutuante da Matéria sobreposto à capa */}
                   <div className="px-5 relative z-10 shrink-0">
                     <div 
-                      className="w-12 h-12 -mt-6 rounded-2xl flex items-center justify-center text-white shadow-xl border-2 border-white dark:border-slate-900 z-20 font-bold transition-all duration-300 group-hover:scale-105"
+                      className="w-12 h-12 -mt-6 rounded-2xl flex items-center justify-center text-white shadow-xl border-2 border-white dark:border-[#18181B] z-20 font-bold transition-all duration-300 group-hover:scale-105"
                       style={{ 
                         backgroundColor: discipline.color,
                         boxShadow: isHovered ? `0 8px 20px -4px ${discipline.color}80` : undefined
@@ -802,11 +802,11 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                           color: isHovered ? discipline.color : undefined
                         }}
                       >
-                        <span className={isHovered ? '' : 'text-slate-900 dark:text-white'}>
+                        <span className={isHovered ? '' : 'text-[#1C1917] dark:text-[#FAF9F5]'}>
                           {discipline.name}
                         </span>
                       </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2 leading-relaxed font-normal">
+                      <p className="text-xs text-[#78716C] dark:text-[#A8A29E] mt-1.5 line-clamp-2 leading-relaxed font-normal">
                         {discipline.description}
                       </p>
                     </div>
@@ -823,7 +823,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                               color: isHovered ? discipline.color : undefined,
                             }}
                           >
-                            <span className={isHovered ? 'font-semibold' : 'text-slate-600 dark:text-slate-300'}>
+                            <span className={isHovered ? 'font-semibold' : 'text-[#57534E] dark:text-[#E7E5E4]'}>
                               {topic}
                             </span>
                           </span>
@@ -834,7 +834,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
 
                   {/* 4. Rodapé do Card */}
                   <div 
-                    className="px-5 py-3.5 mt-2 border-t border-slate-100 dark:border-slate-800/80 transition-colors duration-300 flex items-center justify-between text-xs text-slate-400 z-10 shrink-0"
+                    className="px-5 py-3.5 mt-2 border-t border-[#E7E2D9] dark:border-[#2C2C30] transition-colors duration-300 flex items-center justify-between text-xs text-[#A8A29E] z-10 shrink-0"
                     style={{
                       backgroundColor: isHovered ? `${discipline.color}18` : undefined
                     }}
@@ -846,7 +846,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                         color: isHovered ? discipline.color : undefined
                       }}
                     >
-                      <span className={isHovered ? '' : 'text-blue-600 dark:text-blue-400'}>
+                      <span className={isHovered ? '' : 'text-[#2D5A46] dark:text-[#52B788]'}>
                         Abrir
                       </span> 
                       <ChevronRight className="w-4 h-4" />
@@ -866,13 +866,13 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 15, scale: 0.8 }}
                 onClick={handleGalleryScrollToTop}
-                className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-xl hover:shadow-2xl hover:border-blue-500 text-xs font-bold transition-all cursor-pointer group"
+                className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-xl border border-[#E7E2D9] dark:border-[#2C2C30] text-[#44403C] dark:text-[#E7E5E4] shadow-xl hover:shadow-2xl hover:border-[#2D5A46] text-xs font-bold transition-all cursor-pointer group"
               >
-                <div className="w-6 h-6 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:-translate-y-0.5 transition-transform">
+                <div className="w-6 h-6 rounded-full bg-[#EBF3EF] dark:bg-[#15221B] text-[#2D5A46] dark:text-[#52B788] flex items-center justify-center group-hover:-translate-y-0.5 transition-transform">
                   <ArrowUp className="w-3.5 h-3.5" />
                 </div>
                 <span>Voltar ao Topo</span>
-                <span className="font-mono text-[10px] text-slate-400 font-normal">({galleryPercent}%)</span>
+                <span className="font-mono text-[10px] text-[#A8A29E] font-normal">({galleryPercent}%)</span>
               </motion.button>
             )}
           </AnimatePresence>
@@ -887,13 +887,13 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
           
           {/* Header da Disciplina */}
           <ScrollFade container={disciplineContainerRef}>
-          <div className="bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-white dark:bg-[#18181B] rounded-[28px] p-6 border border-[#E7E2D9] dark:border-[#2C2C30] shadow-2xs flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedDisciplineId(null)}
-                className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+                className="w-10 h-10 rounded-2xl bg-[#EFECE6] dark:bg-[#252529] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] flex items-center justify-center text-[#44403C] dark:text-[#E7E5E4] transition-colors cursor-pointer"
                 title="Voltar às Matérias"
                 aria-label="Voltar às matérias"
               >
@@ -909,11 +909,11 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
 
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <h2 className="font-display font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white">
+                  <h2 className="font-display font-extrabold text-xl sm:text-2xl text-[#1C1917] dark:text-[#FAF9F5]">
                     {selectedDiscipline.name}
                   </h2>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
                   {selectedDiscipline.documents.length} cadernos e notas salvas
                 </p>
               </div>
@@ -926,8 +926,8 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                 onClick={() => setSelectionMode(m => !m)}
                 className={`p-2 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
                   selectionMode
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/25'
-                    : 'bg-slate-100 dark:bg-slate-800 border-slate-200/60 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    ? 'bg-[#2D5A46] border-[#2D5A46] text-white shadow-md shadow-[#2D5A46]/25'
+                    : 'bg-[#EFECE6] dark:bg-[#252529] border-[#E7E2D9] dark:border-[#333338] text-[#57534E] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338]'
                 }`}
                 title="Selecionar múltiplos documentos (arraste para marcar)"
                 aria-label="Modo de seleção múltipla"
@@ -937,13 +937,13 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
               </button>
 
               {/* Alternador Grid / Lista */}
-              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700">
+              <div className="flex items-center bg-[#EFECE6] dark:bg-[#252529] p-1 rounded-2xl border border-[#E7E2D9] dark:border-[#333338]">
                 <button
                   onClick={() => setGalleryViewMode('grid')}
                   className={`p-2 rounded-xl text-xs transition-colors cursor-pointer ${
                     galleryViewMode === 'grid' 
-                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs' 
-                      : 'text-slate-400 hover:text-slate-700'
+                      ? 'bg-white dark:bg-[#161618] text-[#1C1917] dark:text-white shadow-2xs' 
+                      : 'text-[#A8A29E] hover:text-[#44403C]'
                   }`}
                   title="Visualização em Grade"
                   aria-label="Visualização em grade"
@@ -954,8 +954,8 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                   onClick={() => setGalleryViewMode('list')}
                   className={`p-2 rounded-xl text-xs transition-colors cursor-pointer ${
                     galleryViewMode === 'list' 
-                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs' 
-                      : 'text-slate-400 hover:text-slate-700'
+                      ? 'bg-white dark:bg-[#161618] text-[#1C1917] dark:text-white shadow-2xs' 
+                      : 'text-[#A8A29E] hover:text-[#44403C]'
                   }`}
                   title="Visualização em Lista"
                   aria-label="Visualização em lista"
@@ -969,7 +969,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setIsCreateDocOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-bold shadow-md shadow-[#2D5A46]/25 transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Novo Documento</span>
@@ -980,27 +980,27 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
 
           {/* Barra de Filtro de Documentos */}
           <div className="relative max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#A8A29E] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder={`Filtrar documentos em ${selectedDiscipline.name}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs font-medium"
+              className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46] shadow-2xs font-medium"
             />
           </div>
 
           {/* Barra de Ações em Lote (Modo Seleção) */}
           {selectionMode && selectedDocs.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/70 dark:border-blue-900/60 shadow-sm">
-              <span className="text-xs font-bold text-blue-800 dark:text-blue-200 flex items-center gap-2">
-                <CheckSquare className="w-4 h-4 text-blue-500" />
+            <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-[#EBF3EF]/80 dark:bg-[#15221B]/40 border border-[#CFE1D6]/70 dark:border-[#22392D]/60 shadow-sm">
+              <span className="text-xs font-bold text-[#224A38] dark:text-[#52B788] flex items-center gap-2">
+                <CheckSquare className="w-4 h-4 text-[#2D5A46]" />
                 {selectedDocs.length} {selectedDocs.length === 1 ? 'documento selecionado' : 'documentos selecionados'}
               </span>
               <div className="flex items-center gap-2 ml-auto flex-wrap">
                 <button
                   onClick={handleBulkVisibility}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-xs font-bold hover:bg-blue-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[#18181B] border border-[#CFE1D6] dark:border-[#22392D] text-[#224A38] dark:text-[#52B788] text-xs font-bold hover:bg-[#EBF3EF] dark:hover:bg-[#252529] transition-colors cursor-pointer"
                   title="Alterar visibilidade dos selecionados"
                 >
                   {selectedDocs.some(doc => doc.isPublic !== false) ? <Lock className="w-3.5 h-3.5" /> : <Globe className="w-3.5 h-3.5" />}
@@ -1016,14 +1016,14 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                 </button>
                 <button
                   onClick={handleSelectAllVisible}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#333338] text-[#57534E] dark:text-[#E7E5E4] text-xs font-bold hover:bg-[#FAF8F5] dark:hover:bg-[#252529] transition-colors cursor-pointer"
                   title="Selecionar todos os documentos visíveis"
                 >
                   Selecionar tudo
                 </button>
                 <button
                   onClick={handleClearSelection}
-                  className="p-1.5 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-xl text-[#78716C] hover:text-[#44403C] dark:hover:text-[#FAF9F5] hover:bg-[#EFECE6] dark:hover:bg-[#252529] transition-colors cursor-pointer"
                   title="Limpar seleção"
                   aria-label="Limpar seleção"
                 >
@@ -1036,15 +1036,15 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
           {/* Grid ou Lista de Documentos, ou Empty State */}
           <ScrollFade container={disciplineContainerRef}>
           {filteredDocs.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 rounded-[28px] p-12 border border-dashed border-slate-300 dark:border-slate-800 text-center flex flex-col items-center justify-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <div className="bg-white dark:bg-[#18181B] rounded-[28px] p-12 border border-dashed border-[#D6D3D1] dark:border-[#3B3B40] text-center flex flex-col items-center justify-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-[#EBF3EF] dark:bg-[#15221B] text-[#2D5A46] dark:text-[#52B788] flex items-center justify-center">
                 <BookOpen className="w-8 h-8" />
               </div>
               <div className="max-w-md space-y-1">
-                <h3 className="font-display font-extrabold text-base text-slate-900 dark:text-white">
+                <h3 className="font-display font-extrabold text-base text-[#1C1917] dark:text-[#FAF9F5]">
                   Nenhum caderno salvo em {selectedDiscipline.name}
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
                   {searchQuery 
                     ? `Nenhum documento encontrado com "${searchQuery}".` 
                     : 'Crie seu primeiro resumo, anotação de aula ou material de estudo estruturado.'}
@@ -1054,7 +1054,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setIsCreateDocOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all cursor-pointer mt-2"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-bold shadow-md shadow-[#2D5A46]/25 transition-all cursor-pointer mt-2"
               >
                 <Plus className="w-4 h-4" />
                 <span>Criar Primeiro Documento</span>
@@ -1084,16 +1084,16 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                     }}
                     className={`group relative rounded-[28px] p-6 border shadow-2xs transition-all flex flex-col justify-between cursor-pointer ${
                       isSim
-                        ? 'bg-gradient-to-br from-emerald-50 to-sky-50 dark:from-emerald-950/30 dark:to-sky-950/20 border-emerald-200 dark:border-emerald-900/60 hover:shadow-xl hover:shadow-emerald-500/15'
+                        ? 'bg-gradient-to-br from-emerald-50 to-[#CFE1D6] dark:from-emerald-950/30 dark:to-[#15221B] border-emerald-200 dark:border-emerald-900/60 hover:shadow-xl hover:shadow-emerald-500/15'
                         : sel
-                        ? 'border-blue-500 ring-2 ring-blue-400/70 dark:ring-blue-500/60 bg-blue-50/60 dark:bg-blue-950/40 shadow-lg shadow-blue-500/20'
-                        : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:shadow-xl hover:shadow-blue-500/10'
+                        ? 'border-[#2D5A46] ring-2 ring-[#2D5A46]/70 dark:ring-[#2D5A46]/60 bg-[#EBF3EF]/60 dark:bg-[#15221B]/40 shadow-lg shadow-[#2D5A46]/20'
+                        : 'bg-white dark:bg-[#18181B] border-[#E7E2D9] dark:border-[#2C2C30] hover:shadow-xl hover:shadow-[#2D5A46]/10'
                     }`}
                   >
                     {/* Indicador de seleção (canto superior direito) */}
                     {selectionMode && (
-                      <div className={`absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full border-[3px] border-white dark:border-slate-900 shadow-md flex items-center justify-center z-10 transition-all ${
-                        sel ? 'bg-blue-500 text-white' : 'bg-white dark:bg-slate-800 text-slate-300 dark:text-slate-600'
+                      <div className={`absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full border-[3px] border-white dark:border-[#18181B] shadow-md flex items-center justify-center z-10 transition-all ${
+                        sel ? 'bg-[#2D5A46] text-white' : 'bg-white dark:bg-[#18181B] text-[#D6D3D1] dark:text-[#78716C]'
                       }`}>
                         {sel && <Check className="w-3.5 h-3.5" />}
                       </div>
@@ -1108,7 +1108,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                             <Play className="w-3 h-3" /> Simulador Interativo
                           </span>
                         ) : (
-                          <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300">
+                          <span className="text-xs font-bold px-2.5 py-1 bg-[#EFECE6] dark:bg-[#252529] rounded-xl text-[#44403C] dark:text-[#E7E5E4]">
                             {doc.readTime}
                           </span>
                         )}
@@ -1116,9 +1116,9 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
 
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${
                         isSim
-                          ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300'
+                          ? 'bg-[#EBF3EF] dark:bg-[#15221B]/60 text-[#224A38] dark:text-[#52B788]'
                           : doc.isPublic !== false 
-                          ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
+                          ? 'bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788]'
                           : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
                       }`}>
                         {isSim ? <Sparkles className="w-3 h-3" /> : doc.isPublic !== false ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
@@ -1127,12 +1127,12 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                     </div>
 
                     <h3 className={`font-display font-extrabold text-base transition-colors leading-snug ${
-                      isSim ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                      isSim ? 'text-emerald-800 dark:text-emerald-300' : 'text-[#1C1917] dark:text-[#FAF9F5] group-hover:text-[#2D5A46] dark:group-hover:text-[#52B788]'
                     }`}>
                       {doc.title}
                     </h3>
 
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-[#78716C] dark:text-[#A8A29E] line-clamp-2 leading-relaxed">
                       {doc.summary}
                     </p>
 
@@ -1141,7 +1141,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                       <div className="flex flex-wrap gap-1.5 pt-1">
                         {doc.tags.map(t => (
                           <span key={t} className={`px-2 py-0.5 rounded-lg text-[10px] font-medium ${
-                            isSim ? 'bg-white/70 dark:bg-slate-800/80 text-emerald-700 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                            isSim ? 'bg-white/70 dark:bg-[#18181B]/80 text-emerald-700 dark:text-emerald-300' : 'bg-[#EFECE6] dark:bg-[#252529] text-[#57534E] dark:text-[#A8A29E]'
                           }`}>
                             #{t}
                           </span>
@@ -1151,11 +1151,11 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                   </div>
 
                   <div className={`pt-4 mt-4 border-t flex items-center justify-between text-[11px] ${
-                    isSim ? 'border-emerald-200/70 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400' : 'border-slate-100 dark:border-slate-800 text-slate-400'
+                    isSim ? 'border-emerald-200/70 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400' : 'border-[#E7E2D9] dark:border-[#2C2C30] text-[#A8A29E]'
                   }`}>
                     <span>{doc.lastEdited}</span>
                     <span className={`font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1 ${
-                      isSim ? 'text-emerald-600 dark:text-emerald-400' : sel ? 'text-blue-600 dark:text-blue-400' : 'text-blue-600 dark:text-blue-400'
+                      isSim ? 'text-emerald-600 dark:text-emerald-400' : 'text-[#2D5A46] dark:text-[#52B788]'
                     }`}>
                       {selectionMode ? (sel ? 'Selecionado' : 'Selecionar') : isSim ? 'Abrir Simulador' : 'Abrir e Editar'} <ChevronRight className="w-3.5 h-3.5" />
                     </span>
@@ -1173,8 +1173,8 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                     top: dragRect.top,
                     width: dragRect.width,
                     height: dragRect.height,
-                    background: 'rgba(59, 130, 246, 0.15)',
-                    border: '1.5px solid rgba(59, 130, 246, 0.7)',
+background: 'rgba(45, 90, 70, 0.15)',
+                  border: '1.5px solid rgba(45, 90, 70, 0.7)',
                     borderRadius: 6,
                   }}
                 />
@@ -1202,13 +1202,13 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                       onClick={() => setSelectedDocId(doc.id)}
                       className={`transition-colors cursor-pointer group ${
                         isSim
-                          ? 'bg-gradient-to-r from-emerald-50 to-sky-50 dark:from-emerald-950/25 dark:to-sky-950/15 hover:bg-emerald-50/90 dark:hover:bg-emerald-950/30'
+                          ? 'bg-gradient-to-r from-emerald-50 to-[#CFE1D6] dark:from-emerald-950/25 dark:to-[#15221B] hover:bg-emerald-50/90 dark:hover:bg-emerald-950/30'
                           : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50'
                       }`}
                     >
                       <td className="p-4">
                         <span className={`font-bold transition-colors ${
-                          isSim ? 'text-emerald-800 dark:text-emerald-300 group-hover:text-emerald-600' : 'text-slate-900 dark:text-white group-hover:text-blue-600'
+                          isSim ? 'text-emerald-800 dark:text-emerald-300 group-hover:text-emerald-600' : 'text-[#1C1917] dark:text-white group-hover:text-[#2D5A46]'
                         }`}>
                           {doc.title}
                         </span>
@@ -1231,7 +1231,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                       <td className={`p-4 hidden lg:table-cell ${isSim ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400'}`}>{doc.lastEdited}</td>
                       <td className="p-4 text-right">
                         <span className={`font-bold group-hover:underline flex items-center justify-end gap-0.5 ${
-                          isSim ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'
+                          isSim ? 'text-emerald-600 dark:text-emerald-400' : 'text-[#2D5A46] dark:text-[#52B788]'
                         }`}>
                           {isSim ? 'Abrir Simulador' : 'Abrir'} <ChevronRight className="w-3.5 h-3.5" />
                         </span>
@@ -1533,11 +1533,11 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                     onClick={handleDocScrollToTop}
                     className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-xl hover:border-blue-500 text-xs font-bold transition-all cursor-pointer group"
                   >
-                    <div className="w-5 h-5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:-translate-y-0.5 transition-transform">
+                    <div className="w-5 h-5 rounded-full bg-[#EBF3EF] dark:bg-[#15221B] text-[#2D5A46] dark:text-[#52B788] flex items-center justify-center group-hover:-translate-y-0.5 transition-transform">
                       <ArrowUp className="w-3 h-3" />
                     </div>
                     <span>Topo</span>
-                    <span className="font-mono text-[10px] text-slate-400 font-normal">({docPercent}%)</span>
+                    <span className="font-mono text-[10px] text-[#A8A29E] font-normal">({docPercent}%)</span>
                   </motion.button>
                 )}
               </AnimatePresence>

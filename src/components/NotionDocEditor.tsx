@@ -140,7 +140,7 @@ const applyGlossaryHighlights = (html: string, glossary?: Record<string, Glossar
       span.className = GLOSSARY_SPAN_CLASS;
       span.dataset.glossaryTerm = definition.term || matched;
       span.setAttribute('contenteditable', 'false');
-      span.style.cssText = 'background-color:rgba(59,130,246,0.14);border-bottom:2px solid rgba(59,130,246,0.45);border-radius:4px;padding:0 2px;cursor:pointer;';
+      span.style.cssText = 'background-color:rgba(45,90,70,0.14);border-bottom:2px solid rgba(45,90,70,0.45);border-radius:4px;padding:0 2px;cursor:pointer;';
       span.textContent = matched;
       fragment.appendChild(span);
 
@@ -346,7 +346,7 @@ const TextEditable: React.FC<{
         outline: 'none',
         ...style,
       }}
-      className={`w-full bg-transparent border-none p-0 m-0 empty:before:content-[attr(data-placeholder)] empty:before:text-slate-300 empty:before:dark:text-slate-600 ${className}`}
+      className={`w-full bg-transparent border-none p-0 m-0 empty:before:content-[attr(data-placeholder)] empty:before:text-[#D6D0C5] empty:before:dark:text-[#A8A29E] ${className}`}
     />
   );
 };
@@ -414,15 +414,15 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
   const [selectedSlashItem, setSelectedSlashItem] = useState(0);
 
   const SLASH_ITEMS: { type: DocSection['type']; label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; color: string }[] = [
-    { type: 'paragraph', label: 'Texto Normal', icon: Type, color: '#94a3b8' },
-    { type: 'h1', label: 'Título 1 (H1)', icon: Heading1, color: '#3b82f6' },
-    { type: 'h2', label: 'Título 2 (H2)', icon: Heading2, color: '#6366f1' },
-    { type: 'h3', label: 'Título 3 (H3)', icon: Heading3, color: '#8b5cf6' },
-    { type: 'bullet', label: 'Lista com Marcadores', icon: List, color: '#10b981' },
-    { type: 'numbered', label: 'Lista Numerada', icon: ListOrdered, color: '#0ea5e9' },
-    { type: 'quote', label: 'Citação', icon: Quote, color: '#f59e0b' },
-    { type: 'code', label: 'Bloco de Código', icon: Code, color: '#ef4444' },
-    { type: 'divider', label: 'Divisor', icon: Minus, color: '#64748b' },
+{ type: 'paragraph', label: 'Texto Normal', icon: Type, color: '#A8A29E' },
+  { type: 'h1', label: 'Título 1 (H1)', icon: Heading1, color: '#2D5A46' },
+  { type: 'h2', label: 'Título 2 (H2)', icon: Heading2, color: '#224A38' },
+  { type: 'h3', label: 'Título 3 (H3)', icon: Heading3, color: '#1E3E30' },
+  { type: 'bullet', label: 'Lista com Marcadores', icon: List, color: '#10b981' },
+  { type: 'numbered', label: 'Lista Numerada', icon: ListOrdered, color: '#2F7D5F' },
+  { type: 'quote', label: 'Citação', icon: Quote, color: '#f59e0b' },
+  { type: 'code', label: 'Bloco de Código', icon: Code, color: '#ef4444' },
+  { type: 'divider', label: 'Divisor', icon: Minus, color: '#78716C' },
   ];
   const filteredSlashItems = slashQuery
     ? SLASH_ITEMS.filter(it => it.label.toLowerCase().includes(slashQuery.toLowerCase()))
@@ -1831,18 +1831,18 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                 selectedBlockIds.length > 0 ? 'cursor-pointer' : ''
               } ${
                 isBlockSelected(section.id)
-                  ? 'bg-blue-50/60 dark:bg-blue-950/40 ring-2 ring-blue-400/70 dark:ring-blue-500/50'
-                  : isFocused ? 'bg-blue-50/20 dark:bg-blue-950/10' : ''
+                  ? 'bg-[#EBF3EF]/60 dark:bg-[#15221B]/50 ring-2 ring-[#52B788]/70 dark:ring-[#52B788]/50'
+                  : isFocused ? 'bg-[#EBF3EF]/40 dark:bg-[#15221B]/20' : ''
               }`}
             >
               {isBlockSelected(section.id) && (
-                <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-blue-500 border-2 border-white dark:border-slate-900 text-white flex items-center justify-center z-20 shadow-md">
+                <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#2D5A46] border-2 border-white dark:border-[#18181B] text-white flex items-center justify-center z-20 shadow-md">
                   <Check className="w-3 h-3" />
                 </div>
               )}
               {/* Slash Command Menu */}
               {slashMenuIndex === idx && filteredSlashItems.length > 0 && (
-                <div className="absolute left-6 sm:left-16 top-10 z-50 w-60 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-1.5 text-xs animate-in fade-in zoom-in-95 max-h-80 overflow-y-auto">
+                <div className="absolute left-6 sm:left-16 top-10 z-50 w-60 bg-white dark:bg-[#18181B] rounded-2xl shadow-2xl border border-[#E7E2D9] dark:border-[#2C2C30] py-1.5 text-xs animate-in fade-in zoom-in-95 max-h-80 overflow-y-auto">
                   {filteredSlashItems.map((item, i) => (
                     <button
                       key={item.type}
@@ -1852,8 +1852,8 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         setSlashMenuIndex(null);
                       }}
                       onMouseEnter={() => setSelectedSlashItem(i)}
-                      className={`w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 ${
-                        i === selectedSlashItem % Math.max(1, filteredSlashItems.length) ? 'bg-slate-100 dark:bg-slate-800' : ''
+                      className={`w-full px-3 py-2 text-left flex items-center gap-2 text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] ${
+                        i === selectedSlashItem % Math.max(1, filteredSlashItems.length) ? 'bg-[#EBF3EF] dark:bg-[#15221B]/60' : ''
                       }`}
                     >
                       <item.icon className="w-4 h-4" style={{ color: item.color }} />
@@ -1873,7 +1873,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                   role="button"
                   aria-label="Arraste para mover o bloco"
                   title="Arraste para mover o bloco"
-                  className="w-5 h-5 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors select-none touch-none"
+                  className="w-5 h-5 rounded-md text-[#A8A29E] hover:text-[#44403C] dark:hover:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors select-none touch-none"
                   onMouseDown={(e) => startBlockDrag(e, idx)}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -1883,7 +1883,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); handleAddBlock('paragraph'); }}
-                  className="hidden sm:flex w-5 h-5 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 items-center justify-center cursor-pointer transition-colors"
+                  className="hidden sm:flex w-5 h-5 rounded-md text-[#A8A29E] hover:text-[#44403C] dark:hover:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] items-center justify-center cursor-pointer transition-colors"
                   title="Adicionar bloco abaixo (Enter)"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -1893,7 +1893,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setActiveMenuBlockIndex(activeMenuBlockIndex === idx ? null : idx); }}
-                    className="w-5 h-5 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
+                    className="w-5 h-5 rounded-md text-[#A8A29E] hover:text-[#44403C] dark:hover:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] flex items-center justify-center cursor-pointer transition-colors"
                     title="Mais opções do bloco"
                   >
                     <MoreVertical className="w-3.5 h-3.5" />
@@ -1903,41 +1903,41 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                   {activeMenuBlockIndex === idx && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="absolute left-6 sm:left-16 top-0 z-50 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-1.5 text-xs animate-in fade-in zoom-in-95"
+                      className="absolute left-6 sm:left-16 top-0 z-50 w-48 bg-white dark:bg-[#18181B] rounded-2xl shadow-2xl border border-[#E7E2D9] dark:border-[#2C2C30] py-1.5 text-xs animate-in fade-in zoom-in-95"
                     >
                       <button
                         onClick={() => {
                           convertBlockType(idx, 'paragraph');
                           setActiveMenuBlockIndex(null);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                        className="w-full px-3 py-1.5 text-left text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] flex items-center gap-2"
                       >
-                        <Type className="w-3.5 h-3.5 text-slate-400" /> Texto Normal
+                        <Type className="w-3.5 h-3.5 text-[#A8A29E]" /> Texto Normal
                       </button>
                       <button
                         onClick={() => {
                           convertBlockType(idx, 'h1');
                           setActiveMenuBlockIndex(null);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 font-bold"
+                        className="w-full px-3 py-1.5 text-left text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] flex items-center gap-2 font-bold"
                       >
-                        <Heading1 className="w-3.5 h-3.5 text-blue-600" /> Título 1 (H1)
+                        <Heading1 className="w-3.5 h-3.5 text-[#2D5A46]" /> Título 1 (H1)
                       </button>
                       <button
                         onClick={() => {
                           convertBlockType(idx, 'h2');
                           setActiveMenuBlockIndex(null);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 font-semibold"
+                        className="w-full px-3 py-1.5 text-left text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] flex items-center gap-2 font-semibold"
                       >
-                        <Heading2 className="w-3.5 h-3.5 text-indigo-600" /> Título 2 (H2)
+                        <Heading2 className="w-3.5 h-3.5 text-[#224A38]" /> Título 2 (H2)
                       </button>
                       <button
                         onClick={() => {
                           convertBlockType(idx, 'bullet');
                           setActiveMenuBlockIndex(null);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                        className="w-full px-3 py-1.5 text-left text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] flex items-center gap-2"
                       >
                         <List className="w-3.5 h-3.5 text-emerald-600" /> Marcadores
                       </button>
@@ -1946,16 +1946,16 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                           convertBlockType(idx, 'todo');
                           setActiveMenuBlockIndex(null);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                        className="w-full px-3 py-1.5 text-left text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] flex items-center gap-2"
                       >
-                        <CheckSquare className="w-3.5 h-3.5 text-teal-600" /> Checklist
+                        <CheckSquare className="w-3.5 h-3.5 text-[#2D5A46]" /> Checklist
                       </button>
                       <button
                         onClick={() => {
                           convertBlockType(idx, 'callout');
                           setActiveMenuBlockIndex(null);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                        className="w-full px-3 py-1.5 text-left text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] flex items-center gap-2"
                       >
                         <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Caixa Destaque
                       </button>
@@ -1964,11 +1964,11 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                           convertBlockType(idx, 'image');
                           setActiveMenuBlockIndex(null);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                        className="w-full px-3 py-1.5 text-left text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] flex items-center gap-2"
                       >
-                        <ImageIcon className="w-3.5 h-3.5 text-pink-500" /> Imagem (URL)
+                        <ImageIcon className="w-3.5 h-3.5 text-[#2D5A46]" /> Imagem (URL)
                       </button>
-                      <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+                      <div className="border-t border-[#E7E2D9] dark:border-[#2C2C30] my-1" />
                       <button
                         onClick={() => handleDeleteBlock(idx)}
                         className="w-full px-3 py-1.5 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 flex items-center gap-2 font-medium"
@@ -1999,7 +1999,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       onSelectionUpdate={handleBlockSelectionUpdate}
                       style={inlineStyle}
                       glossary={glossaryMap}
-                      className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 font-normal ${formatClass}`}
+                      className={`text-sm sm:text-base leading-relaxed text-[#1C1917] dark:text-[#E7E5E4] font-normal ${formatClass}`}
                     />
                   </div>
                 )}
@@ -2020,7 +2020,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       onSelectionUpdate={handleBlockSelectionUpdate}
                       style={inlineStyle}
                       glossary={glossaryMap}
-                      className={`font-display font-black text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight leading-tight ${formatClass}`}
+                      className={`font-display font-black text-2xl sm:text-3xl text-[#1C1917] dark:text-[#FAF9F5] tracking-tight leading-tight ${formatClass}`}
                     />
                   </div>
                 )}
@@ -2041,7 +2041,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       onSelectionUpdate={handleBlockSelectionUpdate}
                       style={inlineStyle}
                       glossary={glossaryMap}
-                      className={`font-display font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white tracking-tight leading-snug ${formatClass}`}
+                      className={`font-display font-extrabold text-xl sm:text-2xl text-[#1C1917] dark:text-[#FAF9F5] tracking-tight leading-snug ${formatClass}`}
                     />
                   </div>
                 )}
@@ -2062,7 +2062,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       onSelectionUpdate={handleBlockSelectionUpdate}
                       style={inlineStyle}
                       glossary={glossaryMap}
-                      className={`font-display font-bold text-lg sm:text-xl text-slate-800 dark:text-slate-200 tracking-tight leading-normal ${formatClass}`}
+                      className={`font-display font-bold text-lg sm:text-xl text-[#1C1917] dark:text-[#E7E5E4] tracking-tight leading-normal ${formatClass}`}
                     />
                   </div>
                 )}
@@ -2070,7 +2070,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                 {/* 5. LISTA COM MARCADORES (BULLET LIST) */}
                 {section.type === 'bullet' && (
                   <div className="flex items-start gap-3 py-1">
-                    <span className="w-2 h-2 rounded-full bg-slate-500 dark:bg-slate-400 mt-2 shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-[#78716C] dark:bg-[#A8A29E] mt-2 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <TextEditable
                         inputRef={el => (blockRefs.current[idx] = el)}
@@ -2085,7 +2085,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         onSelectionUpdate={handleBlockSelectionUpdate}
                         style={inlineStyle}
                         glossary={glossaryMap}
-                        className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 ${formatClass}`}
+                        className={`text-sm sm:text-base leading-relaxed text-[#1C1917] dark:text-[#E7E5E4] ${formatClass}`}
                       />
                     </div>
                   </div>
@@ -2094,7 +2094,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                 {/* 6. LISTA NUMERADA */}
                 {section.type === 'numbered' && (
                   <div className="flex items-start gap-2.5 py-1">
-                    <span className="font-bold text-sm text-slate-500 dark:text-slate-400 mt-0.5 shrink-0 min-w-[20px]">
+                    <span className="font-bold text-sm text-[#78716C] dark:text-[#A8A29E] mt-0.5 shrink-0 min-w-[20px]">
                       {numberedNumber}.
                     </span>
                     <div className="flex-1 min-w-0">
@@ -2111,7 +2111,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         onSelectionUpdate={handleBlockSelectionUpdate}
                         style={inlineStyle}
                         glossary={glossaryMap}
-                        className={`text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 ${formatClass}`}
+                        className={`text-sm sm:text-base leading-relaxed text-[#1C1917] dark:text-[#E7E5E4] ${formatClass}`}
                       />
                     </div>
                   </div>
@@ -2123,12 +2123,12 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                     <button
                       type="button"
                       onClick={() => handleToggleTodo(idx)}
-                      className="mt-1 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer shrink-0"
+                      className="mt-1 text-[#A8A29E] hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer shrink-0"
                     >
                       {section.checked ? (
                         <CheckSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                       ) : (
-                        <Square className="w-4 h-4 text-slate-400" />
+                        <Square className="w-4 h-4 text-[#A8A29E]" />
                       )}
                     </button>
                     <div className="flex-1 min-w-0">
@@ -2147,8 +2147,8 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         glossary={glossaryMap}
                         className={`text-sm sm:text-base leading-relaxed transition-all ${
                           section.checked
-                            ? 'line-through text-slate-400 dark:text-slate-500'
-                            : 'text-slate-800 dark:text-slate-200'
+                            ? 'line-through text-[#A8A29E] dark:text-[#78716C]'
+                            : 'text-[#1C1917] dark:text-[#E7E5E4]'
                         } ${formatClass}`}
                       />
                     </div>
@@ -2163,7 +2163,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       : section.calloutType === 'success'
                       ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/60 text-emerald-950 dark:text-emerald-100'
                       : section.calloutType === 'focus'
-                      ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/60 text-blue-950 dark:text-blue-100'
+                      ? 'bg-[#EBF3EF]/80 dark:bg-[#15221B]/40 border-[#CFE1D6] dark:border-[#22392D] text-[#1E3E30] dark:text-[#D6E6DC]'
                       : 'bg-amber-50/80 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900/60 text-amber-950 dark:text-amber-100'
                   }`}>
                     <div className="mt-0.5 shrink-0">
@@ -2172,7 +2172,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       ) : section.calloutType === 'success' ? (
                         <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                       ) : section.calloutType === 'focus' ? (
-                        <Info className="w-4 h-4 text-blue-500" />
+                        <Info className="w-4 h-4 text-[#2D5A46]" />
                       ) : (
                         <Lightbulb className="w-4 h-4 text-amber-500" />
                       )}
@@ -2199,7 +2199,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
                 {/* 9. CITAÇÃO (QUOTE) */}
                 {section.type === 'quote' && (
-                  <div className="my-3 pl-4 border-l-4 border-purple-500 py-1 italic text-slate-700 dark:text-slate-300">
+                  <div className="my-3 pl-4 border-l-4 border-[#2D5A46] py-1 italic text-[#44403C] dark:text-[#D6D3CD]">
                     <TextEditable
                       inputRef={el => (blockRefs.current[idx] = el)}
                       value={section}
@@ -2220,9 +2220,9 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
 
                 {/* 10. FÓRMULA / BLOCO DE CÓDIGO */}
                 {section.type === 'code' && (
-                  <div className="my-3 p-4 rounded-2xl bg-slate-950 border border-slate-800 text-cyan-300 font-mono text-xs shadow-inner">
-                    <div className="flex items-center justify-between text-[10px] text-slate-400 mb-2 font-sans">
-                      <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-cyan-400">
+                  <div className="my-3 p-4 rounded-2xl bg-[#121214] border border-[#2C2C30] text-[#52B788] font-mono text-xs shadow-inner">
+                    <div className="flex items-center justify-between text-[10px] text-[#A8A29E] mb-2 font-sans">
+                      <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[#52B788]">
                         <Code className="w-3.5 h-3.5" />
                         Fórmula / Expressão Matemática
                       </span>
@@ -2235,29 +2235,29 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                       onChange={(text, html) => handleUpdateBlockContent(idx, text, html)}
                       onKeyDown={e => handleKeyDown(e, idx)}
                       onFocus={() => setActiveBlockIndex(idx)}
-                      className="text-xs sm:text-sm font-mono text-cyan-300"
+                      className="text-xs sm:text-sm font-mono text-[#52B788]"
                     />
                   </div>
                 )}
 
                 {/* 11. TABELA ESTILO WORD COM LINHAS E COLUNAS EDITÁVEIS */}
                 {section.type === 'table' && (
-                  <div className="my-4 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+                  <div className="my-4 overflow-x-auto rounded-2xl border border-[#E7E2D9] dark:border-[#2C2C30] shadow-2xs">
                     <table className="w-full text-xs text-left border-collapse">
                       <tbody>
                         {(section.tableData || [['Coluna 1', 'Coluna 2', 'Coluna 3'], ['', '', '']]).map((row, rIdx) => (
                           <tr 
                             key={rIdx} 
-                            className={rIdx === 0 ? 'bg-slate-100/80 dark:bg-slate-800/80 font-bold' : 'border-t border-slate-200/80 dark:border-slate-800'}
+                            className={rIdx === 0 ? 'bg-[#EFECE6]/80 dark:bg-[#232326]/80 font-bold' : 'border-t border-[#E7E2D9]/80 dark:border-[#2C2C30]'}
                           >
                             {row.map((cell, cIdx) => (
-                              <td key={cIdx} className="p-2.5 border-r border-slate-200/80 dark:border-slate-800 last:border-r-0">
+                              <td key={cIdx} className="p-2.5 border-r border-[#E7E2D9]/80 dark:border-[#2C2C30] last:border-r-0">
                                 <input
                                   type="text"
                                   value={cell}
                                   onChange={e => handleTableCellChange(idx, rIdx, cIdx, e.target.value)}
                                   placeholder={`Célula ${rIdx + 1},${cIdx + 1}`}
-                                  className="w-full bg-transparent border-none outline-none text-slate-800 dark:text-slate-200 text-xs focus:ring-1 focus:ring-blue-500 rounded px-1"
+                                  className="w-full bg-transparent border-none outline-none text-[#1C1917] dark:text-[#E7E5E4] text-xs focus:ring-1 focus:ring-[#2D5A46] rounded px-1"
                                 />
                               </td>
                             ))}
@@ -2265,18 +2265,18 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                         ))}
                       </tbody>
                     </table>
-                    <div className="p-2 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                    <div className="p-2 bg-[#EFECE6] dark:bg-[#18181B] border-t border-[#E7E2D9] dark:border-[#2C2C30] flex items-center justify-between text-[11px]">
                       <button
                         type="button"
                         onClick={() => handleAddTableRow(idx)}
-                        className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+                        className="flex items-center gap-1 text-[#2D5A46] hover:text-[#224A38] font-semibold cursor-pointer"
                       >
                         <Plus className="w-3 h-3" /> Adicionar Linha
                       </button>
                       <button
                         type="button"
                         onClick={() => handleAddTableCol(idx)}
-                        className="flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-semibold cursor-pointer"
+                        className="flex items-center gap-1 text-[#2D5A46] hover:text-[#224A38] font-semibold cursor-pointer"
                       >
                         <Plus className="w-3 h-3" /> Adicionar Coluna
                       </button>
@@ -2287,7 +2287,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                 {/* 12. LINHA DIVISÓRIA (DIVIDER) */}
                 {section.type === 'divider' && (
                   <div className="my-4 py-2 flex items-center justify-center clear-both">
-                    <div className="w-full h-px bg-slate-200 dark:border-slate-800 dark:bg-slate-800" />
+                    <div className="w-full h-px bg-[#E7E2D9] dark:bg-[#2C2C30]" />
                   </div>
                 )}
 
@@ -2309,7 +2309,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                               : {}),
                         }}
                       >
-                        <div className="w-full rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm bg-slate-50 dark:bg-slate-900/50">
+                        <div className="w-full rounded-2xl overflow-hidden border border-[#E7E2D9]/80 dark:border-[#2C2C30] shadow-sm bg-[#EFECE6] dark:bg-[#18181B]/50">
                           <img
                             src={section.imageUrl}
                             alt={section.imageCaption || section.imageAlt || 'Imagem do documento'}
@@ -2328,8 +2328,8 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                           {/* Fallback de Erro de URL */}
                           <div className="img-error-fallback hidden p-6 flex-col items-center justify-center gap-2 text-center text-red-500 bg-red-50/50 dark:bg-red-950/20">
                             <AlertTriangle className="w-6 h-6 text-red-500" />
-                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Não foi possível carregar a imagem do link fornecido.</p>
-                            <span className="text-[11px] text-slate-400 font-mono break-all max-w-sm">{section.imageUrl}</span>
+                            <p className="text-xs font-semibold text-[#44403C] dark:text-[#D6D3CD]">Não foi possível carregar a imagem do link fornecido.</p>
+                            <span className="text-[11px] text-[#A8A29E] font-mono break-all max-w-sm">{section.imageUrl}</span>
                             <button
                               type="button"
                               onClick={() => {
@@ -2338,14 +2338,14 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                                   handleUpdateImageBlock(idx, newUrl.trim(), section.imageCaption);
                                 }
                               }}
-                              className="mt-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors shadow-2xs"
+                              className="mt-2 px-3 py-1.5 bg-white dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#3B3B40] text-xs font-bold rounded-xl text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] cursor-pointer transition-colors shadow-2xs"
                             >
                               Editar Link da Imagem
                             </button>
                           </div>
 
                           {/* Controles Flutuantes da Imagem ao passar o mouse */}
-                          <div className="absolute top-2 right-2 opacity-0 group-hover/img:opacity-100 transition-opacity bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl p-1 flex items-center gap-1 shadow-lg z-10">
+                          <div className="absolute top-2 right-2 opacity-0 group-hover/img:opacity-100 transition-opacity bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-md border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl p-1 flex items-center gap-1 shadow-lg z-10">
                             <button
                               type="button"
                               onClick={() => {
@@ -2354,7 +2354,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                                   handleUpdateImageBlock(idx, newUrl.trim(), section.imageCaption);
                                 }
                               }}
-                              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg hover:bg-[#E5DFD5] dark:hover:bg-[#333338] text-[#57534E] dark:text-[#D6D3CD] transition-colors cursor-pointer"
                               title="Alterar URL da Imagem"
                             >
                               <Link className="w-3.5 h-3.5" />
@@ -2364,7 +2364,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                               onClick={() => {
                                 window.open(section.imageUrl, '_blank');
                               }}
-                              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg hover:bg-[#E5DFD5] dark:hover:bg-[#333338] text-[#57534E] dark:text-[#D6D3CD] transition-colors cursor-pointer"
                               title="Abrir imagem original"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
@@ -2393,20 +2393,20 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                             onLostPointerCapture={cancelImageResizeDrag}
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                             onMouseDown={(e) => e.stopPropagation()}
-                            className={`image-resize-handle absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-white dark:bg-slate-800 border border-pink-400/80 shadow-md cursor-nwse-resize touch-none select-none flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity z-10 ${
+                            className={`image-resize-handle absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-white dark:bg-[#232326] border border-[#52B788]/80 shadow-md cursor-nwse-resize touch-none select-none flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity z-10 ${
                               isFocused || isHovered ? 'opacity-100' : ''
                             }`}
                             title="Arraste para aumentar ou diminuir a imagem"
                           >
-                            <span className="w-2.5 h-2.5 rounded-[3px] border-b-2 border-r-2 border-pink-500 pointer-events-none" />
+                            <span className="w-2.5 h-2.5 rounded-[3px] border-b-2 border-r-2 border-[#2D5A46] pointer-events-none" />
                           </span>
                         </div>
                       </figure>
                     ) : (
                       /* Card Inline para Inserir URL quando vazio */
-                      <div className="w-full p-4 border-2 border-dashed border-pink-300/80 dark:border-pink-900/60 rounded-2xl bg-pink-50/40 dark:bg-pink-950/20 flex flex-col gap-2.5">
-                        <div className="flex items-center gap-2 text-xs font-bold text-pink-700 dark:text-pink-300">
-                          <ImageIcon className="w-4 h-4 text-pink-500" />
+                      <div className="w-full p-4 border-2 border-dashed border-[#CFE1D6]/80 dark:border-[#22392D]/60 rounded-2xl bg-[#EBF3EF]/40 dark:bg-[#15221B]/20 flex flex-col gap-2.5">
+                        <div className="flex items-center gap-2 text-xs font-bold text-[#2D5A46] dark:text-[#52B788]">
+                          <ImageIcon className="w-4 h-4 text-[#2D5A46]" />
                           <span>Inserir Imagem por Link (URL)</span>
                         </div>
                         <div className="flex gap-2">
@@ -2420,7 +2420,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                                 if (val.trim()) handleUpdateImageBlock(idx, val.trim(), section.imageCaption);
                               }
                             }}
-                            className="flex-1 text-xs px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-pink-200 dark:border-pink-800 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-pink-500"
+                            className="flex-1 text-xs px-3 py-2 rounded-xl bg-white dark:bg-[#18181B] border border-[#CFE1D6] dark:border-[#22392D] text-[#1C1917] dark:text-[#FAF9F5] outline-none focus:ring-2 focus:ring-[#2D5A46]"
                           />
                           <button
                             type="button"
@@ -2430,7 +2430,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
                                 handleUpdateImageBlock(idx, input.value.trim(), section.imageCaption);
                               }
                             }}
-                            className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
+                            className="px-4 py-2 bg-[#2D5A46] hover:bg-[#224A38] text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
                           >
                             Inserir
                           </button>
@@ -2448,7 +2448,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
           {/* Indicador de posição ao arrastar blocos selecionados */}
           {moveIndicatorY !== null && (
             <div
-              className="pointer-events-none fixed z-[60] h-[3px] rounded-full bg-blue-500 shadow-[0_0_0_1px_rgba(255,255,255,0.8)]"
+              className="pointer-events-none fixed z-[60] h-[3px] rounded-full bg-[#2D5A46] shadow-[0_0_0_1px_rgba(255,255,255,0.8)]"
               style={{ left: 8, right: 8, top: moveIndicatorY - 1 }}
             />
           )}
@@ -2464,19 +2464,19 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ type: 'spring', damping: 24, stiffness: 480, mass: 0.5 }}
-            className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[70] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700/80 px-2 py-1.5 flex items-center gap-1 font-sans select-none"
+            className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[70] bg-white dark:bg-[#18181B] rounded-2xl shadow-2xl border border-[#E7E2D9] dark:border-[#3B3B40]/80 px-2 py-1.5 flex items-center gap-1 font-sans select-none"
           >
-            <span className="px-2 text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0">
+            <span className="px-2 text-xs font-bold text-[#2D5A46] dark:text-[#52B788] shrink-0">
               {selectedBlockIds.length} {selectedBlockIds.length === 1 ? 'bloco' : 'blocos'} selecionado{selectedBlockIds.length === 1 ? '' : 's'}
             </span>
-            <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
+            <div className="w-px h-5 bg-[#E7E2D9] dark:bg-[#3B3B40] mx-1" />
             <button
               type="button"
               onClick={duplicateSelectedBlocks}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-[#44403C] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] transition-colors cursor-pointer"
               title="Duplicar blocos selecionados"
             >
-              <Copy className="w-3.5 h-3.5 text-slate-500" />
+              <Copy className="w-3.5 h-3.5 text-[#78716C]" />
               Duplicar
             </button>
             <button
@@ -2491,7 +2491,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
             <button
               type="button"
               onClick={clearBlockSelection}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-[#A8A29E] hover:text-[#44403C] dark:hover:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] transition-colors cursor-pointer"
               title="Limpar seleção (Esc)"
             >
               <X className="w-3.5 h-3.5" />
@@ -2505,9 +2505,9 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
         <button
           type="button"
           onClick={() => handleAddBlock('paragraph')}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs transition-all cursor-pointer shadow-xs hover:shadow-md"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#EFECE6] dark:bg-[#232326] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] text-[#57534E] dark:text-[#D6D3CD] font-semibold text-xs transition-all cursor-pointer shadow-xs hover:shadow-md"
         >
-          <Plus className="w-4 h-4 text-blue-600" />
+          <Plus className="w-4 h-4 text-[#2D5A46]" />
           <span>Continuar escrevendo / Novo parágrafo</span>
         </button>
       </div>
@@ -2516,33 +2516,33 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mt-8 pt-4 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400 select-none font-medium"
+        className="mt-8 pt-4 border-t border-[#E7E2D9]/80 dark:border-[#2C2C30]/80 flex flex-wrap items-center justify-between gap-3 text-xs text-[#78716C] dark:text-[#A8A29E] select-none font-medium"
       >
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {/* Contador de Palavras */}
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold border border-blue-200/60 dark:border-blue-800/60 shadow-2xs">
-            <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#EBF3EF] dark:bg-[#15221B]/40 text-[#2D5A46] dark:text-[#52B788] font-bold border border-[#CFE1D6]/60 dark:border-[#22392D]/60 shadow-2xs">
+            <FileText className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788]" />
             <span className="font-mono text-sm">{totalStats.words}</span>
-            <span className="font-normal text-slate-500 dark:text-slate-400 text-[11px]">
+            <span className="font-normal text-[#78716C] dark:text-[#A8A29E] text-[11px]">
               {totalStats.words === 1 ? 'palavra' : 'palavras'}
             </span>
           </span>
 
           {/* Contador de Caracteres */}
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#EFECE6] dark:bg-[#232326] text-[#44403C] dark:text-[#E7E5E4]">
             <span className="font-mono font-semibold">{totalStats.chars}</span>
-            <span className="text-[11px] text-slate-400">caracteres</span>
+            <span className="text-[11px] text-[#A8A29E]">caracteres</span>
           </span>
 
-          <span className="hidden md:inline-flex text-[11px] text-slate-400">
+          <span className="hidden md:inline-flex text-[11px] text-[#A8A29E]">
             ({totalStats.charsNoSpaces} sem espaços)
           </span>
 
           {/* Contador de Blocos */}
-          <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-            <Layers className="w-3.5 h-3.5 text-purple-500" />
+          <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#EFECE6] dark:bg-[#232326] text-[#44403C] dark:text-[#E7E5E4]">
+            <Layers className="w-3.5 h-3.5 text-[#2D5A46]" />
             <span className="font-mono font-semibold">{totalStats.blocksCount}</span>
-            <span className="text-[11px] text-slate-400">{totalStats.blocksCount === 1 ? 'bloco' : 'blocos'}</span>
+            <span className="text-[11px] text-[#A8A29E]">{totalStats.blocksCount === 1 ? 'bloco' : 'blocos'}</span>
           </span>
         </div>
 
@@ -2554,7 +2554,7 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
           </span>
 
           {/* Indicador de Salvamento Ativo */}
-          <span className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
+          <span className="flex items-center gap-1.5 text-[11px] text-[#A8A29E] font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             Em tempo real
           </span>
@@ -2568,20 +2568,20 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 4, scale: 0.96 }}
           transition={{ type: 'spring', damping: 26, stiffness: 500, mass: 0.4 }}
-          className="fixed z-[99999] w-72 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-blue-200/80 dark:border-blue-900/80 shadow-2xl text-left pointer-events-none transform -translate-x-1/2 -translate-y-full"
+          className="fixed z-[99999] w-72 p-4 rounded-2xl bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-xl border border-[#CFE1D6]/80 dark:border-[#22392D]/80 shadow-2xl text-left pointer-events-none transform -translate-x-1/2 -translate-y-full"
           style={{ left: glossaryTip.x, top: glossaryTip.y - 14 }}
         >
-          <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-[#E7E2D9] dark:border-[#2C2C30]">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30 shrink-0">
+              <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-[#2D5A46] to-[#224A38] text-white flex items-center justify-center shadow-md shadow-[#2D5A46]/30 shrink-0">
                 <Sparkles className="w-3.5 h-3.5" />
               </div>
-              <h4 className="font-display font-bold text-sm text-slate-900 dark:text-white truncate">
+              <h4 className="font-display font-bold text-sm text-[#1C1917] dark:text-[#FAF9F5] truncate">
                 {glossaryTip.definition.term}
               </h4>
             </div>
             {glossaryTip.definition.category && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 shrink-0">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EBF3EF] dark:bg-[#15221B]/80 text-[#2D5A46] dark:text-[#52B788] shrink-0">
                 {glossaryTip.definition.category}
               </span>
             )}
@@ -2591,27 +2591,27 @@ export const NotionDocEditor: React.FC<NotionDocEditorProps> = ({
             <img
               src={glossaryTip.definition.imageUrl}
               alt={glossaryTip.definition.term}
-              className="w-full h-36 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-md mb-2.5"
+              className="w-full h-36 object-cover rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] shadow-md mb-2.5"
               onError={(e) => { (e.currentTarget.style.display = 'none'); }}
             />
           )}
 
           {glossaryTip.definition.definition && (
             <>
-              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-[#A8A29E] dark:text-[#78716C] uppercase tracking-wider block">
                 Significado Acadêmico:
               </span>
-              <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
+              <p className="text-xs text-[#44403C] dark:text-[#E7E5E4] leading-relaxed font-normal">
                 {glossaryTip.definition.definition}
               </p>
             </>
           )}
 
           {glossaryTip.definition.example && (
-            <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-start gap-2 text-[11px] text-slate-600 dark:text-slate-300 bg-blue-50/60 dark:bg-blue-950/30 p-2 rounded-xl border border-blue-100/50 dark:border-blue-900/40">
+            <div className="mt-2.5 pt-2 border-t border-[#E7E2D9] dark:border-[#2C2C30]/80 flex items-start gap-2 text-[11px] text-[#57534E] dark:text-[#D6D3CD] bg-[#EBF3EF]/60 dark:bg-[#15221B]/30 p-2 rounded-xl border border-[#CFE1D6]/50 dark:border-[#22392D]/40">
               <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
               <p className="italic leading-snug">
-                <strong className="not-italic text-slate-900 dark:text-white font-semibold">{glossaryTip.definition.example}</strong>
+                <strong className="not-italic text-[#1C1917] dark:text-[#FAF9F5] font-semibold">{glossaryTip.definition.example}</strong>
               </p>
             </div>
           )}

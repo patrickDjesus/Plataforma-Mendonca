@@ -8,6 +8,7 @@ import { NotificationsDrawer } from './components/NotificationsDrawer';
 import { CommandPalette } from './components/CommandPalette';
 import { CadernoWorkspace } from './components/CadernoWorkspace';
 import { TreinoGamificacao } from './components/TreinoGamificacao';
+import FlashcardsApp from './flashcards/App';
 import { StudyNotification } from './types/notification';
 import { AnimatePresence, motion } from 'motion/react';
 import { Moon, Sun } from 'lucide-react';
@@ -20,12 +21,14 @@ const SCREEN_TO_PATH: Record<ScreenId, string> = {
   home: '/',
   caderno: '/caderno',
   treino: '/treino',
+  flashcards: '/flashcards',
 };
 
 const PATH_TO_SCREEN: Record<string, ScreenId> = {
   '/': 'home',
   '/caderno': 'caderno',
   '/treino': 'treino',
+  '/flashcards': 'flashcards',
 };
 
 export const App: React.FC = () => {
@@ -194,6 +197,8 @@ export const App: React.FC = () => {
           navigate('caderno');
         } else if (e.key === '3') {
           navigate('treino');
+        } else if (e.key === '4') {
+          navigate('flashcards');
         } else if (e.key.toLowerCase() === 'n' && !e.metaKey && !e.ctrlKey) {
           setIsNotificationsOpen(prev => !prev);
         }
@@ -271,7 +276,7 @@ export const App: React.FC = () => {
   const hasYellowAlert = notifications.some(n => n.level === 'yellow' && !n.read);
 
   return (
-    <div className={`min-h-screen w-full transition-colors duration-200 ${theme === 'dark' ? 'dark bg-slate-950 text-slate-100' : 'bg-[#F8FAFC] text-slate-900'}`}>
+    <div className={`min-h-screen w-full transition-colors duration-200 ${theme === 'dark' ? 'dark bg-[#121214] text-[#FAF9F5]' : 'bg-[#FAF8F5] text-[#1C1917]'}`}>
       <AnimatePresence mode="wait">
         
         {/* TELA 1: LOGIN / REGISTRO COM PLATAFORMA MENDONÇA */}
@@ -313,7 +318,7 @@ export const App: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col h-screen w-full bg-[#F8FAFC] dark:bg-slate-950 overflow-hidden text-slate-900 dark:text-slate-100 selection:bg-blue-100 selection:text-blue-900"
+            className="flex flex-col h-screen w-full bg-[#FAF8F5] dark:bg-[#121214] overflow-hidden text-[#1C1917] dark:text-[#FAF9F5] selection:bg-[#2D5A46] selection:text-white"
           >
             {/* MENU HEADER SUPERIOR COM TABS ANIMADAS, TEMA E NOTIFICAÇÕES */}
             <Navbar
@@ -388,6 +393,16 @@ export const App: React.FC = () => {
                       />
                     </div>
                   )}
+
+                  {currentScreen === 'flashcards' && (
+                    <div className="flex-1 h-full overflow-y-auto no-scrollbar">
+                      <FlashcardsApp
+                        embedded
+                        theme={theme}
+                        onToggleTheme={toggleTheme}
+                      />
+                    </div>
+                  )}
                 </motion.div>
               </AnimatePresence>
             </main>
@@ -407,14 +422,14 @@ export const App: React.FC = () => {
             transition={{ duration: 1.75, times: [0, 0.25, 0.75, 1], ease: 'easeInOut' }}
             className={`fixed inset-0 z-[99999] pointer-events-none flex flex-col items-center justify-center overflow-hidden ${
               transitionTarget === 'dark'
-                ? 'bg-slate-950 text-white'
-                : 'bg-slate-50 text-slate-900'
+                ? 'bg-[#121214] text-[#FAF9F5]'
+                : 'bg-[#FAF8F5] text-[#1C1917]'
             }`}
           >
             {/* Background Glow Ring */}
             <div
               className={`absolute w-[450px] h-[450px] rounded-full blur-3xl opacity-50 transition-all duration-1000 ${
-                transitionTarget === 'dark' ? 'bg-indigo-600' : 'bg-amber-300'
+                transitionTarget === 'dark' ? 'bg-[#2D5A46]' : 'bg-amber-300'
               }`}
             />
 
@@ -432,19 +447,19 @@ export const App: React.FC = () => {
                 className="relative flex flex-col items-center gap-5 z-10"
               >
                 {/* Lua Estilizada com Crateras e Brilho Etéreo */}
-                <div className="relative w-32 h-32 rounded-full bg-slate-900 border-2 border-indigo-400/60 flex items-center justify-center shadow-2xl shadow-indigo-500/60">
-                  <div className="absolute inset-0 rounded-full bg-indigo-500/30 blur-lg animate-pulse" />
-                  <Moon className="w-16 h-16 text-indigo-200 fill-indigo-200/40 drop-shadow-[0_0_20px_rgba(165,180,252,0.9)]" />
+                <div className="relative w-32 h-32 rounded-full bg-[#26241F] border-2 border-[#9CC4AE]/60 flex items-center justify-center shadow-2xl shadow-[#2D5A46]/50">
+                  <div className="absolute inset-0 rounded-full bg-[#2D5A46]/40 blur-lg animate-pulse" />
+                  <Moon className="w-16 h-16 text-[#C4DACB] fill-[#C4DACB]/40 drop-shadow-[0_0_20px_rgba(216,150,120,0.9)]" />
                   {/* Estrelas sutis ao redor */}
-                  <span className="absolute top-2 right-4 text-indigo-300 text-sm animate-ping">✦</span>
-                  <span className="absolute bottom-4 left-4 text-cyan-300 text-xs animate-pulse">✦</span>
-                  <span className="absolute top-10 left-3 text-purple-300 text-[10px] animate-bounce">✦</span>
+                  <span className="absolute top-2 right-4 text-amber-200 text-sm animate-ping">✦</span>
+                  <span className="absolute bottom-4 left-4 text-amber-300 text-xs animate-pulse">✦</span>
+                  <span className="absolute top-10 left-3 text-orange-200 text-[10px] animate-bounce">✦</span>
                 </div>
                 <div className="flex flex-col items-center text-center">
-                  <span className="text-base font-display font-extrabold uppercase tracking-widest text-indigo-200">
+                  <span className="text-base font-display font-extrabold uppercase tracking-widest text-[#C4DACB]">
                     Modo Noturno
                   </span>
-                  <span className="text-xs text-indigo-400/90 font-medium mt-0.5">
+                  <span className="text-xs text-[#9CC4AE]/90 font-medium mt-0.5">
                     Modo de concentração neural ativado
                   </span>
                 </div>

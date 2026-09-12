@@ -105,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           league: 'Prata',
           status: 'online',
           avatarEmoji: '⚡',
-          avatarBg: 'from-blue-500 to-indigo-600',
+          avatarBg: 'from-[#2D5A46] to-[#1E3E30]',
           favoriteSubject: 'Treino Geral',
         });
 

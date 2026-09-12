@@ -314,18 +314,18 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
   const getTierColor = (tier: StudyBadge['tier']) => {
     switch (tier) {
       case 'bronze': return {
-        bg: 'from-amber-700/20 to-orange-800/20',
+        bg: 'from-amber-700/20 to-amber-900/20',
         border: 'border-amber-700/40 dark:border-amber-600/40',
         text: 'text-amber-700 dark:text-amber-400',
         badge: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300',
         glow: 'shadow-amber-500/10'
       };
       case 'silver': return {
-        bg: 'from-slate-400/20 to-blue-500/20',
-        border: 'border-slate-300 dark:border-slate-600',
-        text: 'text-blue-600 dark:text-blue-300',
-        badge: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200',
-        glow: 'shadow-blue-500/10'
+        bg: 'from-[#A8A29E]/20 to-[#2D5A46]/20',
+        border: 'border-[#D6D0C5] dark:border-[#57534E]',
+        text: 'text-[#2D5A46] dark:text-[#52B788]',
+        badge: 'bg-[#EFECE6] text-[#1C1917] dark:bg-[#232326] dark:text-[#E7E5E4]',
+        glow: 'shadow-[#2D5A46]/10'
       };
       case 'gold': return {
         bg: 'from-yellow-400/20 to-amber-500/20',
@@ -335,18 +335,18 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
         glow: 'shadow-yellow-500/20'
       };
       case 'diamond': return {
-        bg: 'from-cyan-400/20 to-blue-600/20',
-        border: 'border-cyan-400/60 dark:border-cyan-500/60',
-        text: 'text-cyan-600 dark:text-cyan-300',
-        badge: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300',
-        glow: 'shadow-cyan-500/25'
+        bg: 'from-[#52B788]/20 to-[#2D5A46]/20',
+        border: 'border-[#52B788]/60 dark:border-[#52B788]/60',
+        text: 'text-[#2D5A46] dark:text-[#52B788]',
+        badge: 'bg-[#EBF3EF] text-[#2D5A46] dark:bg-[#15221B]/60 dark:text-[#52B788]',
+        glow: 'shadow-[#52B788]/25'
       };
       case 'legendary': return {
-        bg: 'from-purple-500/20 via-pink-500/20 to-amber-500/20',
-        border: 'border-purple-400/70 dark:border-purple-500/70',
-        text: 'text-purple-600 dark:text-purple-300',
-        badge: 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300',
-        glow: 'shadow-purple-500/30'
+        bg: 'from-[#2D5A46]/20 via-[#52B788]/20 to-amber-500/20',
+        border: 'border-[#2D5A46]/70 dark:border-[#2D5A46]/70',
+        text: 'text-[#2D5A46] dark:text-[#52B788]',
+        badge: 'bg-[#EBF3EF] text-[#2D5A46] dark:bg-[#15221B]/60 dark:text-[#52B788]',
+        glow: 'shadow-[#2D5A46]/30'
       };
     }
   };
@@ -360,28 +360,28 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        className="bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200/80 dark:border-slate-800 p-6 shadow-2xs hover:border-blue-300 dark:hover:border-blue-700/60 hover:shadow-md transition-all duration-300 flex flex-col gap-4 relative overflow-hidden"
+        className="bg-white dark:bg-[#18181B] rounded-[28px] border border-[#E7E2D9]/80 dark:border-[#2C2C30] p-6 shadow-2xs hover:border-[#D6D0C5] dark:hover:border-[#2D5A46]/60 hover:shadow-md transition-all duration-300 flex flex-col gap-4 relative overflow-hidden"
       >
         {/* Ambient background glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-400/10 dark:bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-36 h-36 bg-purple-400/10 dark:bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-36 h-36 bg-[#52B788]/10 dark:bg-[#52B788]/5 rounded-full blur-2xl pointer-events-none" />
 
         {/* Top Header Row */}
         <div className="flex flex-wrap items-center justify-between gap-3 z-10">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-400 to-yellow-500 flex items-center justify-center text-slate-950 shadow-md shadow-amber-400/20">
-              <Award className="w-5 h-5 fill-slate-950" />
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-400 to-yellow-500 flex items-center justify-center text-[#1C1917] shadow-md shadow-amber-400/20">
+              <Award className="w-5 h-5 fill-[#1C1917]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
+                <h3 className="text-base font-bold font-display text-[#1C1917] dark:text-[#FAF9F5]">
                   Medalhas & Conquistas de Estudo
                 </h3>
                 <span className="bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-300/60 dark:border-amber-700">
                   {unlockedCount}/{totalCount} Conquistadas
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
                 Desbloqueie insígnias exclusivas mantendo seus streaks e resolvendo simulados
               </p>
             </div>
@@ -389,7 +389,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-xl bg-[#EFECE6] hover:bg-[#E7E2D9] dark:bg-[#232326] dark:hover:bg-[#3B3B40] text-[#2D5A46] dark:text-[#52B788] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <span>Ver Vitrine Completa</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -397,10 +397,10 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
         </div>
 
         {/* Barra de Progresso Geral para Próxima Patente */}
-        <div className="z-10 bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-3.5 border border-slate-200/60 dark:border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="z-10 bg-[#EFECE6] dark:bg-[#232326]/60 rounded-2xl p-3.5 border border-[#E7E2D9]/60 dark:border-[#3B3B40]/60 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="w-full sm:flex-1 space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <span className="font-bold text-[#44403C] dark:text-[#D6D3CD] flex items-center gap-1.5">
                 <Crown className="w-3.5 h-3.5 text-amber-500" />
                 Progresso da Temporada
               </span>
@@ -408,7 +408,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                 {overallProgress}% ({unlockedCount} de {totalCount})
               </span>
             </div>
-            <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-[#E7E2D9] dark:bg-[#3B3B40] rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${overallProgress}%` }}
@@ -419,23 +419,23 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
           </div>
 
           {nextBadge && (
-            <div className="w-full sm:w-auto flex items-center gap-2.5 bg-white dark:bg-slate-900 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs shrink-0">
+            <div className="w-full sm:w-auto flex items-center gap-2.5 bg-white dark:bg-[#18181B] px-3.5 py-2 rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] shadow-2xs shrink-0">
               {BADGE_IMAGES[nextBadge.id] ? (
                 <img
                   src={BADGE_IMAGES[nextBadge.id]}
                   alt={nextBadge.title}
-                  className="w-14 h-14 object-cover rounded-xl border border-slate-200 dark:border-slate-700 grayscale opacity-75 shrink-0"
+                  className="w-14 h-14 object-cover rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] grayscale opacity-75 shrink-0"
                 />
               ) : (
                 <span className="text-3xl shrink-0">{nextBadge.icon}</span>
               )}
               <div className="text-left">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Próxima Conquista:</span>
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block max-w-[130px]">
+                <span className="text-[10px] font-bold text-[#A8A29E] uppercase tracking-wider block">Próxima Conquista:</span>
+                <span className="text-xs font-bold text-[#1C1917] dark:text-[#E7E5E4] truncate block max-w-[130px]">
                   {nextBadge.title}
                 </span>
               </div>
-              <span className="text-[11px] font-mono font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-lg border border-blue-200 dark:border-blue-800">
+              <span className="text-[11px] font-mono font-extrabold text-[#2D5A46] dark:text-[#52B788] bg-[#EBF3EF] dark:bg-[#15221B]/60 px-2 py-0.5 rounded-lg border border-[#CFE1D6] dark:border-[#22392D]">
                 {nextBadge.currentValue}/{nextBadge.targetValue}
               </span>
             </div>
@@ -457,7 +457,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                 className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-between text-center relative overflow-hidden min-h-[160px] select-none ${
                   badge.unlocked
                     ? `bg-gradient-to-b ${colors.bg} ${colors.border} shadow-sm ${colors.glow}`
-                    : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-700/60 opacity-65 hover:opacity-100'
+                    : 'bg-[#EFECE6] dark:bg-[#232326]/40 border-[#E7E2D9]/60 dark:border-[#3B3B40]/60 opacity-65 hover:opacity-100'
                 }`}
               >
                 {badge.unlocked ? (
@@ -466,7 +466,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                   </div>
                 ) : (
                   <div className="absolute top-1.5 right-1.5">
-                    <Lock className="w-3 h-3 text-slate-400" />
+                    <Lock className="w-3 h-3 text-[#A8A29E]" />
                   </div>
                 )}
 
@@ -478,11 +478,11 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                       className={`w-28 h-28 object-cover rounded-2xl border-2 transition-all duration-300 ${
                         badge.unlocked
                           ? 'border-amber-300/80 dark:border-amber-500/60 shadow-lg'
-                          : 'grayscale opacity-70 border-slate-300/70 dark:border-slate-600'
+                          : 'grayscale opacity-70 border-[#D6D0C5]/70 dark:border-[#57534E]'
                       }`}
                     />
                     {!badge.unlocked && (
-                      <span className="absolute bottom-1.5 right-1.5 bg-slate-900/80 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border border-white/20">
+                      <span className="absolute bottom-1.5 right-1.5 bg-[#18181B]/80 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border border-white/20">
                         {badge.currentValue}/{badge.targetValue}
                       </span>
                     )}
@@ -494,7 +494,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                 )}
 
                 <div className="w-full">
-                  <h4 className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">
+                  <h4 className="text-[11px] font-extrabold text-[#1C1917] dark:text-[#FAF9F5] truncate">
                     {badge.title}
                   </h4>
                   
@@ -504,13 +504,13 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                     </span>
                   ) : (
                     <div className="w-full mt-1 space-y-0.5">
-                      <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-[#E7E2D9] dark:bg-[#3B3B40] rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-blue-500 rounded-full" 
+                          className="h-full bg-[#2D5A46] rounded-full" 
                           style={{ width: `${percent}%` }}
                         />
                       </div>
-                      <span className="text-[9px] font-mono text-slate-400 block text-right">
+                      <span className="text-[9px] font-mono text-[#A8A29E] block text-right">
                         {badge.currentValue}/{badge.targetValue}
                       </span>
                     </div>
@@ -533,7 +533,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-slate-950/70 backdrop-blur-md"
+              className="absolute inset-0 bg-[#121214]/70 backdrop-blur-md"
             />
 
             <motion.div
@@ -541,19 +541,19 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[36px] shadow-2xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 overflow-hidden z-10 max-h-[90vh] flex flex-col text-slate-900 dark:text-slate-100"
+              className="relative w-full max-w-4xl bg-white dark:bg-[#18181B] rounded-[36px] shadow-2xl border border-[#E7E2D9]/80 dark:border-[#2C2C30] p-6 sm:p-8 overflow-hidden z-10 max-h-[90vh] flex flex-col text-[#1C1917] dark:text-[#E7E5E4]"
             >
               {/* Header do Modal */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between pb-4 border-b border-[#E7E2D9] dark:border-[#2C2C30]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-yellow-500 flex items-center justify-center text-slate-950 shadow-md">
-                    <Trophy className="w-5 h-5 fill-slate-950" />
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-yellow-500 flex items-center justify-center text-[#1C1917] shadow-md">
+                    <Trophy className="w-5 h-5 fill-[#1C1917]" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold font-display text-slate-900 dark:text-white">
+                    <h2 className="text-xl font-bold font-display text-[#1C1917] dark:text-[#FAF9F5]">
                       Vitrine de Conquistas & Medalhas
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
                       Acompanhe sua evolução e desbloqueie títulos honorários para o ranking
                     </p>
                   </div>
@@ -561,7 +561,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
 
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-9 h-9 rounded-xl bg-[#EFECE6] dark:bg-[#232326] hover:bg-[#E7E2D9] dark:hover:bg-[#3B3B40] text-[#78716C] dark:text-[#A8A29E] flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -569,13 +569,13 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
 
               {/* Filtros de Categoria */}
               <div className="flex items-center justify-between gap-3 pt-4 pb-2">
-                <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">
+                <div className="flex items-center gap-1.5 p-1 bg-[#EFECE6] dark:bg-[#232326] rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] text-xs font-semibold">
                   <button
                     onClick={() => setActiveFilter('all')}
                     className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                       activeFilter === 'all'
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                        ? 'bg-[#2D5A46] text-white shadow-xs'
+                        : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
                     }`}
                   >
                     Todas ({badges.length})
@@ -585,7 +585,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                     className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                       activeFilter === 'unlocked'
                         ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                        : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
                     }`}
                   >
                     Desbloqueadas ({unlockedCount})
@@ -595,7 +595,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                     className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                       activeFilter === 'locked'
                         ? 'bg-amber-600 text-white shadow-xs'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                        : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
                     }`}
                   >
                     A Conquistar ({badges.length - unlockedCount})
@@ -623,7 +623,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                         className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between relative ${
                           badge.unlocked
                             ? `bg-gradient-to-b ${colors.bg} ${colors.border} shadow-sm`
-                            : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/80 opacity-75 hover:opacity-100'
+                            : 'bg-[#EFECE6] dark:bg-[#232326]/40 border-[#E7E2D9]/80 dark:border-[#3B3B40]/80 opacity-75 hover:opacity-100'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3 mb-2.5">
@@ -636,11 +636,11 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                                   className={`w-20 h-20 object-cover rounded-2xl border-2 transition-all duration-300 ${
                                     badge.unlocked
                                       ? 'border-amber-300/80 dark:border-amber-500/60 shadow-lg'
-                                      : 'grayscale opacity-70 border-slate-300/70 dark:border-slate-600'
+                                      : 'grayscale opacity-70 border-[#D6D0C5]/70 dark:border-[#57534E]'
                                   }`}
                                 />
                                 {!badge.unlocked && (
-                                  <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border border-white/20">
+                                  <span className="absolute bottom-1 right-1 bg-[#18181B]/80 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border border-white/20">
                                     {badge.currentValue}/{badge.targetValue}
                                   </span>
                                 )}
@@ -649,7 +649,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                               <span className="text-3xl filter drop-shadow-sm shrink-0">{badge.icon}</span>
                             )}
                             <div>
-                              <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">
+                              <h4 className="text-xs font-extrabold text-[#1C1917] dark:text-[#FAF9F5]">
                                 {badge.title}
                               </h4>
                               <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full inline-block mt-0.5 ${colors.badge}`}>
@@ -663,19 +663,19 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                               <CheckCircle2 className="w-4 h-4" />
                             </span>
                           ) : (
-                            <span className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 flex items-center justify-center">
+                            <span className="w-6 h-6 rounded-full bg-[#E7E2D9] dark:bg-[#3B3B40] text-[#78716C] flex items-center justify-center">
                               <Lock className="w-3.5 h-3.5" />
                             </span>
                           )}
                         </div>
 
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
+                        <p className="text-[11px] text-[#57534E] dark:text-[#D6D3CD] leading-relaxed mb-3">
                           {badge.description}
                         </p>
 
-                        <div className="mt-auto pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60 space-y-1.5">
+                        <div className="mt-auto pt-2.5 border-t border-[#E7E2D9]/60 dark:border-[#3B3B40]/60 space-y-1.5">
                           <div className="flex items-center justify-between text-[10px]">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium">Recompensa:</span>
+                            <span className="text-[#78716C] dark:text-[#A8A29E] font-medium">Recompensa:</span>
                             <span className="font-extrabold text-amber-600 dark:text-amber-400">
                               +{badge.xpReward} XP {badge.titleReward && `• "${badge.titleReward}"`}
                             </span>
@@ -683,13 +683,13 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
 
                           {!badge.unlocked && (
                             <div className="space-y-1">
-                              <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                              <div className="h-1.5 w-full bg-[#E7E2D9] dark:bg-[#3B3B40] rounded-full overflow-hidden">
                                 <div
-                                  className="h-full bg-blue-500 rounded-full"
+                                  className="h-full bg-[#2D5A46] rounded-full"
                                   style={{ width: `${percent}%` }}
                                 />
                               </div>
-                              <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                              <div className="flex justify-between text-[9px] font-mono text-[#A8A29E]">
                                 <span>Progresso:</span>
                                 <span>{badge.currentValue} / {badge.targetValue} {badge.unit}</span>
                               </div>
@@ -703,8 +703,8 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
               </div>
 
               {/* Rodapé do Modal */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+              <div className="pt-4 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
                   Novas medalhas são desbloqueadas automaticamente conforme você estuda.
                 </p>
                 {onNavigateToTreino && (
@@ -713,7 +713,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                       setIsModalOpen(false);
                       onNavigateToTreino();
                     }}
-                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 cursor-pointer flex items-center gap-2"
+                    className="px-5 py-2 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-bold transition-all shadow-md shadow-[#2D5A46]/20 cursor-pointer flex items-center gap-2"
                   >
                     <Zap className="w-3.5 h-3.5" />
                     <span>Praticar no Treino Agora</span>
@@ -734,14 +734,14 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedBadge(null)}
-              className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs"
+              className="absolute inset-0 bg-[#121214]/60 backdrop-blur-xs"
             />
 
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 10 }}
-              className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-2xl z-10 text-center space-y-4"
+              className="relative w-full max-w-md bg-white dark:bg-[#18181B] rounded-3xl p-6 border border-[#E7E2D9] dark:border-[#2C2C30] shadow-2xl z-10 text-center space-y-4"
             >
               {BADGE_IMAGES[selectedBadge.id] ? (
                 <div className="relative my-2 inline-block">
@@ -751,7 +751,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                     className={`w-44 h-44 object-cover rounded-3xl border-2 shadow-xl mx-auto transition-all duration-300 ${
                       selectedBadge.unlocked
                         ? 'border-amber-300 dark:border-amber-500/60 shadow-amber-400/20'
-                        : 'grayscale opacity-65 border-slate-300 dark:border-slate-600'
+                        : 'grayscale opacity-65 border-[#D6D0C5] dark:border-[#57534E]'
                     }`}
                   />
                 </div>
@@ -765,34 +765,34 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
                 <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full inline-block mb-1.5 ${getTierColor(selectedBadge.tier).badge}`}>
                   Nível {selectedBadge.tier}
                 </span>
-                <h3 className="text-lg font-black text-slate-900 dark:text-white font-display">
+                <h3 className="text-lg font-black text-[#1C1917] dark:text-[#FAF9F5] font-display">
                   {selectedBadge.title}
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                <p className="text-xs text-[#57534E] dark:text-[#D6D3CD] mt-2 leading-relaxed">
                   {selectedBadge.description}
                 </p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/60 space-y-2 text-xs text-left">
+              <div className="bg-[#EFECE6] dark:bg-[#232326]/80 rounded-2xl p-4 border border-[#E7E2D9]/60 dark:border-[#3B3B40]/60 space-y-2 text-xs text-left">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Status:</span>
+                  <span className="text-[#78716C]">Status:</span>
                   <span className={`font-bold ${selectedBadge.unlocked ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                     {selectedBadge.unlocked ? '✓ Desbloqueada' : '⏳ Em progresso'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Recompensa de XP:</span>
-                  <span className="font-bold text-purple-600 dark:text-purple-400">+{selectedBadge.xpReward} XP</span>
+                  <span className="text-[#78716C]">Recompensa de XP:</span>
+                  <span className="font-bold text-[#2D5A46] dark:text-[#52B788]">+{selectedBadge.xpReward} XP</span>
                 </div>
                 {selectedBadge.titleReward && (
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Título Honorário:</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400">"{selectedBadge.titleReward}"</span>
+                    <span className="text-[#78716C]">Título Honorário:</span>
+                    <span className="font-bold text-[#2D5A46] dark:text-[#52B788]">"{selectedBadge.titleReward}"</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Requisito:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                  <span className="text-[#78716C]">Requisito:</span>
+                  <span className="font-bold text-[#1C1917] dark:text-[#E7E5E4]">
                     {selectedBadge.currentValue} / {selectedBadge.targetValue} {selectedBadge.unit}
                   </span>
                 </div>
@@ -800,7 +800,7 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
 
               <button
                 onClick={() => setSelectedBadge(null)}
-                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-bold transition-all cursor-pointer"
               >
                 Fechar
               </button>

@@ -9,16 +9,16 @@
   gap: 4px;
   padding: 7px 10px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #E7E2D9;
   border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 30px rgba(28, 25, 23, 0.12);
   overflow-x: auto;
   max-width: 100%;
 }
 
 .dark .doc-format-bar {
-  background: #0f172a;
-  border-color: #1e293b;
+  background: #18181B;
+  border-color: #232326;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
@@ -35,7 +35,7 @@
   border-radius: 9px;
   border: none;
   background: transparent;
-  color: #64748b;
+  color: #57534E;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -45,27 +45,27 @@
 }
 
 .dark .doc-toolbar-btn {
-  color: #94a3b8;
+  color: #A8A29E;
 }
 
 .doc-toolbar-btn:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: #EFECE6;
+  color: #1C1917;
 }
 
 .dark .doc-toolbar-btn:hover {
-  background: #1e293b;
-  color: #f8fafc;
+  background: #232326;
+  color: #FAF9F5;
 }
 
 .doc-toolbar-btn.active {
-  background: #eff6ff;
-  color: #2563eb;
+  background: #EBF3EF;
+  color: #2D5A46;
 }
 
 .dark .doc-toolbar-btn.active {
-  background: #172554;
-  color: #60a5fa;
+  background: #15221B;
+  color: #52B788;
 }
 
 .doc-toolbar-btn svg {
@@ -82,13 +82,13 @@
 .doc-toolbar-sep {
   width: 1px;
   height: 20px;
-  background: #e2e8f0;
+  background: #E7E2D9;
   margin: 0 5px;
   flex-shrink: 0;
 }
 
 .dark .doc-toolbar-sep {
-  background: #334155;
+  background: #44403C;
 }
 
 .doc-spell-btn-label {
@@ -98,9 +98,9 @@
 
 .doc-spell-debug {
   font-size: 11px;
-  color: #64748b;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  color: #57534E;
+  background: #EFECE6;
+  border: 1px solid #E7E2D9;
   border-radius: 6px;
   padding: 3px 8px;
   max-width: 260px;
@@ -111,9 +111,9 @@
 }
 
 .dark .doc-spell-debug {
-  color: #94a3b8;
-  background: #1e293b;
-  border-color: #334155;
+  color: #A8A29E;
+  background: #232326;
+  border-color: #44403C;
 }
 
 /* --- Folha pautada (sempre branca, tema do site) --- */
@@ -129,7 +129,7 @@
   margin: 0;
   position: relative;
   background: #ffffff;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #E7E2D9;
   padding: 0 28px 140px 68px;
   overflow: hidden !important;
   box-sizing: border-box !important;
@@ -138,8 +138,8 @@
 }
 
 .dark .doc-editor-paper {
-  background: #0f172a;
-  border-top-color: #1e293b;
+  background: #18181B;
+  border-top-color: #232326;
 }
 
 /* == Linhas da folha ==
@@ -149,7 +149,7 @@
    centralizado entre duas linhas, independente de qualquer padding/margem
    acima do editor. */
 .doc-editor-paper .bn-editor.bn-editor {
-  color: #334155 !important;
+  color: #44403C !important;
   font-family: 'Inter', sans-serif;
   font-size: 15px;
   line-height: 36px;
@@ -157,8 +157,8 @@
   min-height: 540px !important;
   background: repeating-linear-gradient(
       to bottom,
-      rgba(148, 163, 184, 0.45) 0px,
-      rgba(148, 163, 184, 0.45) 1px,
+      rgba(168, 162, 158, 0.45) 0px,
+      rgba(168, 162, 158, 0.45) 1px,
       transparent 1px,
       transparent 36px
     ) !important;
@@ -172,11 +172,11 @@
 }
 
 .dark .doc-editor-paper .bn-editor.bn-editor {
-  color: #cbd5e1 !important;
+  color: #D6D3CD !important;
   background: repeating-linear-gradient(
       to bottom,
-      rgba(100, 116, 139, 0.45) 0px,
-      rgba(100, 116, 139, 0.45) 1px,
+      rgba(168, 162, 158, 0.45) 0px,
+      rgba(168, 162, 158, 0.45) 1px,
       transparent 1px,
       transparent 36px
     ) !important;
@@ -199,11 +199,11 @@
   top: 0;
   bottom: 0;
   width: 1.5px;
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(168, 162, 158, 0.35);
 }
 
 .dark .doc-paper-margin {
-  background: rgba(100, 116, 139, 0.35);
+  background: rgba(168, 162, 158, 0.35);
 }
 
 .doc-paper-holes {
@@ -221,13 +221,13 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  border: 1.5px solid rgba(148, 163, 184, 0.5);
+  border: 1.5px solid rgba(168, 162, 158, 0.5);
   margin-bottom: 250px;
   flex-shrink: 0;
 }
 
 .dark .doc-paper-holes span {
-  border-color: rgba(100, 116, 139, 0.5);
+  border-color: rgba(168, 162, 158, 0.5);
 }
 
 .doc-paper-lines {
@@ -404,15 +404,15 @@
   gap: 2px;
   padding: 3px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #E7E2D9;
   border-radius: 9px;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 4px 12px rgba(28, 25, 23, 0.14);
   z-index: 20;
 }
 
 .dark .doc-editor-paper .bn-image-size-pill {
-  background: #0f172a;
-  border-color: #1e293b;
+  background: #18181B;
+  border-color: #232326;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
 }
 
@@ -420,7 +420,7 @@
   appearance: none;
   border: none;
   background: transparent;
-  color: #64748b;
+  color: #57534E;
   width: 24px;
   height: 24px;
   border-radius: 6px;
@@ -436,13 +436,13 @@
 }
 
 .doc-editor-paper .bn-image-size-pill button:hover {
-  background: #eff6ff;
-  color: #2563eb;
+  background: #EBF3EF;
+  color: #2D5A46;
 }
 
 .dark .doc-editor-paper .bn-image-size-pill button:hover {
-  background: #172554;
-  color: #60a5fa;
+  background: #15221B;
+  color: #52B788;
 }
 
 /* Tira o quadrado azul que o BlockNote desenha ao redor da imagem
@@ -475,12 +475,12 @@
   line-height: 72px !important;
   min-height: 72px !important;
   letter-spacing: -0.02em;
-  color: #0f172a !important;
+  color: #1C1917 !important;
 }
 
 .dark .doc-editor-paper h1,
 .dark .doc-editor-paper .bn-block-content[data-content-type="heading"][data-level="1"] {
-  color: #f8fafc !important;
+  color: #FAF9F5 !important;
 }
 
 .doc-editor-paper h2,
@@ -491,12 +491,12 @@
   line-height: 72px !important;
   min-height: 72px !important;
   letter-spacing: -0.015em;
-  color: #0f172a !important;
+  color: #1C1917 !important;
 }
 
 .dark .doc-editor-paper h2,
 .dark .doc-editor-paper .bn-block-content[data-content-type="heading"][data-level="2"] {
-  color: #f1f5f9 !important;
+  color: #EFECE6 !important;
 }
 
 .doc-editor-paper h3,
@@ -507,27 +507,27 @@
   line-height: 36px !important;
   min-height: 36px !important;
   letter-spacing: -0.01em;
-  color: #1e293b !important;
+  color: #232326 !important;
 }
 
 .dark .doc-editor-paper h3,
 .dark .doc-editor-paper .bn-block-content[data-content-type="heading"][data-level="3"] {
-  color: #e2e8f0 !important;
+  color: #E7E2D9 !important;
 }
 
 .doc-editor-paper blockquote {
-  border-left: 3px solid rgba(37, 99, 235, 0.4) !important;
+  border-left: 3px solid rgba(45, 90, 70, 0.4) !important;
   padding-left: 16px !important;
-  color: #64748b !important;
+  color: #57534E !important;
   font-style: italic !important;
 }
 
 .dark .doc-editor-paper blockquote {
-  color: #94a3b8 !important;
+  color: #A8A29E !important;
 }
 
 .doc-editor-paper code {
-  background: #f1f5f9 !important;
+  background: #EFECE6 !important;
   border-radius: 4px !important;
   padding: 2px 6px !important;
   font-family: 'JetBrains Mono', monospace !important;
@@ -536,31 +536,31 @@
 }
 
 .dark .doc-editor-paper code {
-  background: #1e293b !important;
+  background: #232326 !important;
   color: #fbbf24 !important;
 }
 
 .doc-editor-paper pre {
-  background: #f8fafc !important;
-  border: 1px solid #e2e8f0 !important;
+  background: #FAF9F5 !important;
+  border: 1px solid #E7E2D9 !important;
   border-radius: 8px !important;
   padding: 16px !important;
   overflow-x: auto !important;
 }
 
 .dark .doc-editor-paper pre {
-  background: #1e293b !important;
-  border-color: #334155 !important;
+  background: #232326 !important;
+  border-color: #44403C !important;
 }
 
 .doc-editor-paper pre code {
   background: none !important;
   padding: 0 !important;
-  color: #334155 !important;
+  color: #44403C !important;
 }
 
 .dark .doc-editor-paper pre code {
-  color: #cbd5e1 !important;
+  color: #D6D3CD !important;
 }
 
 /* Tabelas: não devem ultrapassar a largura da folha */
@@ -583,26 +583,26 @@
 
 .doc-editor-paper [class*="FormattingToolbar"] {
   background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #E7E2D9 !important;
   border-radius: 10px !important;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(28, 25, 23, 0.12) !important;
 }
 
 .dark .doc-editor-paper [class*="FormattingToolbar"] {
-  background: #1e293b !important;
-  border-color: #334155 !important;
+  background: #232326 !important;
+  border-color: #44403C !important;
 }
 
 .doc-editor-paper [class*="SuggestionMenu"] {
   background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #E7E2D9 !important;
   border-radius: 10px !important;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(28, 25, 23, 0.12) !important;
 }
 
 .dark .doc-editor-paper [class*="SuggestionMenu"] {
-  background: #1e293b !important;
-  border-color: #334155 !important;
+  background: #232326 !important;
+  border-color: #44403C !important;
 }
 
 /* --- Corretor ortográfico --- */
@@ -627,18 +627,18 @@
 }
 
 .bn-spell-grammar {
-  text-decoration-color: #3b82f6;
+  text-decoration-color: #B45309;
   text-decoration-thickness: 1px;
 }
 
 .bn-spell-grammar:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(217, 119, 6, 0.12);
 }
 
 /* --- Termos do glossário dentro do documento --- */
 .doc-glossary-term {
-  background-color: rgba(59, 130, 246, 0.14);
-  border-bottom: 2px solid rgba(59, 130, 246, 0.45);
+  background-color: rgba(45, 90, 70, 0.14);
+  border-bottom: 2px solid rgba(45, 90, 70, 0.45);
   border-radius: 4px;
   padding: 0 1px;
   cursor: pointer;
@@ -646,16 +646,16 @@
 }
 
 .doc-glossary-term:hover {
-  background-color: rgba(59, 130, 246, 0.24);
+  background-color: rgba(45, 90, 70, 0.24);
 }
 
 .dark .doc-glossary-term {
-  background-color: rgba(96, 165, 250, 0.16);
-  border-bottom-color: rgba(96, 165, 250, 0.5);
+  background-color: rgba(82, 183, 136, 0.16);
+  border-bottom-color: rgba(82, 183, 136, 0.5);
 }
 
 .dark .doc-glossary-term:hover {
-  background-color: rgba(96, 165, 250, 0.28);
+  background-color: rgba(82, 183, 136, 0.28);
 }
 
 /* --- Menu de contexto (correção / copiar / colar / glossário) --- */
@@ -666,53 +666,53 @@
   max-height: 72vh;
   overflow-y: auto;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #E7E2D9;
   border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+  box-shadow: 0 16px 40px rgba(28, 25, 23, 0.16);
   z-index: 500;
   padding: 6px;
   font-family: 'Inter', sans-serif;
 }
 
 .dark .doc-ctx-menu {
-  background: #0f172a;
-  border-color: #334155;
+  background: #18181B;
+  border-color: #44403C;
 }
 
 .doc-ctx-word {
   padding: 6px 10px 2px;
   font-size: 15px;
   font-weight: 700;
-  color: #0f172a;
+  color: #1C1917;
   word-break: break-word;
 }
 
 .dark .doc-ctx-word {
-  color: #f1f5f9;
+  color: #EFECE6;
 }
 
 .doc-ctx-msg {
   padding: 0 10px 6px;
   font-size: 12px;
-  color: #64748b;
+  color: #57534E;
   line-height: 1.4;
 }
 
 .dark .doc-ctx-msg {
-  color: #94a3b8;
+  color: #A8A29E;
 }
 
 .doc-ctx-label {
   padding: 4px 10px 2px;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: #57534E;
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
 
 .dark .doc-ctx-label {
-  color: #94a3b8;
+  color: #A8A29E;
 }
 
 .doc-ctx-sugs {
@@ -729,7 +729,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #1e293b;
+  color: #232326;
   font-family: 'Inter', sans-serif;
   font-size: 13.5px;
   cursor: pointer;
@@ -737,60 +737,60 @@
 }
 
 .dark .doc-ctx-item {
-  color: #e2e8f0;
+  color: #E7E2D9;
 }
 
 .doc-ctx-item:hover {
-  background: #eff6ff;
-  color: #2563eb;
+  background: #EBF3EF;
+  color: #2D5A46;
 }
 
 .dark .doc-ctx-item:hover {
-  background: #172554;
-  color: #60a5fa;
+  background: #15221B;
+  color: #52B788;
 }
 
 .doc-ctx-empty {
   padding: 6px 10px;
   font-size: 12.5px;
-  color: #64748b;
+  color: #57534E;
 }
 
 .dark .doc-ctx-empty {
-  color: #94a3b8;
+  color: #A8A29E;
 }
 
 .doc-ctx-sep {
   height: 1px;
   margin: 5px 6px;
-  background: #e2e8f0;
+  background: #E7E2D9;
 }
 
 .dark .doc-ctx-sep {
-  background: #334155;
+  background: #44403C;
 }
 
 .doc-ctx-footer {
   padding: 7px 10px 5px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #E7E2D9;
   margin-top: 4px;
   font-size: 11px;
-  color: #64748b;
+  color: #57534E;
   text-align: center;
 }
 
 .dark .doc-ctx-footer {
-  border-color: #334155;
-  color: #94a3b8;
+  border-color: #44403C;
+  color: #A8A29E;
 }
 
 .doc-ctx-footer a {
-  color: #2563eb;
+  color: #2D5A46;
   text-decoration: none;
 }
 
 .dark .doc-ctx-footer a {
-  color: #60a5fa;
+  color: #52B788;
 }
 
 .doc-ctx-footer a:hover {

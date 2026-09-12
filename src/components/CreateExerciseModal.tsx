@@ -160,7 +160,7 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/75 backdrop-blur-md"
+          className="fixed inset-0 bg-[#121214]/75 backdrop-blur-md"
         />
 
         {/* Modal Container */}
@@ -169,22 +169,22 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200/90 dark:border-slate-800 shadow-2xl overflow-hidden z-10 my-6"
+          className="relative w-full max-w-2xl bg-white dark:bg-[#18181B] rounded-[32px] border border-[#E7E2D9]/90 dark:border-[#2C2C30] shadow-2xl overflow-hidden z-10 my-6"
         >
           {/* Top Decorative Gradient */}
-          <div className="h-3 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600" />
+          <div className="h-3 w-full bg-gradient-to-r from-[#2D5A46] via-[#224A38] to-[#1E3E30]" />
 
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E2D9] dark:border-[#2C2C30] bg-[#EFECE6]/60 dark:bg-[#232326]/40">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#2D5A46] to-[#1E3E30] text-white flex items-center justify-center shadow-md">
                 <FileQuestion className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-extrabold text-base text-slate-900 dark:text-white font-display">
+                <h3 className="font-extrabold text-base text-[#1C1917] dark:text-[#FAF9F5] font-display">
                   {initialQuestion ? 'Editar Questão' : 'Criar Nova Questão (Sala do Professor)'}
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
                   Adicione enunciado, imagem ilustrativa por URL, gabarito e dicas inteligentes
                 </p>
               </div>
@@ -195,26 +195,26 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                 <button
                   type="button"
                   onClick={handleQuickFillWithImage}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#EBF3EF] dark:bg-[#15221B] hover:bg-[#CFE1D6] text-[#224A38] dark:text-[#52B788] border border-[#CFE1D6] dark:border-[#22392D] text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
                   title="Exemplo com Imagem de Física"
                 >
-                  <ImageIcon className="w-3 h-3 text-blue-600" />
+                  <ImageIcon className="w-3 h-3 text-[#2D5A46] dark:text-[#52B788]" />
                   <span>Exemplo c/ Imagem</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleQuickFillBiology}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#EBF3EF] dark:bg-[#15221B] hover:bg-[#CFE1D6] text-[#224A38] dark:text-[#52B788] border border-[#CFE1D6] dark:border-[#22392D] text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
                   title="Exemplo de Biologia"
                 >
-                  <Sparkles className="w-3 h-3 text-purple-600" />
+                  <Sparkles className="w-3 h-3 text-[#2D5A46] dark:text-[#52B788]" />
                   <span>Exemplo Bio</span>
                 </button>
               </div>
 
               <button
                 onClick={onClose}
-                className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-2 text-[#A8A29E] hover:text-[#44403C] dark:hover:text-[#E7E5E4] rounded-xl hover:bg-[#E5DFD5] dark:hover:bg-[#333338] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -227,13 +227,13 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
             {/* Matéria & Tópico */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-200 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] mb-1 uppercase tracking-wider">
                   Matéria / Disciplina *
                 </label>
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl px-3 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] font-semibold focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30"
                 >
                   {SUBJECT_PRESETS.map((s) => (
                     <option key={s} value={s}>{s}</option>
@@ -246,13 +246,13 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                     value={customSubject}
                     onChange={(e) => setCustomSubject(e.target.value)}
                     placeholder="Digite a matéria..."
-                    className="mt-1.5 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-white"
+                    className="mt-1.5 w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl px-3 py-1.5 text-xs text-[#1C1917] dark:text-[#FAF9F5]"
                   />
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-200 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] mb-1 uppercase tracking-wider">
                   Tópico Específico *
                 </label>
                 <input
@@ -261,14 +261,14 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="Ex: Leis de Newton, Estequiometria, Funções..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl px-3 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 font-medium"
                 />
               </div>
             </div>
 
             {/* Dificuldade Selector */}
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-200 mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] mb-1.5 uppercase tracking-wider">
                 Nível de Dificuldade
               </label>
               <div className="flex items-center gap-2">
@@ -279,8 +279,8 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                     onClick={() => setDifficulty(d.id)}
                     className={`flex-1 py-1.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                       difficulty === d.id
-                        ? `${d.color} ring-2 ring-blue-400/30 shadow-xs scale-102`
-                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                        ? `${d.color} ring-2 ring-[#2D5A46]/30 shadow-xs scale-102`
+                        : 'bg-[#EFECE6] dark:bg-[#232326] text-[#57534E] dark:text-[#A8A29E] border-[#E7E2D9] dark:border-[#3B3B40] hover:bg-[#E5DFD5]'
                     }`}
                   >
                     {d.label}
@@ -291,7 +291,7 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
 
             {/* Enunciado */}
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-200 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] mb-1 uppercase tracking-wider">
                 Enunciado da Questão *
               </label>
               <textarea
@@ -300,15 +300,15 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                 value={statement}
                 onChange={(e) => setStatement(e.target.value)}
                 placeholder="Escreva o problema ou enunciado completo da questão..."
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none leading-relaxed font-medium"
+                className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-2xl p-3 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 resize-none leading-relaxed font-medium"
               />
             </div>
 
             {/* 🖼️ SEÇÃO DE IMAGEM DA QUESTÃO (POR URL) */}
-            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-pink-50/50 to-purple-50/40 dark:from-pink-950/20 dark:to-purple-950/20 border border-pink-200/80 dark:border-pink-900/50 space-y-2.5">
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#EBF3EF]/50 to-[#EBF3EF]/40 dark:from-[#15221B]/20 dark:to-[#15221B]/20 border border-[#CFE1D6]/80 dark:border-[#22392D]/50 space-y-2.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
-                  <ImageIcon className="w-4 h-4 text-pink-600 dark:text-pink-400" />
+                <label className="text-xs font-extrabold text-[#1C1917] dark:text-[#E7E5E4] flex items-center gap-1.5 uppercase tracking-wider">
+                  <ImageIcon className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
                   <span>Imagem Ilustrativa da Questão (URL)</span>
                 </label>
                 {imageUrl && (
@@ -328,7 +328,7 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                       setShowImagePreview(Boolean(e.target.value));
                     }}
                     placeholder="https://exemplo.com/grafico-ou-esquema.png"
-                    className="w-full bg-white dark:bg-slate-900 border border-pink-200 dark:border-pink-900/80 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 font-mono"
+                    className="w-full bg-white dark:bg-[#18181B] border border-[#CFE1D6] dark:border-[#22392D] rounded-xl px-3 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 font-mono"
                   />
                 </div>
                 {imageUrl && (
@@ -339,7 +339,7 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                       setImageCaption('');
                       setShowImagePreview(false);
                     }}
-                    className="p-2 bg-white dark:bg-slate-800 text-rose-500 rounded-xl border border-rose-200 dark:border-rose-900 hover:bg-rose-50 transition-colors cursor-pointer"
+                    className="p-2 bg-white dark:bg-[#232326] text-rose-500 rounded-xl border border-rose-200 dark:border-rose-900 hover:bg-rose-50 transition-colors cursor-pointer"
                     title="Remover Imagem"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -355,14 +355,14 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                     value={imageCaption}
                     onChange={(e) => setImageCaption(e.target.value)}
                     placeholder="Legenda da Imagem (Ex: Figura 1: Esquema do experimento...)"
-                    className="w-full bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                    className="w-full bg-white/80 dark:bg-[#18181B]/80 border border-[#E7E2D9] dark:border-[#3B3B40] rounded-xl px-3 py-1.5 text-xs text-[#44403C] dark:text-[#D6D3CD] placeholder-[#A8A29E] focus:outline-none focus:ring-1 focus:ring-[#2D5A46]"
                   />
                 </div>
               )}
 
               {/* Pré-visualização da Imagem */}
               {imageUrl && showImagePreview && (
-                <div className="relative mt-2 p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col items-center justify-center">
+                <div className="relative mt-2 p-2 bg-white dark:bg-[#18181B] rounded-xl border border-[#E7E2D9] dark:border-[#2C2C30] overflow-hidden flex flex-col items-center justify-center">
                   <img
                     src={imageUrl}
                     alt="Preview da Questão"
@@ -378,7 +378,7 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                     <span>Não foi possível carregar o preview desta URL. Certifique-se de que o link é uma imagem pública direta.</span>
                   </div>
                   {imageCaption && (
-                    <p className="text-[11px] text-slate-500 italic mt-1.5 text-center">
+                    <p className="text-[11px] text-[#78716C] italic mt-1.5 text-center">
                       {imageCaption}
                     </p>
                   )}
@@ -388,8 +388,8 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
 
             {/* Snippet de Código ou Fórmula (Opcional) */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1.5">
-                <Code className="w-3.5 h-3.5 text-slate-400" />
+              <label className="block text-xs font-bold text-[#44403C] dark:text-[#E7E5E4] mb-1 flex items-center gap-1.5">
+                <Code className="w-3.5 h-3.5 text-[#A8A29E]" />
                 Bloco de Código ou Equação (Opcional)
               </label>
               <textarea
@@ -397,25 +397,25 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                 value={codeSnippet}
                 onChange={(e) => setCodeSnippet(e.target.value)}
                 placeholder="Ex: f(x) = \int_0^\infty e^{-x^2} dx  ou  loss = criterion(outputs, targets)"
-                className="w-full bg-slate-900 text-cyan-300 font-mono text-xs rounded-xl p-2.5 border border-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none"
+                className="w-full bg-[#18181B] text-[#6BCFA0] font-mono text-xs rounded-xl p-2.5 border border-[#2C2C30] focus:outline-none focus:ring-2 focus:ring-[#2D5A46] resize-none"
               />
             </div>
 
             {/* Alternativas com Seleção da Correta */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                <label className="text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] uppercase tracking-wider">
                   Alternativas (Marque o Gabarito) *
                 </label>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setEnableOptionE(!enableOptionE)}
-                    className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                    className="text-[11px] font-bold text-[#2D5A46] dark:text-[#52B788] hover:underline cursor-pointer"
                   >
                     {enableOptionE ? '- Remover Alternativa E' : '+ Adicionar Alternativa E (Padrão ENEM)'}
                   </button>
-                  <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold">
+                  <span className="text-[10px] text-[#2D5A46] dark:text-[#52B788] font-bold">
                     Gabarito: ({correctOptionId})
                   </span>
                 </div>
@@ -429,8 +429,8 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                       key={letter}
                       className={`flex items-center gap-2 p-2 rounded-xl border transition-all ${
                         isCorrect
-                          ? 'bg-blue-50/90 dark:bg-blue-950/70 border-blue-500 ring-2 ring-blue-400/20'
-                          : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+                          ? 'bg-[#EBF3EF]/90 dark:bg-[#15221B]/70 border-[#2D5A46] ring-2 ring-[#2D5A46]/20'
+                          : 'bg-[#EFECE6] dark:bg-[#232326]/60 border-[#E7E2D9] dark:border-[#3B3B40]'
                       }`}
                     >
                       <button
@@ -438,8 +438,8 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                         onClick={() => setCorrectOptionId(letter)}
                         className={`w-7 h-7 rounded-lg font-bold text-xs flex items-center justify-center shrink-0 transition-all cursor-pointer ${
                           isCorrect
-                            ? 'bg-blue-600 text-white shadow-xs'
-                            : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:bg-slate-100'
+                            ? 'bg-[#2D5A46] text-white shadow-xs'
+                            : 'bg-white dark:bg-[#3B3B40] text-[#44403C] dark:text-[#D6D3CD] border border-[#E7E2D9] dark:border-[#3B3B40] hover:bg-[#E5DFD5]'
                         }`}
                         title={`Marcar Alternativa ${letter} como correta`}
                       >
@@ -454,11 +454,11 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                           setOptionsText((prev) => ({ ...prev, [letter]: e.target.value }))
                         }
                         placeholder={`Texto da alternativa ${letter}...`}
-                        className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none font-medium"
+                        className="w-full bg-transparent text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none font-medium"
                       />
 
                       {isCorrect && (
-                        <span className="px-2 py-0.5 rounded-md bg-blue-600 text-white text-[10px] font-bold shrink-0">
+                        <span className="px-2 py-0.5 rounded-md bg-[#2D5A46] text-white text-[10px] font-bold shrink-0">
                           Correta ✓
                         </span>
                       )}
@@ -471,7 +471,7 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
             {/* Resolução Comentada & Dica Lumina AI */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                <label className="block text-xs font-bold text-[#44403C] dark:text-[#E7E5E4] mb-1">
                   Resolução Comentada da Resposta
                 </label>
                 <textarea
@@ -479,12 +479,12 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                   value={correctExplanation}
                   onChange={(e) => setCorrectExplanation(e.target.value)}
                   placeholder="Explicação detalhada de por que esta alternativa é a correta..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                  className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl p-2.5 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1">
+                <label className="block text-xs font-bold text-[#44403C] dark:text-[#E7E5E4] mb-1 flex items-center gap-1">
                   <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
                   Dica Pedagógica Synapse (Ao Errar)
                 </label>
@@ -493,23 +493,23 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
                   value={aiHint}
                   onChange={(e) => setAiHint(e.target.value)}
                   placeholder="Dica para guiar o raciocínio sem entregar a resposta..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                  className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-xl p-2.5 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 resize-none"
                 />
               </div>
             </div>
 
             {/* Botões */}
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+            <div className="pt-3 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#57534E] dark:text-[#D6D3CD] hover:bg-[#E5DFD5] dark:hover:bg-[#333338] transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-bold shadow-md shadow-[#2D5A46]/25 transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>{initialQuestion ? 'Atualizar Questão' : 'Salvar Questão de Treino'}</span>

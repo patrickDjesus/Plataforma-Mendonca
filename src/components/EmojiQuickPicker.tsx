@@ -158,23 +158,23 @@ export const EmojiQuickPicker: React.FC<EmojiQuickPickerProps> = ({
 
   return (
     <div
-      className={`bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden flex flex-col ${className}`}
+      className={`bg-white dark:bg-[#18181B] rounded-2xl border border-[#E7E2D9] dark:border-[#2C2C30] shadow-xl overflow-hidden flex flex-col ${className}`}
     >
       {/* Header com Busca & Fechar */}
-      <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 bg-slate-50/50 dark:bg-slate-800/40">
+      <div className="p-3 border-b border-[#E7E2D9] dark:border-[#2C2C30] flex items-center gap-2 bg-[#EFECE6]/50 dark:bg-[#232326]/40">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#A8A29E]" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Buscar emoji temático..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#3B3B40] rounded-xl text-[#1C1917] dark:text-[#FAF9F5] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/20 focus:border-[#2D5A46] transition-all"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4]"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -184,7 +184,7 @@ export const EmojiQuickPicker: React.FC<EmojiQuickPickerProps> = ({
         {onClose && (
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -193,7 +193,7 @@ export const EmojiQuickPicker: React.FC<EmojiQuickPickerProps> = ({
 
       {/* Categorias */}
       {!compact && (
-        <div className="px-2.5 py-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1 overflow-x-auto no-scrollbar bg-white dark:bg-slate-900">
+        <div className="px-2.5 py-1.5 border-b border-[#E7E2D9] dark:border-[#2C2C30] flex items-center gap-1 overflow-x-auto no-scrollbar bg-white dark:bg-[#18181B]">
           {categories.map(cat => {
             const Icon = cat.icon;
             const isActive = activeCategory === cat.id;
@@ -203,8 +203,8 @@ export const EmojiQuickPicker: React.FC<EmojiQuickPickerProps> = ({
                 onClick={() => setActiveCategory(cat.id)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap flex items-center gap-1.5 transition-all ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'bg-[#2D5A46] text-white shadow-xs'
+                    : 'text-[#57534E] dark:text-[#A8A29E] hover:bg-[#EFECE6] dark:hover:bg-[#232326]'
                 }`}
               >
                 <Icon className="w-3 h-3" />
@@ -217,9 +217,9 @@ export const EmojiQuickPicker: React.FC<EmojiQuickPickerProps> = ({
 
       {/* Recentes */}
       {recentEmojis.length > 0 && !search && (
-        <div className="px-3 pt-2 pb-1 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/30 dark:bg-slate-800/20">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-            <Clock className="w-3 h-3 text-slate-400" />
+        <div className="px-3 pt-2 pb-1 border-b border-[#E7E2D9] dark:border-[#2C2C30]/60 bg-[#EFECE6]/30 dark:bg-[#232326]/20">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#A8A29E] uppercase tracking-wider mb-1">
+            <Clock className="w-3 h-3 text-[#A8A29E]" />
             <span>Recentes</span>
           </div>
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
@@ -227,7 +227,7 @@ export const EmojiQuickPicker: React.FC<EmojiQuickPickerProps> = ({
               <button
                 key={`${emoji}-${idx}`}
                 onClick={() => handlePick(emoji)}
-                className="w-8 h-8 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 hover:scale-110"
+                className="w-8 h-8 rounded-lg hover:bg-[#EBF3EF] dark:hover:bg-[#232326] flex items-center justify-center text-lg transition-transform active:scale-90 hover:scale-110"
                 title={`Inserir ${emoji}`}
               >
                 <AnimatedEmoji emoji={emoji} size="md" />
@@ -243,25 +243,25 @@ export const EmojiQuickPicker: React.FC<EmojiQuickPickerProps> = ({
           <button
             key={`${item.emoji}-${idx}`}
             onClick={() => handlePick(item.emoji)}
-            className="group relative p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800/80 flex flex-col items-center justify-center transition-all hover:scale-110 active:scale-95"
+            className="group relative p-2 rounded-xl hover:bg-[#EBF3EF] dark:hover:bg-[#232326]/80 flex flex-col items-center justify-center transition-all hover:scale-110 active:scale-95"
             title={item.name}
           >
             <AnimatedEmoji emoji={item.emoji} size="lg" />
-            <span className="text-[9px] text-slate-400 truncate max-w-full opacity-0 group-hover:opacity-100 transition-opacity absolute -bottom-1 pointer-events-none hidden">
+            <span className="text-[9px] text-[#A8A29E] truncate max-w-full opacity-0 group-hover:opacity-100 transition-opacity absolute -bottom-1 pointer-events-none hidden">
               {item.name}
             </span>
           </button>
         ))}
 
         {filteredEmojis.length === 0 && (
-          <div className="col-span-full py-6 text-center text-xs text-slate-400">
+          <div className="col-span-full py-6 text-center text-xs text-[#A8A29E]">
             Nenhum emoji encontrado para &quot;{search}&quot;.
           </div>
         )}
       </div>
 
       {/* Footer Dica */}
-      <div className="p-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[10px] text-slate-400 flex items-center justify-between">
+      <div className="p-2 border-t border-[#E7E2D9] dark:border-[#2C2C30] bg-[#EFECE6]/50 dark:bg-[#232326]/40 text-[10px] text-[#A8A29E] flex items-center justify-between">
         <span className="flex items-center gap-1 font-medium">
           <Sparkles className="w-3 h-3 text-amber-500" />
           Clique para inserir no caderno

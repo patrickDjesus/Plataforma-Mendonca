@@ -802,7 +802,7 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
       </div>
 
       {/* Cartão do documento: título + folha pautada */}
-      <div className="w-full max-w-4xl rounded-[28px] overflow-hidden border border-slate-200/60 dark:border-slate-800/80 shadow-xs bg-white dark:bg-slate-900">
+      <div className="w-full max-w-4xl rounded-[28px] overflow-hidden border border-[#E7E2D9]/60 dark:border-[#2C2C30]/80 shadow-xs bg-white dark:bg-[#18181B]">
         <div className="px-6 sm:px-12 pt-6 pb-4">
           <textarea
             ref={initTitleTextarea}
@@ -814,12 +814,12 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
               e.target.style.height = `${e.target.scrollHeight}px`;
             }}
             placeholder="Título do Documento..."
-            className="w-full bg-transparent resize-none border-none outline-none text-2xl sm:text-4xl font-black text-slate-900 dark:text-white font-display tracking-tight leading-tight placeholder:text-slate-300 dark:placeholder:text-slate-600 overflow-hidden break-words"
+            className="w-full bg-transparent resize-none border-none outline-none text-2xl sm:text-4xl font-black text-[#1C1917] dark:text-[#FAF9F5] font-display tracking-tight leading-tight placeholder:text-[#D6D0C5] dark:placeholder:text-[#A8A29E] overflow-hidden break-words"
           />
 
-          <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-400 font-medium pt-2">
+          <div className="flex flex-wrap items-center justify-between text-[11px] text-[#A8A29E] font-medium pt-2">
             <span className="flex items-center gap-2">
-              <FileText className="w-3.5 h-3.5 text-blue-500" />
+              <FileText className="w-3.5 h-3.5 text-[#2D5A46]" />
               {wordCount} palavras
               • {charCount} caracteres
             </span>
@@ -932,20 +932,20 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 4, scale: 0.96 }}
           transition={{ type: 'spring', damping: 26, stiffness: 500, mass: 0.4 }}
-          className="fixed z-[99999] w-72 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-blue-200/80 dark:border-blue-900/80 shadow-2xl text-left pointer-events-none transform -translate-x-1/2 -translate-y-full"
+          className="fixed z-[99999] w-72 p-4 rounded-2xl bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-xl border border-[#CFE1D6]/80 dark:border-[#22392D]/80 shadow-2xl text-left pointer-events-none transform -translate-x-1/2 -translate-y-full"
           style={{ left: glossaryTip.x, top: glossaryTip.y - 14 }}
         >
-          <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-[#E7E2D9] dark:border-[#2C2C30]">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30 shrink-0">
+              <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-[#2D5A46] to-[#224A38] text-white flex items-center justify-center shadow-md shadow-[#2D5A46]/30 shrink-0">
                 <Sparkles className="w-3.5 h-3.5" />
               </div>
-              <h4 className="font-display font-bold text-sm text-slate-900 dark:text-white truncate">
+              <h4 className="font-display font-bold text-sm text-[#1C1917] dark:text-[#FAF9F5] truncate">
                 {glossaryTip.definition.term}
               </h4>
             </div>
             {glossaryTip.definition.category && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 shrink-0">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EBF3EF] dark:bg-[#15221B]/80 text-[#2D5A46] dark:text-[#52B788] shrink-0">
                 {glossaryTip.definition.category}
               </span>
             )}
@@ -955,27 +955,27 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
             <img
               src={glossaryTip.definition.imageUrl}
               alt={glossaryTip.definition.term}
-              className="w-full h-36 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-md mb-2.5"
+              className="w-full h-36 object-cover rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] shadow-md mb-2.5"
               onError={(e) => { (e.currentTarget.style.display = 'none'); }}
             />
           )}
 
           {glossaryTip.definition.definition && (
             <>
-              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-[#A8A29E] dark:text-[#78716C] uppercase tracking-wider block">
                 Significado Acadêmico:
               </span>
-              <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
+              <p className="text-xs text-[#44403C] dark:text-[#E7E5E4] leading-relaxed font-normal">
                 {glossaryTip.definition.definition}
               </p>
             </>
           )}
 
           {glossaryTip.definition.example && (
-            <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-start gap-2 text-[11px] text-slate-600 dark:text-slate-300 bg-blue-50/60 dark:bg-blue-950/30 p-2 rounded-xl border border-blue-100/50 dark:border-blue-900/40">
+            <div className="mt-2.5 pt-2 border-t border-[#E7E2D9] dark:border-[#2C2C30]/80 flex items-start gap-2 text-[11px] text-[#57534E] dark:text-[#D6D3CD] bg-[#EBF3EF]/60 dark:bg-[#15221B]/30 p-2 rounded-xl border border-[#CFE1D6]/50 dark:border-[#22392D]/40">
               <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
               <p className="italic leading-snug">
-                <strong className="not-italic text-slate-900 dark:text-white font-semibold">{glossaryTip.definition.example}</strong>
+                <strong className="not-italic text-[#1C1917] dark:text-[#FAF9F5] font-semibold">{glossaryTip.definition.example}</strong>
               </p>
             </div>
           )}

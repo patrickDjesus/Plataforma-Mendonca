@@ -159,15 +159,15 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
       className="space-y-6"
     >
       {/* ============================ HEADER + IMPORT ============================ */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-900 border border-slate-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#18181B] via-[#232326] to-[#1E3E30] border border-[#2C2C30] rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2 max-w-xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-slate-200 text-xs font-bold border border-white/10">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[#E7E5E4] text-xs font-bold border border-white/10">
               <BarChart3 className="w-3.5 h-3.5" />
               <span>Dashboard de Acerto & Conteúdo</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-extrabold font-display">Seu desempenho em questões</h2>
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-[#D6D3CD] leading-relaxed">
               Acompanhe sua taxa de acerto e descubra exatamente quais conteúdos você precisa revisar.
             </p>
           </div>
@@ -213,10 +213,10 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                   rows={7}
                   spellCheck={false}
                   placeholder={'Cole aqui o JSON das questões, ex:\n[\n  { "disciplina": "Matemática", "conteudo": "Funções", "acertou": false }\n]'}
-                  className="w-full p-3 rounded-xl bg-white/95 text-slate-900 text-xs font-mono border border-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-y"
+                  className="w-full p-3 rounded-xl bg-white/95 text-[#1C1917] text-xs font-mono border border-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-y"
                 />
 
-                <p className="text-[11px] text-slate-300 leading-relaxed">
+                <p className="text-[11px] text-[#D6D3CD] leading-relaxed">
                   Formato de cada item: <code className="text-emerald-300">{"disciplina"}</code>,{' '}
                   <code className="text-emerald-300">{"conteudo"}</code> e{' '}
                   <code className="text-emerald-300">{"acertou"}</code> (true/false). Apenas esses 3 dados são
@@ -235,7 +235,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                 )}
 
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-xs font-bold text-slate-200">
+                  <span className="text-xs font-bold text-[#E7E5E4]">
                     {parsedPreview.records.length > 0
                       ? `${parsedPreview.records.length} questão(ões) válida(s) pronta(s) para importar`
                       : 'Nenhuma questão válida detectada ainda'}
@@ -258,18 +258,18 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
       {/* ============================ KPI CARDS ============================ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+        <div className="rounded-2xl bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#3B3B40]/80 p-4 sm:p-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#78716C] dark:text-[#A8A29E]">
             <Target className="w-3.5 h-3.5" />
             Questões Respondidas
           </div>
-          <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-display">
+          <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">
             {totalAnswered}
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+        <div className="rounded-2xl bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#3B3B40]/80 p-4 sm:p-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#78716C] dark:text-[#A8A29E]">
             <TrendingUp className="w-3.5 h-3.5" />
             Taxa de Acerto
           </div>
@@ -280,8 +280,8 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+        <div className="rounded-2xl bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#3B3B40]/80 p-4 sm:p-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#78716C] dark:text-[#A8A29E]">
             <CheckCircle2 className="w-3.5 h-3.5" />
             Acertos
           </div>
@@ -290,8 +290,8 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+        <div className="rounded-2xl bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#3B3B40]/80 p-4 sm:p-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#78716C] dark:text-[#A8A29E]">
             <XCircle className="w-3.5 h-3.5" />
             Erros
           </div>
@@ -302,13 +302,13 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
       </div>
 
       {/* ============================ CURVA DE ACERTO ============================ */}
-      <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-5 sm:p-6">
+      <div className="rounded-3xl bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#3B3B40]/80 p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <div>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white font-display">Curva de acerto</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Evolução da sua taxa de acerto ao longo das questões.</p>
+            <h3 className="text-sm font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">Curva de acerto</h3>
+            <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">Evolução da sua taxa de acerto ao longo das questões.</p>
           </div>
-          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300">
+          <span className="px-2.5 py-1 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-xs font-bold text-[#57534E] dark:text-[#D6D3CD]">
             Acurácia: {accuracyPercentage}%
           </span>
         </div>
@@ -317,28 +317,28 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           <div className="h-52 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={curveData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(120,120,140,0.15)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(231,226,217,0.6)" />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  tick={{ fontSize: 10, fill: '#A8A29E' }}
                   tickLine={false}
                   axisLine={false}
                 />
                 <YAxis
                   domain={[0, 100]}
-                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  tick={{ fontSize: 10, fill: '#A8A29E' }}
                   tickLine={false}
                   axisLine={false}
                   unit="%"
                 />
                 <Tooltip
                   contentStyle={{
-                    background: '#0f172a',
-                    border: '1px solid #334155',
+                    background: '#18181B',
+                    border: '1px solid #3B3B40',
                     borderRadius: 12,
                     fontSize: 12
                   }}
-                  labelStyle={{ color: '#cbd5e1' }}
+                  labelStyle={{ color: '#D6D3CD' }}
                   formatter={(value: number) => [`${value}%`, 'Acerto']}
                 />
                 <Line
@@ -353,21 +353,21 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="py-14 text-center text-xs text-slate-400 dark:text-slate-500">
+          <div className="py-14 text-center text-xs text-[#A8A29E] dark:text-[#78716C]">
             Responda ou importe questões para ver sua curva de acerto aparecer aqui.
           </div>
         )}
       </div>
 
       {/* ============================ O QUE PRECISO MELHORAR ============================ */}
-      <div className="rounded-3xl bg-gradient-to-r from-rose-950/30 via-slate-900 to-rose-950/30 dark:from-rose-950/40 dark:via-slate-900 dark:to-rose-950/40 border border-rose-500/20 p-5 sm:p-6">
+      <div className="rounded-3xl bg-gradient-to-r from-rose-950/30 via-[#18181B] to-rose-950/30 dark:from-rose-950/40 dark:via-[#18181B] dark:to-rose-950/40 border border-rose-500/20 p-5 sm:p-6">
         <div className="flex items-center gap-2 mb-4">
           <Lightbulb className="w-4 h-4 text-amber-400" />
           <h3 className="text-sm font-extrabold text-white font-display">O que preciso melhorar</h3>
         </div>
 
         {toImprove.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-300">
+          <div className="py-8 text-center text-xs text-[#D6D3CD]">
             Nenhum conteúdo com erros registrado ainda. Continue praticando!
           </div>
         ) : (
@@ -379,12 +379,12 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="text-slate-400 font-mono shrink-0">{idx + 1}.</span>
+                    <span className="text-[#A8A29E] font-mono shrink-0">{idx + 1}.</span>
                     <span className="font-bold text-white truncate">{c.topic}</span>
-                    <span className="text-slate-400">•</span>
-                    <span className="text-slate-300 truncate">{c.subject}</span>
+                    <span className="text-[#A8A29E]">•</span>
+                    <span className="text-[#D6D3CD] truncate">{c.subject}</span>
                   </div>
-                  <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-300">
+                  <div className="mt-1 flex items-center gap-2 text-[11px] text-[#D6D3CD]">
                     <span className="text-rose-400 font-bold">{c.wrong} erro(s)</span>
                     <span>/</span>
                     <span className="text-emerald-400">{c.correct} acerto(s)</span>
@@ -405,14 +405,14 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
       </div>
 
       {/* ============================ CONTEÚDOS QUE ERRO / ACERTO ============================ */}
-      <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-5 sm:p-6">
+      <div className="rounded-3xl bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#3B3B40]/80 p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white font-display">Conteúdos por desempenho</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Ranking dos conteúdos que você mais erra e mais acerta.</p>
+            <h3 className="text-sm font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">Conteúdos por desempenho</h3>
+            <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">Ranking dos conteúdos que você mais erra e mais acerta.</p>
           </div>
 
-          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+          <div className="inline-flex rounded-xl bg-[#EFECE6] dark:bg-[#232326] p-1">
             {([
               ['wrong', 'Que erro'],
               ['correct', 'Que acerto'],
@@ -424,8 +424,8 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                 onClick={() => setActiveFilter(key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeFilter === key
-                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                    ? 'bg-white dark:bg-[#3B3B40] text-[#1C1917] dark:text-[#FAF9F5] shadow'
+                    : 'text-[#78716C] dark:text-[#A8A29E] hover:text-[#44403C]'
                 }`}
               >
                 {label}
@@ -442,14 +442,14 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               Conteúdos que erro
             </div>
             {wrongContents.length === 0 ? (
-              <div className="py-6 text-center text-xs text-slate-400">Nenhum erro registrado ainda. 🎉</div>
+              <div className="py-6 text-center text-xs text-[#A8A29E]">Nenhum erro registrado ainda. 🎉</div>
             ) : (
               <div className="space-y-2">
                 {wrongContents.map((c) => (
-                  <div key={`${c.subject}::${c.topic}`} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/50">
+                  <div key={`${c.subject}::${c.topic}`} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/70 dark:bg-[#18181B]/50">
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{c.topic}</div>
-                      <div className="text-[10px] text-slate-500 truncate">{c.subject}</div>
+                      <div className="text-xs font-bold text-[#1C1917] dark:text-[#E7E5E4] truncate">{c.topic}</div>
+                      <div className="text-[10px] text-[#78716C] truncate">{c.subject}</div>
                     </div>
                     <span className="shrink-0 text-[11px] font-black text-rose-500">{c.wrong} erros</span>
                   </div>
@@ -464,14 +464,14 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               Conteúdos que acerto
             </div>
             {rightContents.length === 0 ? (
-              <div className="py-6 text-center text-xs text-slate-400">Nenhum acerto registrado ainda.</div>
+              <div className="py-6 text-center text-xs text-[#A8A29E]">Nenhum acerto registrado ainda.</div>
             ) : (
               <div className="space-y-2">
                 {rightContents.map((c) => (
-                  <div key={`${c.subject}::${c.topic}`} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/50">
+                  <div key={`${c.subject}::${c.topic}`} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/70 dark:bg-[#18181B]/50">
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{c.topic}</div>
-                      <div className="text-[10px] text-slate-500 truncate">{c.subject}</div>
+                      <div className="text-xs font-bold text-[#1C1917] dark:text-[#E7E5E4] truncate">{c.topic}</div>
+                      <div className="text-[10px] text-[#78716C] truncate">{c.subject}</div>
                     </div>
                     <span className="shrink-0 text-[11px] font-black text-emerald-500">{c.correct} acertos</span>
                   </div>
@@ -483,15 +483,15 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
       </div>
 
       {/* ============================ HISTÓRICO DE QUESTÕES ============================ */}
-      <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-5 sm:p-6">
+      <div className="rounded-3xl bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#3B3B40]/80 p-5 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white font-display">Últimas questões</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <h3 className="text-sm font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">Últimas questões</h3>
+            <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
               {activeFilter === 'wrong' ? 'Mostrando apenas os erros' : activeFilter === 'correct' ? 'Mostrando apenas os acertos' : 'Mostrando todas as questões'}
             </p>
           </div>
-          <BookOpen className="w-5 h-5 text-slate-400" />
+          <BookOpen className="w-5 h-5 text-[#A8A29E]" />
         </div>
 
         {filteredQuestions.length === 0 ? (
@@ -499,9 +499,9 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
             {activeFilter === 'wrong' ? (
               <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
             ) : (
-              <BookOpen className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
+              <BookOpen className="w-8 h-8 text-[#D6D3CD] dark:text-[#57534E] mx-auto" />
             )}
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            <p className="text-xs text-[#78716C] dark:text-[#A8A29E] font-medium">
               {activeFilter === 'wrong'
                 ? 'Nenhum erro encontrado. Excelente!'
                 : activeFilter === 'correct'
@@ -529,10 +529,10 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                     }`}>
                       {item.isCorrect ? '✓ Acerto' : '✗ Erro'}
                     </span>
-                    <span className="font-bold text-slate-700 dark:text-slate-300 truncate">{item.question?.topic || 'Conceitos Gerais'}</span>
-                    <span className="text-slate-400">•</span>
-                    <span className="text-slate-500 truncate">{item.question?.subject || 'Geral'}</span>
-                    <span className="text-[10px] text-slate-400 font-mono ml-auto shrink-0">{item.date}</span>
+                    <span className="font-bold text-[#44403C] dark:text-[#D6D3CD] truncate">{item.question?.topic || 'Conceitos Gerais'}</span>
+                    <span className="text-[#A8A29E]">•</span>
+                    <span className="text-[#78716C] truncate">{item.question?.subject || 'Geral'}</span>
+                    <span className="text-[10px] text-[#A8A29E] font-mono ml-auto shrink-0">{item.date}</span>
                   </div>
                 </div>
               </div>
@@ -542,7 +542,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
       </div>
 
       {/* ============================ RODAPÉ / RESET ============================ */}
-      <div className="flex items-center justify-between text-xs text-slate-500 pt-2 px-1">
+      <div className="flex items-center justify-between text-xs text-[#78716C] pt-2 px-1">
         <span>Dados sincronizados por usuário (Supabase) com backup local.</span>
         <button
           type="button"
@@ -551,7 +551,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               onResetAnalytics();
             }
           }}
-          className="flex items-center gap-1.5 text-slate-400 hover:text-rose-500 font-bold transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-[#A8A29E] hover:text-rose-500 font-bold transition-colors cursor-pointer"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           Redefinir Estatísticas

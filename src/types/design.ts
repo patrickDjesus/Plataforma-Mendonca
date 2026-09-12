@@ -1,4 +1,4 @@
-export type ScreenId = 'home' | 'caderno' | 'treino';
+export type ScreenId = 'home' | 'caderno' | 'treino' | 'flashcards';
 
 export interface QuizQuestion {
   id: number;

@@ -20,7 +20,7 @@ export const SPECIAL_CHAR_CATEGORIES: SpecialCharCategory[] = [
     id: 'grego',
     label: 'Alfabeto Grego',
     subtitle: 'Fórmulas, Física e Geometria',
-    accent: '#2563EB',
+    accent: '#2D5A46',
     chars: [
       ...g('Alfa', 'α', 'Α'),
       ...g('Beta', 'β', 'Β'),
@@ -53,7 +53,7 @@ export const SPECIAL_CHAR_CATEGORIES: SpecialCharCategory[] = [
     id: 'matematica',
     label: 'Matemática & Conjuntos',
     subtitle: 'Cálculo, Álgebra e Operadores',
-    accent: '#7C3AED',
+    accent: '#2D5A46',
     chars: [
       ...g('Subtração / Menos', '−'),
       ...g('Multiplicação (Vezes)', '×'),
@@ -208,7 +208,7 @@ export const SPECIAL_CHAR_CATEGORIES: SpecialCharCategory[] = [
     id: 'documentos',
     label: 'Documentos & Formatação',
     subtitle: 'Símbolos técnicos para edição',
-    accent: '#EA580C',
+    accent: '#2D5A46',
     chars: [
       ...g('Parágrafo / Seção', '§'),
       ...g('Pilcrow (Fim de Parágrafo)', '¶'),
@@ -248,7 +248,7 @@ export const SPECIAL_CHAR_CATEGORIES: SpecialCharCategory[] = [
     id: 'setas',
     label: 'Setas & Fluxos',
     subtitle: 'Conexão, fluxo e referência',
-    accent: '#0891B2',
+    accent: '#2F7D5F',
     chars: [
       ...g('Seta para a Esquerda', '←'),
       ...g('Seta para Cima', '↑'),

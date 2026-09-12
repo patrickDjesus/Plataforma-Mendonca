@@ -48,14 +48,14 @@ export const LoadingTransition: React.FC<LoadingTransitionProps> = ({ userName, 
   }, [onFinish, steps.length]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#F8FAFC] flex flex-col items-center justify-center p-6 select-none overflow-hidden text-slate-900 font-sans">
+    <div className="fixed inset-0 z-50 bg-[#FAF8F5] dark:bg-[#121214] flex flex-col items-center justify-center p-6 select-none overflow-hidden text-[#1C1917] dark:text-[#FAF9F5] font-sans">
       
       {/* 1. FUNDO GEOMÉTRICO INTERATIVO DE TRIÂNGULOS */}
       <GeometricTrianglesCanvas />
 
       {/* 2. Suave iluminação ambiente de fundo */}
-      <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-blue-200/40 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-indigo-200/40 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-[#CFE1D6]/40 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-[#EBF3EF]/50 dark:bg-[#15221B]/50 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Main Loading Card com Glassmorphism Refinado */}
       <div className="relative z-10 flex flex-col items-center max-w-md w-full text-center">
@@ -67,14 +67,14 @@ export const LoadingTransition: React.FC<LoadingTransitionProps> = ({ userName, 
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-            className="absolute inset-0 rounded-full border-2 border-dashed border-blue-400/80"
+            className="absolute inset-0 rounded-full border-2 border-dashed border-[#2D5A46]/60"
           />
           
           {/* Subtle Inner Counter-Rotating Ring */}
           <motion.div
             animate={{ rotate: -360 }}
             transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-            className="absolute inset-2 rounded-full border border-indigo-300"
+            className="absolute inset-2 rounded-full border border-[#52B788]/60"
           />
 
           {/* Central Logo Box */}
@@ -96,7 +96,7 @@ export const LoadingTransition: React.FC<LoadingTransitionProps> = ({ userName, 
             transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
             className="absolute inset-0"
           >
-            <div className="w-2.5 h-2.5 bg-blue-600 rounded-full shadow-md shadow-blue-400 absolute -top-1 left-1/2 -translate-x-1/2" />
+            <div className="w-2.5 h-2.5 bg-[#2D5A46] rounded-full shadow-md shadow-[#52B788]/60 absolute -top-1 left-1/2 -translate-x-1/2" />
           </motion.div>
         </div>
 
@@ -106,41 +106,41 @@ export const LoadingTransition: React.FC<LoadingTransitionProps> = ({ userName, 
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-blue-700 flex items-center justify-center gap-1.5 mb-1.5 bg-white/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-blue-200/80 shadow-xs inline-flex">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#224A38] dark:text-[#52B788] flex items-center justify-center gap-1.5 mb-1.5 bg-white/90 dark:bg-[#18181B]/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-[#CFE1D6] dark:border-[#22392D] shadow-xs inline-flex">
+            <Sparkles className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788]" />
             Plataforma Mendonça
           </span>
 
-          <h2 className="text-2xl font-extrabold font-display text-slate-900 tracking-tight drop-shadow-xs">
+          <h2 className="text-2xl font-extrabold font-display text-[#1C1917] dark:text-[#FAF9F5] tracking-tight drop-shadow-xs">
             Preparando seu Espaço, {userName}
           </h2>
 
-          <p className="text-xs text-slate-600 mt-1.5 h-4 font-medium transition-all duration-200">
+          <p className="text-xs text-[#78716C] dark:text-[#A8A29E] mt-1.5 h-4 font-medium transition-all duration-200">
             {steps[currentStepIndex]?.title}
           </p>
         </motion.div>
 
         {/* Light Mode Progress Card com Glassmorphism Refinado */}
-        <div className="w-full mt-7 bg-white/95 backdrop-blur-2xl border border-white/80 rounded-2xl p-5 shadow-2xl shadow-slate-900/10">
+        <div className="w-full mt-7 bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-2xl border border-[#E7E2D9]/80 dark:border-[#2C2C30]/80 rounded-2xl p-5 shadow-2xl shadow-[#1C1917]/10">
           <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-slate-600 text-[11px] font-semibold flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-amber-500" /> {steps[currentStepIndex]?.detail}
+            <span className="text-[#78716C] dark:text-[#A8A29E] text-[11px] font-semibold flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-[#D97706]" /> {steps[currentStepIndex]?.detail}
             </span>
-            <span className="text-blue-600 font-mono font-extrabold text-xs">
+            <span className="text-[#2D5A46] dark:text-[#52B788] font-mono font-extrabold text-xs">
               {progress}%
             </span>
           </div>
 
-          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
+          <div className="w-full h-2.5 bg-[#EFECE6] dark:bg-[#232326] rounded-full overflow-hidden p-0.5 border border-[#E7E2D9]/60 dark:border-[#333338]">
             <motion.div
-              className="h-full bg-blue-600 rounded-full relative"
+              className="h-full bg-[#2D5A46] rounded-full relative"
               style={{ width: `${progress}%` }}
               transition={{ ease: 'easeOut', duration: 0.1 }}
             />
           </div>
 
           {/* Stepper Dots */}
-          <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-100 px-1">
+          <div className="flex justify-between items-center mt-4 pt-3 border-t border-[#E7E2D9] dark:border-[#2C2C30] px-1">
             {steps.map((_, idx) => {
               const isCompleted = idx < currentStepIndex || progress === 100;
               const isCurrent = idx === currentStepIndex && progress < 100;
@@ -150,10 +150,10 @@ export const LoadingTransition: React.FC<LoadingTransitionProps> = ({ userName, 
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold transition-all duration-200 ${
                       isCompleted
-                        ? 'bg-blue-600 text-white shadow-xs'
+                        ? 'bg-[#2D5A46] text-white shadow-xs'
                         : isCurrent
-                        ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-400/40 font-extrabold'
-                        : 'bg-slate-100 text-slate-400'
+                        ? 'bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788] ring-2 ring-[#2D5A46]/40 font-extrabold'
+                        : 'bg-[#EFECE6] dark:bg-[#232326] text-[#A8A29E]'
                     }`}
                   >
                     {isCompleted ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : idx + 1}
@@ -165,8 +165,8 @@ export const LoadingTransition: React.FC<LoadingTransitionProps> = ({ userName, 
         </div>
 
         {/* Security badge at bottom */}
-        <div className="mt-6 flex items-center gap-1.5 text-[11px] text-slate-500 font-medium bg-white/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/60">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+        <div className="mt-6 flex items-center gap-1.5 text-[11px] text-[#78716C] dark:text-[#A8A29E] font-medium bg-white/80 dark:bg-[#18181B]/80 backdrop-blur-md px-3 py-1 rounded-full border border-[#E7E2D9]/60 dark:border-[#2C2C30]/60">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788]" />
           <span>Ambiente seguro sincronizado</span>
         </div>
 

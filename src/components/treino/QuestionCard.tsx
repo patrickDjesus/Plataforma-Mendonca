@@ -37,26 +37,26 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
-      className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-md space-y-6"
+      className="bg-white dark:bg-[#18181B] rounded-3xl p-6 sm:p-8 border border-[#E7E2D9]/80 dark:border-[#2C2C30] shadow-md space-y-6"
     >
       {/* A) INTERFACE ESPECÍFICA: QUÍMICA & TABELA PERIÓDICA */}
       {currentQuestion.gameType === 'chemistry' && currentQuestion.chemicalElement && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs">
-            <span className="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800">
+            <span className="px-2.5 py-1 rounded-lg bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788] font-bold border border-[#CFE1D6] dark:border-[#22392D]">
               {currentQuestion.subject}
             </span>
-            <span className="text-slate-400 font-medium">Elemento Químico</span>
+            <span className="text-[#A8A29E] font-medium">Elemento Químico</span>
           </div>
 
-          <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
+          <p className="text-sm sm:text-base font-bold text-[#1C1917] dark:text-[#FAF9F5]">
             {currentQuestion.statement}
           </p>
 
           {/* Card Realista de Elemento da Tabela Periódica */}
           <div className="flex justify-center py-2">
             <div 
-              className="w-48 h-52 rounded-2xl p-3.5 flex flex-col justify-between shadow-lg border-2 transition-transform hover:scale-102 relative overflow-hidden bg-slate-950"
+              className="w-48 h-52 rounded-2xl p-3.5 flex flex-col justify-between shadow-lg border-2 transition-transform hover:scale-102 relative overflow-hidden bg-[#121214]"
               style={{ borderColor: currentQuestion.chemicalElement.color }}
             >
               {/* Brilho de fundo */}
@@ -69,13 +69,13 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               <div className="flex items-center justify-between text-xs font-mono font-bold">
                 {currentQuestion.chemicalElement.hiddenProperty === 'atomicInfo' ? (
                   <>
-                    <span className="px-1.5 py-0.5 rounded bg-slate-900 border border-dashed border-amber-400/60 text-amber-300">Z = ??</span>
-                    <span className="px-1.5 py-0.5 rounded bg-slate-900 border border-dashed border-amber-400/60 text-amber-300">A ≈ ?? u</span>
+                    <span className="px-1.5 py-0.5 rounded bg-[#18181B] border border-dashed border-amber-400/60 text-amber-300">Z = ??</span>
+                    <span className="px-1.5 py-0.5 rounded bg-[#18181B] border border-dashed border-amber-400/60 text-amber-300">A ≈ ?? u</span>
                   </>
                 ) : (
                   <>
-                    <span className="text-slate-400">Z = {currentQuestion.chemicalElement.atomicNumber}</span>
-                    <span className="text-slate-400">{Math.round(currentQuestion.chemicalElement.atomicMass)} u</span>
+                    <span className="text-[#A8A29E]">Z = {currentQuestion.chemicalElement.atomicNumber}</span>
+                    <span className="text-[#A8A29E]">{Math.round(currentQuestion.chemicalElement.atomicMass)} u</span>
                   </>
                 )}
               </div>
@@ -83,8 +83,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               {/* Centro: Símbolo Gigante */}
               <div className="text-center my-auto">
                 {currentQuestion.chemicalElement.hiddenProperty === 'symbol' ? (
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-900/90 border-2 border-dashed border-cyan-400 shadow-inner">
-                    <span className="text-4xl font-black text-cyan-300 animate-pulse">?</span>
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#18181B]/90 border-2 border-dashed border-[#52B788] shadow-inner">
+                    <span className="text-4xl font-black text-[#52B788] animate-pulse">?</span>
                   </div>
                 ) : (
                   <span 
@@ -99,25 +99,25 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               {/* Rodapé do Card: Nome e Família/Estado */}
               <div className="text-center space-y-1">
                 {currentQuestion.chemicalElement.hiddenProperty === 'name' ? (
-                  <span className="text-[11px] font-bold text-slate-400 italic block">
+                  <span className="text-[11px] font-bold text-[#A8A29E] italic block">
                     [ Elemento Oculto ]
                   </span>
                 ) : (
-                  <span className="text-[11px] font-bold text-slate-200 block truncate">
+                  <span className="text-[11px] font-bold text-[#E7E5E4] block truncate">
                     {currentQuestion.chemicalElement.name}
                   </span>
                 )}
 
                 {currentQuestion.chemicalElement.hiddenProperty === 'family' ? (
-                  <span className="text-[9px] px-2 py-0.5 rounded bg-slate-800 text-purple-300 inline-block font-semibold border border-dashed border-purple-500/50">
+                  <span className="text-[9px] px-2 py-0.5 rounded bg-[#232326] text-[#52B788] inline-block font-semibold border border-dashed border-[#2D5A46]/50">
                     Família: [ ? ]
                   </span>
                 ) : currentQuestion.chemicalElement.hiddenProperty === 'state' ? (
-                  <span className="text-[9px] px-2 py-0.5 rounded bg-slate-800 text-emerald-300 inline-block font-semibold border border-dashed border-emerald-500/50">
+                  <span className="text-[9px] px-2 py-0.5 rounded bg-[#232326] text-emerald-300 inline-block font-semibold border border-dashed border-emerald-500/50">
                     Estado: [ ? ]
                   </span>
                 ) : (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 inline-block font-semibold">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#232326] text-[#D6D3CD] inline-block font-semibold">
                     {currentQuestion.chemicalElement.family}
                   </span>
                 )}
@@ -131,19 +131,19 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       {currentQuestion.gameType === 'math' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs">
-            <span className="px-2.5 py-1 rounded-lg bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 font-bold border border-cyan-200 dark:border-cyan-800">
+            <span className="px-2.5 py-1 rounded-lg bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788] font-bold border border-[#CFE1D6] dark:border-[#22392D]">
               {currentQuestion.subject}
             </span>
-            <span className="text-slate-400 font-medium">{currentQuestion.topic}</span>
+            <span className="text-[#A8A29E] font-medium">{currentQuestion.topic}</span>
           </div>
 
-          <p className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
+          <p className="text-xs sm:text-sm font-semibold text-[#57534E] dark:text-[#D6D3CD]">
             {currentQuestion.statement}
           </p>
 
           {/* Display Neon de Aritmética */}
-          <div className="bg-slate-950 rounded-2xl p-6 border border-cyan-500/30 text-center shadow-inner relative overflow-hidden">
-            <div className="text-3xl sm:text-4xl font-mono font-black text-cyan-400 tracking-wider drop-shadow-md">
+          <div className="bg-[#121214] rounded-2xl p-6 border border-[#2D5A46]/30 text-center shadow-inner relative overflow-hidden">
+            <div className="text-3xl sm:text-4xl font-mono font-black text-[#52B788] tracking-wider drop-shadow-md">
               {currentQuestion.mathExpression || currentQuestion.statement}
             </div>
           </div>
@@ -157,7 +157,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             <span className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800">
               {currentQuestion.subject}
             </span>
-            <span className="text-slate-400 font-medium">{currentQuestion.topic}</span>
+            <span className="text-[#A8A29E] font-medium">{currentQuestion.topic}</span>
           </div>
 
           {/* Badge de Macete Mnemônico */}
@@ -168,7 +168,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             </div>
           )}
 
-          <p className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100 leading-relaxed">
+          <p className="text-sm sm:text-base font-semibold text-[#1C1917] dark:text-[#FAF9F5] leading-relaxed">
             {currentQuestion.statement}
           </p>
         </div>
@@ -178,19 +178,19 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       {(!currentQuestion.gameType || currentQuestion.gameType === 'standard') && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs">
-            <span className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800">
+            <span className="px-2.5 py-1 rounded-lg bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788] font-bold border border-[#CFE1D6] dark:border-[#22392D]">
               {currentQuestion.subject}
             </span>
-            <span className="text-slate-400 font-medium">{currentQuestion.topic}</span>
+            <span className="text-[#A8A29E] font-medium">{currentQuestion.topic}</span>
           </div>
 
-          <h3 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white leading-relaxed font-display">
+          <h3 className="text-sm sm:text-base font-semibold text-[#1C1917] dark:text-[#FAF9F5] leading-relaxed font-display">
             {currentQuestion.statement}
           </h3>
 
           {/* Imagem Ilustrativa com Zoom */}
           {currentQuestion.imageUrl && (
-            <div className="relative group/img max-w-lg mx-auto rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 shadow-sm flex flex-col items-center">
+            <div className="relative group/img max-w-lg mx-auto rounded-2xl overflow-hidden border border-[#E7E2D9] dark:border-[#2C2C30] bg-[#EFECE6] dark:bg-[#121214]/50 shadow-sm flex flex-col items-center">
               <img
                 src={currentQuestion.imageUrl}
                 alt={currentQuestion.imageCaption || 'Imagem da questão'}
@@ -204,14 +204,14 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               <button
                 type="button"
                 onClick={() => onSetZoomImageUrl(currentQuestion.imageUrl || null)}
-                className="absolute top-2 right-2 p-1.5 bg-slate-900/80 hover:bg-slate-900 text-white rounded-xl backdrop-blur-sm opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer text-xs flex items-center gap-1"
+                className="absolute top-2 right-2 p-1.5 bg-[#18181B]/80 hover:bg-[#18181B] text-white rounded-xl backdrop-blur-sm opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer text-xs flex items-center gap-1"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
                 <span>Ampliar</span>
               </button>
 
               {currentQuestion.imageCaption && (
-                <p className="p-2 text-xs text-slate-500 dark:text-slate-400 italic text-center border-t border-slate-200/50 dark:border-slate-800/50 w-full bg-slate-100/50 dark:bg-slate-900/50">
+                <p className="p-2 text-xs text-[#78716C] dark:text-[#A8A29E] italic text-center border-t border-[#E7E2D9]/50 dark:border-[#2C2C30]/50 w-full bg-[#EFECE6]/50 dark:bg-[#18181B]/50">
                   {currentQuestion.imageCaption}
                 </p>
               )}
@@ -219,7 +219,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           )}
 
           {currentQuestion.codeSnippet && (
-            <div className="bg-slate-950 rounded-2xl p-3.5 font-mono text-xs text-cyan-300 border border-slate-800 overflow-x-auto shadow-inner">
+            <div className="bg-[#121214] rounded-2xl p-3.5 font-mono text-xs text-[#52B788] border border-[#2C2C30] overflow-x-auto shadow-inner">
               <pre>{currentQuestion.codeSnippet}</pre>
             </div>
           )}
@@ -231,7 +231,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {currentQuestion.options.map((option, idx) => {
           const isSelected = selectedOptionId === option.id;
           const keyNumber = idx + 1;
-          let optionStyle = 'bg-slate-50/80 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-slate-300 hover:bg-slate-100/70';
+          let optionStyle = 'bg-[#EFECE6]/80 dark:bg-[#232326]/50 border-[#E7E2D9]/80 dark:border-[#2C2C30] text-[#1C1917] dark:text-[#E7E5E4] hover:border-[#D6D0C5] hover:bg-[#EFECE6]/70';
 
           if (isAnswerConfirmed) {
             if (option.isCorrect) {
@@ -240,7 +240,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               optionStyle = 'bg-rose-50 dark:bg-rose-950/80 border-rose-500 text-rose-950 dark:text-rose-100 ring-2 ring-rose-400/30';
             }
           } else if (isSelected) {
-            optionStyle = 'bg-cyan-50/90 dark:bg-cyan-950/70 border-cyan-600 text-cyan-950 dark:text-cyan-100 ring-2 ring-cyan-500/25';
+            optionStyle = 'bg-[#EBF3EF]/90 dark:bg-[#15221B]/70 border-[#2D5A46] text-[#224A38] dark:text-[#E7E5E4] ring-2 ring-[#2D5A46]/25';
           }
 
           return (
@@ -257,8 +257,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                     : isAnswerConfirmed && isSelected && !option.isCorrect
                     ? 'bg-rose-500 text-white'
                     : isSelected
-                    ? 'bg-cyan-600 text-white'
-                    : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 group-hover:border-cyan-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-300'
+                    ? 'bg-[#2D5A46] text-white'
+                    : 'bg-white dark:bg-[#44403C] text-[#44403C] dark:text-[#D6D3CD] border border-[#E7E2D9] dark:border-[#57534E] group-hover:border-[#2D5A46] group-hover:text-[#2D5A46] dark:group-hover:text-[#52B788]'
                 }`}
               >
                 {option.id}
@@ -274,7 +274,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               </div>
 
               {/* Atalho de Teclado Badge */}
-              <div className="hidden sm:flex items-center justify-center px-1.5 py-0.5 rounded-md bg-slate-200/60 dark:bg-slate-800 text-[10px] font-mono text-slate-500 dark:text-slate-400 opacity-60 group-hover:opacity-100 transition-opacity shrink-0">
+              <div className="hidden sm:flex items-center justify-center px-1.5 py-0.5 rounded-md bg-[#E7E2D9]/60 dark:bg-[#232326] text-[10px] font-mono text-[#78716C] dark:text-[#A8A29E] opacity-60 group-hover:opacity-100 transition-opacity shrink-0">
                 {keyNumber}
               </div>
             </button>
@@ -289,11 +289,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             initial={{ opacity: 0, height: 0, y: 10 }}
             animate={{ opacity: 1, height: 'auto', y: 0 }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-purple-50/90 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 rounded-2xl p-4 flex items-start gap-3 text-xs text-purple-950 dark:text-purple-200"
+            className="bg-[#EBF3EF]/90 dark:bg-[#15221B]/70 border border-[#CFE1D6] dark:border-[#22392D] rounded-2xl p-4 flex items-start gap-3 text-xs text-[#224A38] dark:text-[#52B788]"
           >
             <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
             <div className="flex-1 space-y-1">
-              <p className="font-bold font-display text-purple-900 dark:text-purple-100 flex items-center gap-1.5">
+              <p className="font-bold font-display text-[#224A38] dark:text-[#52B788] flex items-center gap-1.5">
                 <span>Dica Sináptica:</span>
                 {hasWrongAttempt && (
                   <span className="text-[10px] bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200 px-2 py-0.5 rounded-md font-bold">
@@ -308,7 +308,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       </AnimatePresence>
 
       {/* Barra Inferior de Ações de Resposta */}
-      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+      <div className="pt-2 border-t border-[#EFECE6] dark:border-[#2C2C30] flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -316,13 +316,13 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               onToggleHint();
               if (!showAiHint) onPlaySound('hint');
             }}
-            className="flex items-center gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 text-xs font-bold text-[#2D5A46] dark:text-[#52B788] hover:text-[#21483A] transition-colors cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{showAiHint ? 'Ocultar Dica' : 'Pedir Dica Sináptica'}</span>
           </button>
 
-          <span className="hidden md:inline-flex text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+          <span className="hidden md:inline-flex text-[11px] text-[#A8A29E] dark:text-[#78716C] font-mono">
             Atalhos: [1-4] Selecionar • [Enter] Confirmar
           </span>
         </div>
@@ -335,20 +335,20 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               disabled={!selectedOptionId}
               className={`flex items-center gap-1.5 px-6 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer ${
                 selectedOptionId
-                  ? 'bg-cyan-600 hover:bg-cyan-700 text-white shadow-cyan-500/25 scale-102'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                  ? 'bg-[#2D5A46] hover:bg-[#21483A] text-white shadow-[#2D5A46]/25 scale-102'
+                  : 'bg-[#EFECE6] dark:bg-[#232326] text-[#A8A29E] dark:text-[#78716C] cursor-not-allowed'
               }`}
             >
               <span>Confirmar Resposta</span>
               {selectedOptionId && (
-                <kbd className="px-1.5 py-0.5 rounded bg-cyan-700 text-[10px] font-mono text-cyan-100">↵ Enter</kbd>
+                <kbd className="px-1.5 py-0.5 rounded bg-[#21483A] text-[10px] font-mono text-[#CFE1D6]">↵ Enter</kbd>
               )}
             </button>
           ) : (
             <button
               type="button"
               onClick={onNextQuestion}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/25 transition-all cursor-pointer scale-102"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#2D5A46] to-[#1E3E30] hover:from-[#21483A] hover:to-[#1E3E30] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/25 transition-all cursor-pointer scale-102"
             >
               <span>Próxima Pergunta</span>
               <kbd className="px-1.5 py-0.5 rounded bg-white/20 text-[10px] font-mono text-white">↵</kbd>

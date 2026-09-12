@@ -85,7 +85,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
         rank: index + 1,
         name,
         handle: fe.handle || `@${name.toLowerCase().replace(/\s+/g, '')}`,
-        avatarBg: isMe ? 'from-emerald-400 to-teal-600' : (fe.avatarBg || 'from-indigo-400 to-purple-600'),
+        avatarBg: isMe ? 'from-[#52B788] to-[#1F7A69]' : (fe.avatarBg || 'from-[#2D5A46] to-[#1E3E30]'),
         avatarEmoji: isMe ? '🔥' : (fe.avatarEmoji || '⭐'),
         schoolOrGoal: fe.schoolOrGoal || fe.goal || 'Preparação ENEM & Vestibulares',
         score,
@@ -141,7 +141,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
         particleCount: 40,
         spread: 60,
         origin: { y: 0.8 },
-        colors: ['#F59E0B', '#EF4444', '#8B5CF6', '#10B981']
+        colors: ['#F59E0B', '#EF4444', '#2D5A46', '#10B981']
       });
     } catch { /* ignored */ }
     showToast(`🔥 Você enviou fogo de incentivo para ${user.name}!`);
@@ -167,7 +167,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-20 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900 text-white border border-amber-500/40 shadow-2xl text-xs font-bold"
+            className="fixed top-20 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-[#18181B] text-[#FAF9F5] border border-amber-500/40 shadow-2xl text-xs font-bold"
           >
             <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
             <span>{actionToast}</span>
@@ -176,7 +176,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
       </AnimatePresence>
 
       {/* 1. HERO BANNER DO RANKING GLOBAL */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-amber-950/70 to-slate-900 border border-amber-500/30 p-6 sm:p-8 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#18181B] via-amber-950/70 to-[#18181B] border border-amber-500/30 p-6 sm:p-8 text-white shadow-xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2.5 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">
@@ -187,32 +187,32 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
               <span>Ranking Global & Comunidade</span>
               <Trophy className="w-6 h-6 text-amber-400 hidden sm:inline-block" />
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#D6D3CD] leading-relaxed">
               Dispute o topo com estudantes de todo o Brasil. Mantenha suas sequências de fogo diárias, acumule XP no Treino Survival e suba de divisão a cada fechamento semanal.
             </p>
           </div>
 
           {/* Card Resumo do Usuário no Banner */}
           {currentUserData && (
-            <div className="shrink-0 p-4 rounded-2xl bg-white/10 dark:bg-slate-900/60 border border-amber-500/30 backdrop-blur-md space-y-2 min-w-[240px]">
+            <div className="shrink-0 p-4 rounded-2xl bg-white/10 dark:bg-[#18181B]/60 border border-amber-500/30 backdrop-blur-md space-y-2 min-w-[240px]">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold text-amber-300 uppercase tracking-wider">
                   Sua Posição na Liga
                 </span>
-                <span className="text-xs font-black px-2 py-0.5 rounded-full bg-amber-500 text-slate-900">
+                <span className="text-xs font-black px-2 py-0.5 rounded-full bg-amber-500 text-[#1C1917]">
                   #{currentUserData.rank}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3 text-xs">
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Sequência Atual:</span>
+                  <span className="text-[#A8A29E] block text-[10px]">Sequência Atual:</span>
                   <span className="font-black text-amber-400 font-mono flex items-center gap-1">
                     <Flame className="w-3.5 h-3.5 fill-amber-400" />
                     {currentUserData.streakDays} dias
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-slate-400 block text-[10px]">XP Competitivo:</span>
+                  <span className="text-[#A8A29E] block text-[10px]">XP Competitivo:</span>
                   <span className="font-black text-white font-mono">
                     {period === 'weekly' ? currentUserData.weeklyXp : currentUserData.score} XP
                   </span>
@@ -227,20 +227,20 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
       </div>
 
       {/* 2. FILTROS & NAVEGAÇÃO DE ESCOPO */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-[#18181B] rounded-3xl p-4 sm:p-5 border border-[#E7E2D9]/80 dark:border-[#2C2C30] shadow-sm space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Escopo de Competidores */}
-          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#EFECE6] dark:bg-[#232326] rounded-2xl border border-[#E7E2D9] dark:border-[#3B3B40] text-xs font-bold">
             <button
               type="button"
               onClick={() => setScope('global')}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all cursor-pointer ${
                 scope === 'global'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-white dark:bg-[#18181B] text-[#1C1917] dark:text-[#FAF9F5] shadow-xs font-extrabold'
+                  : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
               }`}
             >
-              <Globe className="w-3.5 h-3.5 text-cyan-500" />
+              <Globe className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788]" />
               <span>Global (Todos)</span>
             </button>
 
@@ -249,11 +249,11 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
               onClick={() => setScope('friends')}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all cursor-pointer ${
                 scope === 'friends'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-white dark:bg-[#18181B] text-[#1C1917] dark:text-[#FAF9F5] shadow-xs font-extrabold'
+                  : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
               }`}
             >
-              <Users className="w-3.5 h-3.5 text-purple-500" />
+              <Users className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788]" />
               <span>Amigos & Turma ({competitors.filter(u => u.isFriend || u.isCurrentUser).length})</span>
             </button>
 
@@ -262,8 +262,8 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
               onClick={() => setScope('league')}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all cursor-pointer ${
                 scope === 'league'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-white dark:bg-[#18181B] text-[#1C1917] dark:text-[#FAF9F5] shadow-xs font-extrabold'
+                  : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
@@ -273,14 +273,14 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
 
           {/* Período / Modalidade */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
+            <div className="flex items-center gap-1 p-1 bg-[#EFECE6] dark:bg-[#232326] rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] text-xs font-bold">
               <button
                 type="button"
                 onClick={() => setPeriod('weekly')}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   period === 'weekly'
                     ? 'bg-amber-500 text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                    : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
                 }`}
               >
                 Semanal
@@ -291,7 +291,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   period === 'allTime'
                     ? 'bg-amber-500 text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                    : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
                 }`}
               >
                 Geral (All-time)
@@ -300,13 +300,13 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
 
             {/* Campo de Busca */}
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Buscar competidor ou curso..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-56"
+                className="pl-8 pr-3 py-1.5 bg-white dark:bg-[#18181B] rounded-xl text-xs border border-[#E7E2D9] dark:border-[#3B3B40] text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 w-full sm:w-56"
               />
             </div>
           </div>
@@ -320,47 +320,47 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
           {top3[1] && (
             <motion.div
               whileHover={{ y: -4 }}
-              className="order-2 md:order-1 p-5 rounded-3xl bg-gradient-to-b from-slate-100 to-white dark:from-slate-800/80 dark:to-slate-900 border border-slate-300 dark:border-slate-700 shadow-sm relative flex flex-col justify-between space-y-4"
+              className="order-2 md:order-1 p-5 rounded-3xl bg-gradient-to-b from-[#EFECE6] to-white dark:from-[#232326]/80 dark:to-[#18181B] border border-[#D6D0C5] dark:border-[#3B3B40] shadow-sm relative flex flex-col justify-between space-y-4"
             >
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black flex items-center gap-1 border border-slate-400/50 shadow-xs">
-                <Medal className="w-3.5 h-3.5 text-slate-500" />
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#D6D0C5] dark:bg-[#3B3B40] text-[#1C1917] dark:text-[#E7E5E4] text-[11px] font-black flex items-center gap-1 border border-[#A8A29E]/50 shadow-xs">
+                <Medal className="w-3.5 h-3.5 text-[#78716C]" />
                 <span>2º LUGAR</span>
               </div>
 
               <div className="pt-2 text-center space-y-2">
                 <div className="relative inline-block mx-auto">
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${top3[1].avatarBg} flex items-center justify-center text-2xl shadow-md ring-4 ring-slate-300 dark:ring-slate-700`}>
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${top3[1].avatarBg} flex items-center justify-center text-2xl shadow-md ring-4 ring-[#D6D0C5] dark:ring-[#3B3B40]`}>
                     {top3[1].avatarEmoji}
                   </div>
-                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" title="Online" />
+                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#18181B]" title="Online" />
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-white font-display">
+                  <h4 className="text-sm font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">
                     {top3[1].name}
                   </h4>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
+                  <span className="text-[11px] text-[#78716C] dark:text-[#A8A29E] block">
                     {top3[1].schoolOrGoal}
                   </span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2 text-xs">
+              <div className="p-3 rounded-2xl bg-[#EFECE6] dark:bg-[#232326]/60 border border-[#E7E2D9] dark:border-[#3B3B40]/60 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Pontuação:</span>
-                  <span className="font-black text-slate-900 dark:text-white font-mono">
+                  <span className="text-[#78716C] text-[11px]">Pontuação:</span>
+                  <span className="font-black text-[#1C1917] dark:text-[#FAF9F5] font-mono">
                     {period === 'weekly' ? top3[1].weeklyXp : top3[1].score} XP
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Sequência:</span>
+                  <span className="text-[#78716C] text-[11px]">Sequência:</span>
                   <span className="font-extrabold text-amber-500 flex items-center gap-1">
                     <Flame className="w-3.5 h-3.5 fill-amber-500" />
                     {top3[1].streakDays} dias
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Precisão:</span>
+                  <span className="text-[#78716C] text-[11px]">Precisão:</span>
                   <span className="font-bold text-emerald-500">{top3[1]?.accuracy ?? 0}%</span>
                 </div>
               </div>
@@ -369,7 +369,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                 <button
                   type="button"
                   onClick={() => handleCheerFriend(top3[1])}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#EFECE6] hover:bg-[#E7E2D9] dark:bg-[#232326] dark:hover:bg-[#3B3B40] text-[#44403C] dark:text-[#E7E5E4] text-xs font-bold transition-all cursor-pointer"
                 >
                   <Flame className="w-3.5 h-3.5 text-amber-500" />
                   <span>Apoiar</span>
@@ -377,7 +377,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                 <button
                   type="button"
                   onClick={() => handleChallenge(top3[1])}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-bold transition-all cursor-pointer"
                 >
                   <Swords className="w-3.5 h-3.5" />
                   <span>Desafiar</span>
@@ -390,10 +390,10 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
           {top3[0] && (
             <motion.div
               whileHover={{ y: -6 }}
-              className="order-1 md:order-2 p-6 rounded-3xl bg-gradient-to-b from-amber-50 via-white to-amber-50/40 dark:from-amber-950/40 dark:via-slate-900 dark:to-slate-900 border-2 border-amber-400 dark:border-amber-500/60 shadow-lg shadow-amber-500/10 relative flex flex-col justify-between space-y-4 md:-translate-y-3"
+              className="order-1 md:order-2 p-6 rounded-3xl bg-gradient-to-b from-amber-50 via-white to-amber-50/40 dark:from-amber-950/40 dark:via-[#18181B] dark:to-[#18181B] border-2 border-amber-400 dark:border-amber-500/60 shadow-lg shadow-amber-500/10 relative flex flex-col justify-between space-y-4 md:-translate-y-3"
             >
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 text-xs font-black flex items-center gap-1.5 border border-amber-300 shadow-md animate-pulse">
-                <Crown className="w-4 h-4 fill-slate-900" />
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-[#1C1917] text-xs font-black flex items-center gap-1.5 border border-amber-300 shadow-md animate-pulse">
+                <Crown className="w-4 h-4 fill-[#1C1917]" />
                 <span>1º LUGAR • LÍDER</span>
               </div>
 
@@ -402,13 +402,13 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                   <div className={`w-20 h-20 rounded-3xl bg-gradient-to-br ${top3[0].avatarBg} flex items-center justify-center text-3xl shadow-xl ring-4 ring-amber-400 dark:ring-amber-500`}>
                     {top3[0].avatarEmoji}
                   </div>
-                  <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 flex items-center justify-center text-[9px] text-white font-bold" title="Online">
+                  <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#18181B] flex items-center justify-center text-[9px] text-white font-bold" title="Online">
                     ✓
                   </span>
                 </div>
 
                 <div>
-                  <h4 className="text-base font-black text-slate-900 dark:text-white font-display">
+                  <h4 className="text-base font-black text-[#1C1917] dark:text-[#FAF9F5] font-display">
                     {top3[0].name}
                   </h4>
                   <span className="text-xs text-amber-700 dark:text-amber-300 font-bold block">
@@ -419,20 +419,20 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
 
               <div className="p-3.5 rounded-2xl bg-amber-100/50 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-800/60 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-600 dark:text-slate-400 text-[11px] font-bold">XP Acumulado:</span>
+                  <span className="text-[#57534E] dark:text-[#A8A29E] text-[11px] font-bold">XP Acumulado:</span>
                   <span className="font-black text-amber-600 dark:text-amber-400 font-mono text-sm">
                     {period === 'weekly' ? top3[0].weeklyXp : top3[0].score} XP
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-600 dark:text-slate-400 text-[11px] font-bold">Sequência Hebbiana:</span>
+                  <span className="text-[#57534E] dark:text-[#A8A29E] text-[11px] font-bold">Sequência Hebbiana:</span>
                   <span className="font-black text-amber-500 flex items-center gap-1">
                     <Flame className="w-4 h-4 fill-amber-500" />
                     {top3[0].streakDays} dias seguidos
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-600 dark:text-slate-400 text-[11px] font-bold">Taxa de Precisão:</span>
+                  <span className="text-[#57534E] dark:text-[#A8A29E] text-[11px] font-bold">Taxa de Precisão:</span>
                   <span className="font-black text-emerald-600 dark:text-emerald-400">{top3[0]?.accuracy ?? 0}%</span>
                 </div>
               </div>
@@ -449,7 +449,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                 <button
                   type="button"
                   onClick={() => handleChallenge(top3[0])}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-900 font-black text-xs shadow-md transition-all cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#F59E0B] hover:to-[#D97706] text-[#1C1917] font-black text-xs shadow-md transition-all cursor-pointer"
                 >
                   <Swords className="w-4 h-4" />
                   <span>Desafiar Líder</span>
@@ -462,7 +462,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
           {top3[2] && (
             <motion.div
               whileHover={{ y: -4 }}
-              className="order-3 md:order-3 p-5 rounded-3xl bg-gradient-to-b from-slate-100 to-white dark:from-slate-800/80 dark:to-slate-900 border border-slate-300 dark:border-slate-700 shadow-sm relative flex flex-col justify-between space-y-4"
+              className="order-3 md:order-3 p-5 rounded-3xl bg-gradient-to-b from-[#EFECE6] to-white dark:from-[#232326]/80 dark:to-[#18181B] border border-[#D6D0C5] dark:border-[#3B3B40] shadow-sm relative flex flex-col justify-between space-y-4"
             >
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-amber-700 text-white text-[11px] font-black flex items-center gap-1 border border-amber-600 shadow-xs">
                 <Medal className="w-3.5 h-3.5 text-amber-300" />
@@ -474,35 +474,35 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                   <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${top3[2].avatarBg} flex items-center justify-center text-2xl shadow-md ring-4 ring-amber-700/40`}>
                     {top3[2].avatarEmoji}
                   </div>
-                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-400 ring-2 ring-white dark:ring-slate-900" title="Offline" />
+                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#A8A29E] ring-2 ring-white dark:ring-[#18181B]" title="Offline" />
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-white font-display">
+                  <h4 className="text-sm font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">
                     {top3[2].name}
                   </h4>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
+                  <span className="text-[11px] text-[#78716C] dark:text-[#A8A29E] block">
                     {top3[2].schoolOrGoal}
                   </span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2 text-xs">
+              <div className="p-3 rounded-2xl bg-[#EFECE6] dark:bg-[#232326]/60 border border-[#E7E2D9] dark:border-[#3B3B40]/60 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Pontuação:</span>
-                  <span className="font-black text-slate-900 dark:text-white font-mono">
+                  <span className="text-[#78716C] text-[11px]">Pontuação:</span>
+                  <span className="font-black text-[#1C1917] dark:text-[#FAF9F5] font-mono">
                     {period === 'weekly' ? top3[2].weeklyXp : top3[2].score} XP
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Sequência:</span>
+                  <span className="text-[#78716C] text-[11px]">Sequência:</span>
                   <span className="font-extrabold text-amber-500 flex items-center gap-1">
                     <Flame className="w-3.5 h-3.5 fill-amber-500" />
                     {top3[2].streakDays} dias
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Precisão:</span>
+                  <span className="text-[#78716C] text-[11px]">Precisão:</span>
                   <span className="font-bold text-emerald-500">{top3[2]?.accuracy ?? 0}%</span>
                 </div>
               </div>
@@ -511,7 +511,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                 <button
                   type="button"
                   onClick={() => handleCheerFriend(top3[2])}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#EFECE6] hover:bg-[#E7E2D9] dark:bg-[#232326] dark:hover:bg-[#3B3B40] text-[#44403C] dark:text-[#E7E5E4] text-xs font-bold transition-all cursor-pointer"
                 >
                   <Flame className="w-3.5 h-3.5 text-amber-500" />
                   <span>Apoiar</span>
@@ -519,7 +519,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                 <button
                   type="button"
                   onClick={() => handleChallenge(top3[2])}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white text-xs font-bold transition-all cursor-pointer"
                 >
                   <Swords className="w-3.5 h-3.5" />
                   <span>Desafiar</span>
@@ -531,31 +531,31 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
       )}
 
       {/* 4. TABELA COMPLETA DE CLASSIFICAÇÃO */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+      <div className="bg-white dark:bg-[#18181B] rounded-3xl p-5 sm:p-7 border border-[#E7E2D9]/80 dark:border-[#2C2C30] shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-[#E7E2D9] dark:border-[#2C2C30] pb-4">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300">
               <Trophy className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-display">
+              <h3 className="text-base font-extrabold text-[#1C1917] dark:text-[#FAF9F5] font-display">
                 Classificação Geral da Temporada
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
                 Mostrando {filteredUsers.length} competidores ativos na categoria selecionada.
               </p>
             </div>
           </div>
 
-          <span className="text-xs font-extrabold px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+          <span className="text-xs font-extrabold px-3 py-1 rounded-xl bg-[#EFECE6] dark:bg-[#232326] text-[#44403C] dark:text-[#D6D3CD]">
             {period === 'weekly' ? 'Reset em 2d 14h' : 'Atualizado em tempo real'}
           </span>
         </div>
 
         {filteredUsers.length === 0 ? (
           <div className="text-center py-12 space-y-2">
-            <Users className="w-8 h-8 text-slate-400 mx-auto" />
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <Users className="w-8 h-8 text-[#A8A29E] mx-auto" />
+            <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
               Nenhum competidor encontrado para os filtros selecionados.
             </p>
           </div>
@@ -573,19 +573,19 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                     isUser
                       ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/60 ring-2 ring-amber-400/30 shadow-sm'
                       : isTop3
-                      ? 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/80'
-                      : 'bg-white dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-800'
+                      ? 'bg-[#EFECE6]/70 dark:bg-[#232326]/40 border-[#E7E2D9]/80 dark:border-[#3B3B40]/80'
+                      : 'bg-white dark:bg-[#18181B]/60 border-[#E7E2D9]/60 dark:border-[#2C2C30]'
                   }`}
                 >
                   {/* Lado Esquerdo: Posição, Avatar, Dados do Aluno */}
                   <div className="flex items-center gap-3.5 flex-1 min-w-0">
                     <div className="w-8 text-center shrink-0">
                       {user.rank === 1 ? (
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-amber-400 text-slate-900 font-black text-xs shadow-xs">
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-amber-400 text-[#1C1917] font-black text-xs shadow-xs">
                           🥇
                         </span>
                       ) : user.rank === 2 ? (
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-slate-300 dark:bg-slate-700 text-slate-900 dark:text-white font-black text-xs shadow-xs">
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-[#D6D0C5] dark:bg-[#3B3B40] text-[#1C1917] dark:text-[#FAF9F5] font-black text-xs shadow-xs">
                           🥈
                         </span>
                       ) : user.rank === 3 ? (
@@ -593,7 +593,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                           🥉
                         </span>
                       ) : (
-                        <span className="text-xs font-black text-slate-400 font-mono">
+                        <span className="text-xs font-black text-[#A8A29E] font-mono">
                           #{user.rank}
                         </span>
                       )}
@@ -605,33 +605,33 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-xs sm:text-sm font-extrabold truncate ${isUser ? 'text-amber-700 dark:text-amber-300' : 'text-slate-900 dark:text-white'}`}>
+                        <span className={`text-xs sm:text-sm font-extrabold truncate ${isUser ? 'text-amber-700 dark:text-amber-300' : 'text-[#1C1917] dark:text-[#FAF9F5]'}`}>
                           {user.name}
                         </span>
                         {isUser && (
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500 text-slate-900 uppercase tracking-wider">
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500 text-[#1C1917] uppercase tracking-wider">
                             Você
                           </span>
                         )}
                         {user.isFriend && !isUser && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#EBF3EF] dark:bg-[#15221B] text-[#2D5A46] dark:text-[#52B788]">
                             Amigo
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 truncate">
+                      <div className="flex items-center gap-2 text-[11px] text-[#78716C] truncate">
                         <span className="truncate">{user.schoolOrGoal}</span>
                         <span>•</span>
-                        <span className="text-slate-400 truncate">{user.favoriteSubject}</span>
+                        <span className="text-[#A8A29E] truncate">{user.favoriteSubject}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Lado Direito: Métricas (Streaks, Precisão, Pontuação) e Ações */}
-                  <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-[#E7E2D9] dark:border-[#2C2C30]">
                     {/* Sequência de Dias */}
                     <div className="text-left sm:text-right">
-                      <span className="text-[10px] text-slate-400 block">Sequência:</span>
+                      <span className="text-[10px] text-[#A8A29E] block">Sequência:</span>
                       <span className="text-xs font-black text-amber-500 flex items-center gap-1 font-mono">
                         <Flame className="w-3.5 h-3.5 fill-amber-500" />
                         {user.streakDays}d
@@ -640,7 +640,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
 
                     {/* Taxa de Acerto */}
                     <div className="text-left sm:text-right">
-                      <span className="text-[10px] text-slate-400 block">Precisão:</span>
+                      <span className="text-[10px] text-[#A8A29E] block">Precisão:</span>
                       <span className="text-xs font-bold text-emerald-500 font-mono">
                         {user?.accuracy ?? 0}%
                       </span>
@@ -648,10 +648,10 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
 
                     {/* Pontuação */}
                     <div className="text-right min-w-[70px]">
-                      <span className="text-[10px] text-slate-400 block">
+                      <span className="text-[10px] text-[#A8A29E] block">
                         {period === 'weekly' ? 'XP Semanal:' : 'Total:'}
                       </span>
-                      <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono">
+                      <span className="text-xs sm:text-sm font-black text-[#1C1917] dark:text-[#FAF9F5] font-mono">
                         {period === 'weekly' ? user.weeklyXp : user.score} XP
                       </span>
                     </div>
@@ -670,7 +670,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({
                         <button
                           type="button"
                           onClick={() => handleChallenge(user)}
-                          className="p-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white transition-colors cursor-pointer shadow-xs"
+                          className="p-1.5 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white transition-colors cursor-pointer shadow-xs"
                           title="Desafiar no Treino"
                         >
                           <Swords className="w-4 h-4" />

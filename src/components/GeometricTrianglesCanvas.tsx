@@ -58,10 +58,10 @@ export const GeometricTrianglesCanvas: React.FC = () => {
     const TRIANGLE_MAX_DIST = 145; // Max distance to form filled triangles
 
     const colors = [
-      'rgba(59, 130, 246, ',   // blue-500
-      'rgba(99, 102, 241, ',   // indigo-500
-      'rgba(14, 165, 233, ',   // sky-500
-      'rgba(139, 92, 246, ',   // purple-500
+      'rgba(45, 90, 70, ',   // forest-700
+      'rgba(30, 62, 48, ',   // forest-900
+      'rgba(82, 183, 136, ', // forest-400
+      'rgba(47, 125, 95, ',  // forest-600
     ];
 
     const initPoints = () => {
@@ -155,12 +155,12 @@ export const GeometricTrianglesCanvas: React.FC = () => {
                   ctx.lineTo(p2.x, p2.y);
                   ctx.lineTo(p3.x, p3.y);
                   ctx.closePath();
-                  ctx.fillStyle = `rgba(59, 130, 246, ${Math.min(0.28, alpha)})`;
+                  ctx.fillStyle = `rgba(45, 90, 70, ${Math.min(0.28, alpha)})`;
                   ctx.fill();
                   
                   // Optional delicate triangle border
                   if (alpha > 0.1) {
-                    ctx.strokeStyle = `rgba(99, 102, 241, ${alpha * 0.7})`;
+                    ctx.strokeStyle = `rgba(30, 62, 48, ${alpha * 0.7})`;
                     ctx.lineWidth = 0.6;
                     ctx.stroke();
                   }
@@ -192,7 +192,7 @@ export const GeometricTrianglesCanvas: React.FC = () => {
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(99, 102, 241, ${Math.min(0.7, alpha)})`;
+            ctx.strokeStyle = `rgba(30, 62, 48, ${Math.min(0.7, alpha)})`;
             ctx.lineWidth = mouseDist < mouse.radius ? 1.2 : 0.6;
             ctx.stroke();
           }
@@ -205,7 +205,7 @@ export const GeometricTrianglesCanvas: React.FC = () => {
           ctx.beginPath();
           ctx.moveTo(p1.x, p1.y);
           ctx.lineTo(mouse.x, mouse.y);
-          ctx.strokeStyle = `rgba(37, 99, 235, ${alpha})`;
+          ctx.strokeStyle = `rgba(45, 90, 70, ${alpha})`;
           ctx.lineWidth = 1.3;
           ctx.stroke();
         }
@@ -219,13 +219,13 @@ export const GeometricTrianglesCanvas: React.FC = () => {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, isHovered ? p.radius * 1.5 : p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = isHovered ? '#2563EB' : `${p.color}0.75)`;
+        ctx.fillStyle = isHovered ? '#2D5A46' : `${p.color}0.75)`;
         ctx.fill();
 
         if (isHovered) {
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.radius * 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
+          ctx.fillStyle = 'rgba(45, 90, 70, 0.2)';
           ctx.fill();
         }
       }

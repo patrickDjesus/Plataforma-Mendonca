@@ -79,22 +79,22 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
     activeMetric === 'time' ? timeProgress : xpProgress;
 
   const gaugeData = [
-    { name: 'Concluído', value: Math.min(100, activePercent), color: activePercent >= 100 ? '#10B981' : '#3B82F6' },
-    { name: 'Restante', value: Math.max(0, 100 - activePercent), color: '#E2E8F0' }
+    { name: 'Concluído', value: Math.min(100, activePercent), color: activePercent >= 100 ? '#10B981' : '#2D5A46' },
+    { name: 'Restante', value: Math.max(0, 100 - activePercent), color: '#E7E2D9' }
   ];
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[28px] p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:shadow-lg hover:shadow-blue-500/15 hover:border-blue-300 dark:hover:border-blue-700/60 transition-all duration-300 flex flex-col gap-5 relative overflow-hidden">
+    <div className="bg-white dark:bg-[#18181B] rounded-[28px] p-5 sm:p-6 border border-[#E7E2D9]/80 dark:border-[#2C2C30] shadow-2xs hover:shadow-lg hover:shadow-[#2D5A46]/15 hover:border-[#D6D0C5] dark:hover:border-[#2D5A46]/60 transition-all duration-300 flex flex-col gap-5 relative overflow-hidden">
       
       {/* Header com Ícone, Título e Botão de Ajuste */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-xs">
+          <div className="w-10 h-10 rounded-2xl bg-[#EBF3EF] dark:bg-[#15221B]/60 text-[#2D5A46] dark:text-[#52B788] flex items-center justify-center shadow-xs">
             <Target className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
+              <h3 className="text-base font-bold font-display text-[#1C1917] dark:text-[#FAF9F5]">
                 Meta Diária de Aprendizado
               </h3>
               {isGoalReached && (
@@ -103,7 +103,7 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            <p className="text-xs text-[#78716C] dark:text-[#A8A29E] font-medium">
               Acompanhamento inteligente de foco para o ENEM e vestibulares
             </p>
           </div>
@@ -111,7 +111,7 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
 
         <button
           onClick={() => setIsEditingGoal(!isEditingGoal)}
-          className="text-xs font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1"
+          className="text-xs font-semibold text-[#78716C] hover:text-[#2D5A46] dark:text-[#A8A29E] dark:hover:text-[#52B788] p-2 rounded-xl hover:bg-[#E5DFD5] dark:hover:bg-[#333338] transition-colors cursor-pointer flex items-center gap-1"
           title="Personalizar metas"
         >
           <Settings2 className="w-4 h-4" />
@@ -126,15 +126,15 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3"
+            className="p-4 bg-[#EFECE6] dark:bg-[#232326]/80 rounded-2xl border border-[#E7E2D9] dark:border-[#3B3B40] space-y-3"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span className="text-xs font-bold text-[#44403C] dark:text-[#D6D3CD]">
                 Selecione sua meta diária de resolução:
               </span>
               <button
                 onClick={() => setIsEditingGoal(false)}
-                className="text-[11px] text-slate-400 hover:text-slate-600"
+                className="text-[11px] text-[#A8A29E] hover:text-[#57534E]"
               >
                 Fechar
               </button>
@@ -150,8 +150,8 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
                   onClick={() => handleSaveGoals(preset.q, preset.min)}
                   className={`p-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                     targetQuestions === preset.q
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-400'
+                      ? 'bg-[#2D5A46] text-white border-[#2D5A46] shadow-xs'
+                      : 'bg-white dark:bg-[#18181B] text-[#44403C] dark:text-[#D6D3CD] border-[#E7E2D9] dark:border-[#3B3B40] hover:border-[#2D5A46]'
                   }`}
                 >
                   {preset.label}
@@ -174,7 +174,7 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-slate-900 text-white text-[10px] px-2 py-1 rounded shadow font-bold">
+                        <div className="bg-[#18181B] text-white text-[10px] px-2 py-1 rounded shadow font-bold">
                           {payload[0].name}: {payload[0].value}%
                         </div>
                       );
@@ -195,7 +195,7 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
                   stroke="none"
                   animationDuration={800}
                 >
-                  <Cell fill={isGoalReached ? '#10B981' : '#2563EB'} />
+                  <Cell fill={isGoalReached ? '#10B981' : '#2D5A46'} />
                   <Cell fill="#E2E8F0" className="dark:opacity-20" />
                 </Pie>
               </PieChart>
@@ -203,10 +203,10 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
 
             {/* Texto Central */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-xl sm:text-2xl font-black font-display text-slate-900 dark:text-white">
+              <span className="text-xl sm:text-2xl font-black font-display text-[#1C1917] dark:text-[#FAF9F5]">
                 {activePercent}%
               </span>
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-[#A8A29E]">
                 Hoje
               </span>
             </div>
@@ -221,24 +221,24 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
             onClick={() => setActiveMetric('questions')}
             className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               activeMetric === 'questions'
-                ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-300 dark:border-blue-700 shadow-2xs'
-                : 'bg-white dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800 hover:border-slate-300'
+                ? 'bg-[#EBF3EF]/70 dark:bg-[#15221B]/40 border-[#CFE1D6] dark:border-[#2D5A46]/70 shadow-2xs'
+                : 'bg-white dark:bg-[#18181B]/60 border-[#E7E2D9]/80 dark:border-[#2C2C30] hover:border-[#D6D0C5]'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-[#EBF3EF] dark:bg-[#15221B]/50 text-[#2D5A46] dark:text-[#52B788] flex items-center justify-center text-xs font-bold shrink-0">
                 <Target className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                <span className="text-xs font-bold text-[#1C1917] dark:text-[#E7E5E4]">
                   Exercícios Resolvidos
                 </span>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-[11px] text-[#78716C] dark:text-[#A8A29E]">
                   {todayQuestionsAnswered} de {targetQuestions} questões concluídas
                 </p>
               </div>
             </div>
-            <span className="text-xs font-extrabold text-blue-600 dark:text-blue-400 font-mono">
+            <span className="text-xs font-extrabold text-[#2D5A46] dark:text-[#52B788] font-mono">
               {questionsProgress}%
             </span>
           </div>
@@ -248,24 +248,24 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
             onClick={() => setActiveMetric('time')}
             className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               activeMetric === 'time'
-                ? 'bg-cyan-50/70 dark:bg-cyan-950/40 border-cyan-300 dark:border-cyan-700 shadow-2xs'
-                : 'bg-white dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800 hover:border-slate-300'
+                ? 'bg-[#EBF3EF]/70 dark:bg-[#15221B]/40 border-[#CFE1D6] dark:border-[#2D5A46]/70 shadow-2xs'
+                : 'bg-white dark:bg-[#18181B]/60 border-[#E7E2D9]/80 dark:border-[#2C2C30] hover:border-[#D6D0C5]'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-900/50 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-[#EBF3EF] dark:bg-[#15221B]/50 text-[#2D5A46] dark:text-[#52B788] flex items-center justify-center text-xs font-bold shrink-0">
                 <Clock className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                <span className="text-xs font-bold text-[#1C1917] dark:text-[#E7E5E4]">
                   Tempo Dedicado Hoje
                 </span>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-[11px] text-[#78716C] dark:text-[#A8A29E]">
                   {todayMinutesStudied} de {targetMinutes} minutos planejados
                 </p>
               </div>
             </div>
-            <span className="text-xs font-extrabold text-cyan-600 dark:text-cyan-400 font-mono">
+            <span className="text-xs font-extrabold text-[#2D5A46] dark:text-[#52B788] font-mono">
               {timeProgress}%
             </span>
           </div>
@@ -275,24 +275,24 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
             onClick={() => setActiveMetric('xp')}
             className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               activeMetric === 'xp'
-                ? 'bg-purple-50/70 dark:bg-purple-950/40 border-purple-300 dark:border-purple-700 shadow-2xs'
-                : 'bg-white dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800 hover:border-slate-300'
+                ? 'bg-[#EBF3EF]/70 dark:bg-[#15221B]/40 border-[#CFE1D6] dark:border-[#2D5A46]/70 shadow-2xs'
+                : 'bg-white dark:bg-[#18181B]/60 border-[#E7E2D9]/80 dark:border-[#2C2C30] hover:border-[#D6D0C5]'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-[#EBF3EF] dark:bg-[#15221B]/50 text-[#2D5A46] dark:text-[#52B788] flex items-center justify-center text-xs font-bold shrink-0">
                 <Zap className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                <span className="text-xs font-bold text-[#1C1917] dark:text-[#E7E5E4]">
                   XP Neural Diário
                 </span>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-[11px] text-[#78716C] dark:text-[#A8A29E]">
                   +{todayXpEarned} XP acumulados hoje
                 </p>
               </div>
             </div>
-            <span className="text-xs font-extrabold text-purple-600 dark:text-purple-400 font-mono">
+            <span className="text-xs font-extrabold text-[#2D5A46] dark:text-[#52B788] font-mono">
               {xpProgress}%
             </span>
           </div>
@@ -301,8 +301,8 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
       </div>
 
       {/* Footer com CTA Direto para o Treino */}
-      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
-        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+      <div className="pt-3 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex items-center justify-between gap-3">
+        <span className="text-xs text-[#78716C] dark:text-[#A8A29E] font-medium">
           {isGoalReached ? (
             <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5" /> Parabéns! Meta diária atingida com sucesso.
@@ -316,7 +316,7 @@ export const DailyLearningGoal: React.FC<DailyLearningGoalProps> = ({
 
         <button
           onClick={onStartTraining}
-          className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+          className="px-4 py-2 rounded-xl bg-[#2D5A46] hover:bg-[#21483A] text-white font-bold text-xs shadow-md shadow-[#2D5A46]/20 flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
         >
           <Play className="w-3.5 h-3.5 fill-white" />
           <span>{isGoalReached ? 'Continuar Praticando' : 'Avançar na Meta'}</span>
