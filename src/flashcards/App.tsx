@@ -11,12 +11,15 @@ import {
   loadStoredDecks,
   saveStoredDecks,
   loadStoredStats,
+  saveStoredStats,
   loadSoundSetting,
   saveSoundSetting,
   loadThemeSetting,
   saveThemeSetting,
-  recordStudySession,
+  updateStatsWithReview,
+  incrementSessionsCompleted,
 } from './utils/storage';
+import { calculateSM2 } from './utils/sm2';
 import { soundFx } from './utils/sound';
 import { Navbar } from './components/Navbar';
 import { DeckList } from './components/DeckList';
@@ -99,6 +102,11 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
   useEffect(() => {
     saveStoredDecks(decks);
   }, [decks]);
+
+  // Persist stats (updated in real time during study sessions)
+  useEffect(() => {
+    saveStoredStats(stats);
+  }, [stats]);
 
   // ======== Sync Supabase (baralhos, estatísticas e sessões) ========
   const [flashcardUserId, setFlashcardUserId] = useState<string | null>(null);
@@ -398,6 +406,42 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
     );
   };
 
+  // Live card review while studying: updates the card stats and global progress in real time
+  const handleCardReviewed = (card: Flashcard, correct: boolean) => {
+    if (!activeDeckId) return;
+    const cardId = card.id;
+
+    setDecks((prev) =>
+      prev.map((d) => {
+        if (d.id !== activeDeckId) return d;
+        return {
+          ...d,
+          lastStudiedAt: Date.now(),
+          cards: d.cards.map((c) => {
+            if (c.id !== cardId) return c;
+            const sm2 = calculateSM2(c, correct ? 4 : 0);
+            return {
+              ...c,
+              repetition: sm2.repetition,
+              interval: sm2.interval,
+              easeFactor: sm2.easeFactor,
+              dueDate: sm2.dueDate,
+              status: sm2.status,
+              correctCount: (c.correctCount || 0) + (correct ? 1 : 0),
+              errorCount: (c.errorCount || 0) + (correct ? 0 : 1),
+              reviewHistory: [
+                ...(c.reviewHistory || []),
+                { timestamp: Date.now(), rating: correct ? 4 : 0, mode: 'unified' },
+              ],
+            };
+          }),
+        };
+      })
+    );
+
+    setStats((prev) => updateStatsWithReview(prev, correct));
+  };
+
   // Finish study session
   const handleFinishStudySession = (studiedCount: number, correctCount: number) => {
     if (!activeDeck) return;
@@ -416,9 +460,8 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
       });
     }
 
-    // Record stats
-    const newStats = recordStudySession(studiedCount, correctCount);
-    setStats(newStats);
+    // Stats were already updated live during the session; only mark it as completed
+    setStats((prev) => incrementSessionsCompleted(prev));
 
     const modeLabels: Record<StudyMode, string> = {
       unified: 'Estudo Ativo em 2 Fases',
@@ -529,6 +572,7 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
             <UnifiedStudySession
               deck={activeDeck}
               cards={activeDeck.cards}
+              onCardReviewed={handleCardReviewed}
               onUpdateCardAcceptedAnswer={handleUpdateCardAcceptedAnswer}
               onFinish={({ totalCards, correctCount }) => {
                 handleFinishStudySession(totalCards, correctCount);

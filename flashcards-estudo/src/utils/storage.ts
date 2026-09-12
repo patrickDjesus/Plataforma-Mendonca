@@ -151,6 +151,54 @@ export function recordStudySession(cardsCount: number, correctCount: number): Us
 }
 
 /**
+ * Incrementally update the global stats after a single live card review
+ * (used so performance, streak and daily log update in real time while studying)
+ */
+export function updateStatsWithReview(stats: UserStats, correct: boolean): UserStats {
+  const today = getTodayDateString();
+
+  // Streak logic
+  let newStreak = stats.streak;
+  if (stats.lastStudyDate) {
+    const lastDate = new Date(stats.lastStudyDate);
+    const currentDate = new Date(today);
+    const diffDays = Math.round((currentDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      newStreak += 1;
+    } else if (diffDays > 1) {
+      newStreak = 1;
+    }
+  } else {
+    newStreak = 1;
+  }
+
+  const existingDaily = stats.historyByDate[today] || { reviewed: 0, correct: 0 };
+
+  return {
+    ...stats,
+    streak: newStreak,
+    lastStudyDate: today,
+    totalCardsStudied: stats.totalCardsStudied + 1,
+    totalCorrect: stats.totalCorrect + (correct ? 1 : 0),
+    historyByDate: {
+      ...stats.historyByDate,
+      [today]: {
+        reviewed: existingDaily.reviewed + 1,
+        correct: existingDaily.correct + (correct ? 1 : 0),
+      },
+    },
+  };
+}
+
+/**
+ * Mark a finished session (totals are already updated live during the session)
+ */
+export function incrementSessionsCompleted(stats: UserStats): UserStats {
+  return { ...stats, sessionsCompleted: stats.sessionsCompleted + 1 };
+}
+
+/**
  * Batch import parser: accepts formats like:
  * Termo - Definição
  * Pergunta : Resposta

@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Flame,
   Award,
+  Sigma,
 } from 'lucide-react';
 import { Deck, Flashcard } from '../../types';
 import { soundFx } from '../../utils/sound';
@@ -22,12 +23,20 @@ import { soundFx } from '../../utils/sound';
 interface UnifiedStudySessionProps {
   deck: Deck;
   cards: Flashcard[];
+  onCardReviewed: (card: Flashcard, correct: boolean) => void;
   onUpdateCardAcceptedAnswer: (cardId: string, newAcceptedAnswer: string) => void;
   onFinish: (summary: { totalCards: number; correctCount: number; newLearnedAnswers: number }) => void;
   onExit: () => void;
 }
 
 type StudyPhase = 'recognition' | 'transition' | 'writing' | 'completed';
+
+const MATH_SYMBOLS = [
+  'π', 'λ', 'μ', 'σ', 'Σ', 'Δ', 'δ', 'θ', 'φ', 'α', 'β', 'γ', 'ω', 'Ω',
+  '√', '∞', '∫', '∂', '∏', '∑', '∈', '∉', '∪', '∩', '∀', '∃',
+  '≤', '≥', '≠', '≈', '±', '×', '÷', '⇒', '⇔',
+  'ℝ', 'ℚ', 'ℤ', 'ℕ', '°', '·', '²', '³', '¹', '⁻¹', '½', '¼', '¾', '%',
+];
 
 function normalizeText(text: string): string {
   return text
@@ -42,6 +51,7 @@ function normalizeText(text: string): string {
 export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
   deck,
   cards,
+  onCardReviewed,
   onUpdateCardAcceptedAnswer,
   onFinish,
   onExit,
@@ -61,9 +71,23 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
   const [feedbackState, setFeedbackState] = useState<'idle' | 'direct_correct' | 'ask_if_correct'>('idle');
   const [newAcceptedCount, setNewAcceptedCount] = useState(0);
   const [recentlySavedFormat, setRecentlySavedFormat] = useState<string | null>(null);
+  const [writingCorrectCount, setWritingCorrectCount] = useState(0);
+  const [showMathPalette, setShowMathPalette] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionFlipTimeout = useRef<number | null>(null);
+
+  const insertMathSymbol = (symbol: string) => {
+    const input = inputRef.current;
+    const start = input?.selectionStart ?? userInput.length;
+    const end = input?.selectionEnd ?? userInput.length;
+    setUserInput(userInput.slice(0, start) + symbol + userInput.slice(end));
+    requestAnimationFrame(() => {
+      input?.focus();
+      const pos = start + symbol.length;
+      input?.setSelectionRange(pos, pos);
+    });
+  };
 
   const totalCardsCount = cards.length;
 
@@ -142,6 +166,9 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
       }));
     }
 
+    // Update performance in real time (card + global stats)
+    onCardReviewed(currentRecognitionCard, knows);
+
     const queueWhenAnswered = recognitionQueue;
 
     // Flip the card back to the question first, then advance to the next card
@@ -198,6 +225,8 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
     if (isDirectMatch) {
       // DIRECT MATCH: Correct!
       soundFx.playCorrect();
+      onCardReviewed(currentWritingCard, true);
+      setWritingCorrectCount((prev) => prev + 1);
       setFeedbackState('direct_correct');
 
       setTimeout(() => {
@@ -222,6 +251,8 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
     setRecentlySavedFormat(trimmedInput);
 
     soundFx.playCorrect();
+    onCardReviewed(currentWritingCard, true);
+    setWritingCorrectCount((prev) => prev + 1);
     setFeedbackState('direct_correct');
 
     setTimeout(() => {
@@ -235,6 +266,7 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
     if (!currentWritingCard) return;
 
     soundFx.playWrong();
+    onCardReviewed(currentWritingCard, false);
     setUserInput('');
     setFeedbackState('idle');
 
@@ -405,6 +437,16 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
   const completedInPhase = totalCardsCount - currentQueueLength;
   const progressPercent = Math.round((completedInPhase / totalCardsCount) * 100);
 
+  // Live performance counters for the current phase
+  const recognitionWrongCount = Object.values(recognitionFailures).reduce((acc, v) => acc + v, 0);
+  const liveCorrectCount =
+    phase === 'recognition'
+      ? Math.max(0, recognitionAttempts - recognitionWrongCount)
+      : writingCorrectCount;
+  const liveWrongCount =
+    phase === 'recognition' ? recognitionWrongCount : Math.max(0, writingAttempts - writingCorrectCount);
+  const liveAttemptCount = phase === 'recognition' ? recognitionAttempts : writingAttempts;
+
   return (
     <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6 animate-in fade-in duration-200">
       {/* Top Header: Navigation & Mode Indicator */}
@@ -412,10 +454,11 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
         <button
           id="btn-exit-study-session"
           onClick={onExit}
-          className="inline-flex items-center gap-2 text-xs font-bold text-[#78716C] hover:text-[#1C1917] dark:text-[#A8A29E] dark:hover:text-[#FAF9F5] px-3 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+          title="Sair do baralho agora (o desempenho já foi salvo em tempo real)"
+          className="inline-flex items-center gap-2 text-xs font-bold text-[#DC2626] dark:text-[#F87171] border border-[#FECACA] dark:border-[#7F1D1D] bg-[#FEF2F2] dark:bg-[#2C1818] hover:bg-[#FEE2E2] dark:hover:bg-[#3A1D1D] px-3 py-1.5 rounded-xl transition-all cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Sair da Sessão</span>
+          <span>Sair do Baralho</span>
         </button>
 
         {/* Phase Pill */}
@@ -458,6 +501,26 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
             }`}
             style={{ width: `${progressPercent}%` }}
           />
+        </div>
+
+        {/* Live performance counters */}
+        <div className="flex items-center gap-2 text-[11px] font-mono pt-1">
+          <span className="text-[#78716C] dark:text-[#A8A29E]">Sessão ao vivo:</span>
+          <span className="px-2 py-0.5 rounded-full bg-[#EAF5EE] dark:bg-[#1A3326] text-[#2D5A46] dark:text-[#52B788] font-bold">
+            <Check className="w-3 h-3 inline-block mr-0.5" />
+            {liveCorrectCount} certa{liveCorrectCount === 1 ? '' : 's'}
+          </span>
+          <span className="px-2 py-0.5 rounded-full bg-[#FEF2F2] dark:bg-[#2C1818] text-[#DC2626] dark:text-[#F87171] font-bold">
+            <X className="w-3 h-3 inline-block mr-0.5" />
+            {liveWrongCount} errada{liveWrongCount === 1 ? '' : 's'}
+          </span>
+          <span className="px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#57534E] dark:text-[#A8A29E]">
+            {liveAttemptCount} tentativa{liveAttemptCount === 1 ? '' : 's'}
+          </span>
+          <span className="ml-auto hidden sm:inline-flex items-center gap-1 text-[#A8A29E]">
+            <Flame className="w-3.5 h-3.5 text-[#E8792E]" />
+            streak atualizado em tempo real
+          </span>
         </div>
       </div>
 
@@ -670,6 +733,41 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
                     }}
                     className="space-y-3 pt-2"
                   >
+                    {/* Math symbols palette button */}
+                    <div className="flex items-center justify-between gap-2">
+                      <button
+                        id="btn-math-symbols-toggle"
+                        type="button"
+                        onClick={() => setShowMathPalette((prev) => !prev)}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                          showMathPalette
+                            ? 'bg-[#2D5A46] text-white'
+                            : 'bg-[#EFECE6] dark:bg-[#232326] text-[#57534E] dark:text-[#D6D3CD] hover:bg-[#E7E2D9] dark:hover:bg-[#2A2A2F]'
+                        }`}
+                        title="Inserir símbolos matemáticos na resposta"
+                      >
+                        <Sigma className="w-4 h-4" />
+                        <span>Símbolos Matemáticos</span>
+                      </button>
+                    </div>
+
+                    {/* Math symbols palette */}
+                    {showMathPalette && (
+                      <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5 p-3 rounded-2xl bg-[#FAF8F5] dark:bg-[#1E1E22] border border-[#E7E2D9] dark:border-[#2C2C30] animate-in fade-in duration-150">
+                        {MATH_SYMBOLS.map((sym) => (
+                          <button
+                            key={sym}
+                            type="button"
+                            onClick={() => insertMathSymbol(sym)}
+                            title={`Inserir ${sym}`}
+                            className="h-9 rounded-lg bg-white dark:bg-[#232326] border border-[#E7E2D9] dark:border-[#2C2C30] hover:border-[#2D5A46] dark:hover:border-[#52B788] hover:bg-[#EBF3EF] dark:hover:bg-[#1D2B24] text-[#1C1917] dark:text-[#FAF9F5] text-sm font-semibold transition-all cursor-pointer flex items-center justify-center"
+                          >
+                            {sym}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     <div className="relative">
                       <input
                         ref={inputRef}
