@@ -5,6 +5,7 @@ import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
 import { motion } from 'motion/react';
 import { TextSelection } from 'prosemirror-state';
+import type { EditorView } from 'prosemirror-view';
 import type { NotebookDoc, DocSection, GlossaryDefinition } from '../data/disciplinesData';
 import { sectionsToBlocks, blocksToSections } from '../utils/docConverter';
 import type { PartialBlocks } from '../utils/docConverter';
@@ -61,6 +62,40 @@ function ToolbarSep() {
   return <div className="doc-toolbar-sep" />;
 }
 
+const isWordChar = (ch: string | undefined): boolean => !!ch && /\p{L}\p{N}/u.test(ch);
+
+// Detecta a palavra sob o cursor (mesmo sem erro de ortografia), limitando a
+// expansão dentro do próprio bloco para não fundir palavras de linhas vizinhas.
+function wordAtPos(view: EditorView, left: number, top: number): MappedMatch | null {
+  const coord = view.posAtCoords({ left, top });
+  if (!coord) return null;
+  const doc = view.state.doc;
+  const $pos = doc.resolve(coord.pos);
+  const blockStart = $pos.start();
+  const blockEnd = $pos.end();
+  if (blockStart >= blockEnd) return null;
+
+  let from = Math.max(coord.pos, blockStart);
+  let to = Math.min(coord.pos, blockEnd);
+
+  while (from > blockStart) {
+    const ch = doc.textBetween(from - 1, from, '\n');
+    const chLast = ch.length > 0 ? ch[ch.length - 1] : undefined;
+    if (chLast === '\n' || !isWordChar(chLast)) break;
+    from -= ch.length;
+  }
+  while (to < blockEnd) {
+    const ch = doc.textBetween(to, to + 1, '\n');
+    const chFirst = ch.length > 0 ? ch[0] : undefined;
+    if (chFirst === '\n' || !isWordChar(chFirst)) break;
+    to += ch.length;
+  }
+  if (from >= to) return null;
+  const word = doc.textBetween(from, to, '\n');
+  if (!word.trim()) return null;
+  return { from, to, word, message: '', category: '', replacements: [] };
+}
+
 export function BlockNoteDocEditor({
   doc,
   spellEnabled,
@@ -91,6 +126,7 @@ export function BlockNoteDocEditor({
   const emitRef = useRef<() => void>(() => {});
 
   const [spellPopup, setSpellPopup] = useState<SpellPopupState | null>(null);
+  const [spellError, setSpellError] = useState(false);
   const [showCharPicker, setShowCharPicker] = useState(false);
   const charSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const [spellSuggestions, setSpellSuggestions] = useState<string[]>([]);
@@ -307,11 +343,13 @@ export function BlockNoteDocEditor({
 
     const el = (e.target as HTMLElement).closest?.('.bn-spell-error, .bn-spell-grammar') as HTMLElement | null;
     let match: MappedMatch | undefined;
+    let isSpellError = false;
     if (el) {
       const from = Number(el.dataset.from ?? NaN);
       const to = Number(el.dataset.to ?? NaN);
       if (Number.isFinite(from) && Number.isFinite(to)) {
         match = getSpellMatches(view.state).find((m) => m.from === from && m.to === to);
+        isSpellError = !!match;
       }
     }
     if (!match) {
@@ -319,13 +357,20 @@ export function BlockNoteDocEditor({
       if (pos) {
         const matches = getSpellMatches(view.state);
         match = matches.find((m) => pos.pos >= m.from && pos.pos < m.to);
+        isSpellError = !!match;
       }
     }
+    if (!match) {
+      // Sem erro de ortografia: detecta a palavra sob o cursor para permitir
+      // "Definir no glossário" em qualquer palavra do documento.
+      match = wordAtPos(view, e.clientX, e.clientY);
+    }
 
-    if (match) {
+    if (isSpellError && match) {
       view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, match.from, match.to)));
     }
 
+    setSpellError(isSpellError);
     setSpellPopup({
       x: e.clientX,
       y: e.clientY,
@@ -333,18 +378,20 @@ export function BlockNoteDocEditor({
       to: match ? match.to : -1,
       word: match ? match.word : '',
     });
-    setSpellMessage(match ? match.message : '');
+    setSpellMessage(isSpellError && match ? match.message : '');
 
-    if (match && match.replacements.length > 0) {
-      setSpellLoading(false);
-      setSpellSuggestions(match.replacements);
-    } else if (match) {
-      setSpellLoading(true);
-      setSpellSuggestions([]);
-      suggestForWord(match.word).then((sugs) => {
+    if (isSpellError && match) {
+      if (match.replacements.length > 0) {
         setSpellLoading(false);
-        setSpellSuggestions(sugs);
-      });
+        setSpellSuggestions(match.replacements);
+      } else {
+        setSpellLoading(true);
+        setSpellSuggestions([]);
+        suggestForWord(match.word).then((sugs) => {
+          setSpellLoading(false);
+          setSpellSuggestions(sugs);
+        });
+      }
     } else {
       setSpellLoading(false);
       setSpellSuggestions([]);
@@ -988,6 +1035,7 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
           suggestions={spellSuggestions}
           message={spellMessage}
           loading={spellLoading}
+          isSpellError={spellError}
           onPick={(value) => {
             const view = editor.prosemirrorView;
             if (view && spellPopup && spellPopup.from >= 0) {

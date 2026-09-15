@@ -14,6 +14,7 @@ interface SpellContextMenuProps {
   suggestions: string[];
   message?: string;
   loading: boolean;
+  isSpellError?: boolean;
   onPick: (value: string) => void;
   onCopy: () => void;
   onPaste: () => void;
@@ -27,6 +28,7 @@ export default function SpellContextMenu({
   suggestions,
   message,
   loading,
+  isSpellError = false,
   onPick,
   onCopy,
   onPaste,
@@ -69,7 +71,7 @@ export default function SpellContextMenu({
 
   return createPortal(
     <div ref={ref} className="doc-ctx-menu" style={{ left: pos.left, top: pos.top }}>
-      {hasWord ? (
+      {isSpellError ? (
         <>
           <div className="doc-ctx-word">{anchor.word}</div>
           {message ? <div className="doc-ctx-msg">{message}</div> : null}
@@ -90,6 +92,11 @@ export default function SpellContextMenu({
           )}
           <div className="doc-ctx-sep" />
         </>
+      ) : hasWord ? (
+        <>
+          <div className="doc-ctx-word">{anchor.word}</div>
+          <div className="doc-ctx-sep" />
+        </>
       ) : null}
 
       <button type="button" className="doc-ctx-item" onClick={onCopy}>Copiar</button>
@@ -97,8 +104,15 @@ export default function SpellContextMenu({
 
       {hasWord ? (
         <>
-          <div className="doc-ctx-sep" />
-          <button type="button" className="doc-ctx-item" onClick={onIgnore}>Ignorar erro</button>
+          {isSpellError ? (
+            <>
+              <div className="doc-ctx-sep" />
+              <button type="button" className="doc-ctx-item" onClick={onIgnore}>Ignorar erro</button>
+            </>
+          ) : null}
+          {onDefineGlossary ? (
+            <div className="doc-ctx-sep" />
+          ) : null}
           {onDefineGlossary ? (
             <button
               type="button"
@@ -110,9 +124,11 @@ export default function SpellContextMenu({
               Definir no glossário
             </button>
           ) : null}
-          <div className="doc-ctx-footer">
-            Correção por <a href="https://languagetool.org" target="_blank" rel="noopener noreferrer">LanguageTool</a>
-          </div>
+          {isSpellError ? (
+            <div className="doc-ctx-footer">
+              Correção por <a href="https://languagetool.org" target="_blank" rel="noopener noreferrer">LanguageTool</a>
+            </div>
+          ) : null}
         </>
       ) : null}
     </div>,

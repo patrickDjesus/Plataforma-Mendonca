@@ -135,6 +135,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
 
   // Modals & Drawers State
   const [isCreateDocOpen, setIsCreateDocOpen] = useState(false);
+  const [docToEdit, setDocToEdit] = useState<NotebookDoc | null>(null);
   const [isAddGlossaryOpen, setIsAddGlossaryOpen] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [initialGlossaryTerm, setInitialGlossaryTerm] = useState('');
@@ -279,6 +280,37 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
 
     // Open created doc directly
     setSelectedDocId(newDoc.id);
+  };
+
+  // Atualiza informações (título, descrição, tags, privacidade) de documento existente
+  const handleEditDocument = (updated: NotebookDoc) => {
+    if (!selectedDisciplineId || !selectedDocId || !updated.id) return;
+    setSaveStatus('saving');
+
+    setAllDisciplines(prev =>
+      prev.map(d => {
+        if (d.id === selectedDisciplineId) {
+          return {
+            ...d,
+            documents: d.documents.map(doc => {
+              if (doc.id === updated.id) {
+                return { ...doc, ...updated, disciplineId: d.id, lastEdited: 'Agora mesmo' };
+              }
+              return doc;
+            })
+          };
+        }
+        return d;
+      })
+    );
+
+    if (userId) {
+      saveDocument(userId, { ...updated, disciplineId: selectedDisciplineId, lastEdited: 'Agora mesmo' }).catch(err =>
+        console.warn('Erro ao salvar alterações do documento no Supabase:', err)
+      );
+    }
+    setTimeout(() => setSaveStatus('saved'), 400);
+    setDocToEdit(null);
   };
 
   // Toggle Document Sharing Status (Público vs Privado)
@@ -1429,6 +1461,20 @@ background: 'rgba(45, 90, 70, 0.15)',
                       Configurações do Documento
                     </div>
 
+                    {/* Editar Informações do Documento */}
+                    <button
+                      onClick={() => {
+                        setDocToEdit(selectedDoc);
+                        setIsMoreMenuOpen(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                    >
+                      <PenLine className="w-4 h-4 text-[#2D5A46]" />
+                      <span>Editar Informações</span>
+                    </button>
+
+                    <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+
                     {/* Alternar Visibilidade */}
                     <button
                       onClick={() => {
@@ -1549,13 +1595,18 @@ background: 'rgba(45, 90, 70, 0.15)',
         </div>
       )}
 
-      {/* Modal de Criação de Documento (Padrão em Branco) */}
+      {/* Modal de Criação/Edição de Documento (Padrão em Branco) */}
       {selectedDiscipline && (
         <CreateDocModal
-          isOpen={isCreateDocOpen}
-          onClose={() => setIsCreateDocOpen(false)}
+          isOpen={isCreateDocOpen || !!docToEdit}
+          onClose={() => {
+            setIsCreateDocOpen(false);
+            setDocToEdit(null);
+          }}
           discipline={selectedDiscipline}
           onCreateDoc={handleCreateDocument}
+          editDoc={docToEdit}
+          onEditDoc={handleEditDocument}
         />
       )}
 
