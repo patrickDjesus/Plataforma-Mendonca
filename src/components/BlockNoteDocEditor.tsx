@@ -341,29 +341,57 @@ export function BlockNoteDocEditor({
     const view = editor.prosemirrorView;
     if (!view) return;
 
-    const el = (e.target as HTMLElement).closest?.('.bn-spell-error, .bn-spell-grammar') as HTMLElement | null;
-    let match: MappedMatch | undefined;
+    let text = '';
+    let from = -1;
+    let to = -1;
     let isSpellError = false;
-    if (el) {
-      const from = Number(el.dataset.from ?? NaN);
-      const to = Number(el.dataset.to ?? NaN);
-      if (Number.isFinite(from) && Number.isFinite(to)) {
-        match = getSpellMatches(view.state).find((m) => m.from === from && m.to === to);
-        isSpellError = !!match;
+    let match: MappedMatch | undefined;
+
+    // 1º) Se houver trecho selecionado no documento, usa ele como termo.
+    // "Definir no glossário" deve funcionar para QUALQUER palavra OU trecho,
+    // independentemente de erro ortográfico ou do menu padrão do navegador.
+    const sel = view.state.selection;
+    if (!sel.empty) {
+      from = sel.from;
+      to = sel.to;
+      text = view.state.doc.textBetween(from, to, '\n').trim();
+    }
+
+    // 2º) Sem seleção => detecta erro de ortografia sob o cursor.
+    if (!text) {
+      const el = (e.target as HTMLElement).closest?.('.bn-spell-error, .bn-spell-grammar') as HTMLElement | null;
+      if (el) {
+        const f = Number(el.dataset.from ?? NaN);
+        const t = Number(el.dataset.to ?? NaN);
+        if (Number.isFinite(f) && Number.isFinite(t)) {
+          match = getSpellMatches(view.state).find((m) => m.from === f && m.to === t);
+          isSpellError = !!match;
+        }
+      }
+      if (!match) {
+        const pos = view.posAtCoords({ left: e.clientX, top: e.clientY });
+        if (pos) {
+          const matches = getSpellMatches(view.state);
+          match = matches.find((m) => pos.pos >= m.from && pos.pos < m.to);
+          isSpellError = !!match;
+        }
+      }
+      if (match) {
+        from = match.from;
+        to = match.to;
+        text = match.word;
       }
     }
-    if (!match) {
-      const pos = view.posAtCoords({ left: e.clientX, top: e.clientY });
-      if (pos) {
-        const matches = getSpellMatches(view.state);
-        match = matches.find((m) => pos.pos >= m.from && pos.pos < m.to);
-        isSpellError = !!match;
+
+    // 3º) Sem seleção e sem erro: usa a palavra sob o cursor para permitir
+    // "Definir no glossário" em qualquer palavra do documento.
+    if (!text) {
+      const w = wordAtPos(view, e.clientX, e.clientY);
+      if (w) {
+        from = w.from;
+        to = w.to;
+        text = w.word;
       }
-    }
-    if (!match) {
-      // Sem erro de ortografia: detecta a palavra sob o cursor para permitir
-      // "Definir no glossário" em qualquer palavra do documento.
-      match = wordAtPos(view, e.clientX, e.clientY);
     }
 
     if (isSpellError && match) {
@@ -374,9 +402,9 @@ export function BlockNoteDocEditor({
     setSpellPopup({
       x: e.clientX,
       y: e.clientY,
-      from: match ? match.from : -1,
-      to: match ? match.to : -1,
-      word: match ? match.word : '',
+      from,
+      to,
+      word: text,
     });
     setSpellMessage(isSpellError && match ? match.message : '');
 

@@ -750,6 +750,45 @@
   color: #52B788;
 }
 
+/* Ação principal do menu de contexto: Definir no glossário */
+.doc-ctx-define {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+  background: #EBF3EF;
+  border: 1px solid #CFE1D6;
+  color: #224A38;
+  font-weight: 700;
+}
+
+.doc-ctx-define:hover {
+  background: #CFE1D6;
+  color: #18382A;
+}
+
+.dark .doc-ctx-define {
+  background: #15221B;
+  border-color: #22392D;
+  color: #52B788;
+}
+
+.dark .doc-ctx-define:hover {
+  background: #22392D;
+  color: #6BCFA0;
+}
+
+.doc-ctx-define-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: #2D5A46;
+}
+
+.dark .doc-ctx-define-icon {
+  color: #52B788;
+}
+
 .doc-ctx-empty {
   padding: 6px 10px;
   font-size: 12.5px;

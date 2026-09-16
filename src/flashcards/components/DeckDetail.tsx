@@ -24,16 +24,17 @@ import {
   Clock,
   Shuffle,
 } from 'lucide-react';
-import { Deck, Flashcard, StudyMode } from '../types';
+import { Deck, Flashcard, StudyFocus } from '../types';
 import { COLOR_THEMES, renderDeckIcon } from '../utils/theme';
 import { soundFx } from '../utils/sound';
 import { DeckStatusChart } from './DeckStatusChart';
+import { isHardCard, countHardCards } from '../utils/studyFilter';
 
 interface DeckDetailProps {
   deck: Deck;
   initialSearch?: string;
   onBack: () => void;
-  onStartStudy: () => void;
+  onStartStudy: (focus: StudyFocus) => void;
   onAddCard: () => void;
   onEditCard: (card: Flashcard) => void;
   onDuplicateCard: (card: Flashcard) => void;
@@ -64,6 +65,7 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
   const [filterType, setFilterType] = useState<'all' | 'starred' | 'difficult' | 'mastered'>('all');
   const [selectedTag, setSelectedTag] = useState<string>('all');
   const [showDeckMenu, setShowDeckMenu] = useState(false);
+  const [studyFocus, setStudyFocus] = useState<StudyFocus>('all');
 
   const theme = COLOR_THEMES[deck.color] || COLOR_THEMES.indigo;
 
@@ -77,6 +79,7 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
     (c) => c.status === 'learning' || c.status === 'review'
   ).length;
   const starredCount = deck.cards.filter((c) => c.starred).length;
+  const hardCount = countHardCards(deck.cards);
 
   const now = Date.now();
   const dueTodayCount = deck.cards.filter((c) => (c.dueDate || 0) <= now).length;
@@ -105,7 +108,7 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
 
       // Status/Type filter
       if (filterType === 'starred' && !c.starred) return false;
-      if (filterType === 'difficult' && (c.difficulty !== 'hard' && (c.errorCount || 0) === 0)) return false;
+      if (filterType === 'difficult' && !isHardCard(c)) return false;
       if (filterType === 'mastered' && c.status !== 'mastered') return false;
 
       return true;
@@ -280,7 +283,7 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
         </div>
       </div>
 
-      {/* Unified 2-Phase Study Action Hero Card */}
+      {/* Repetição Espaçada — Ação Principal de Estudo */}
       <div
         id="unified-study-action-card"
         className="p-6 sm:p-8 rounded-3xl bg-[#FAF8F5] dark:bg-[#1A1A1D] border-2 border-[#E7E2D9] dark:border-[#2C2C30] shadow-[0_6px_24px_rgba(0,0,0,0.04)] relative overflow-hidden"
@@ -289,46 +292,59 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[11px] font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#EAF5EE] dark:bg-[#1A3326] text-[#2D5A46] dark:text-[#52B788] border border-[#C5E4D1] dark:border-[#24533A]">
-                Ciclo de Aprendizado Ativo em 2 Fases
+                Repetição Espaçada
               </span>
               {dueTodayCount > 0 && (
                 <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#FEF3C7] dark:bg-[#3D2E14] text-[#D97706] dark:text-[#FBBF24]">
                   {dueTodayCount} para revisar hoje
                 </span>
               )}
+              {hardCount > 0 && (
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#F9ECEB] dark:bg-[#2C1818] text-[#A8423F] dark:text-[#F87171]">
+                  {hardCount} difícil/não sei
+                </span>
+              )}
             </div>
 
             <div>
               <h2 className="text-2xl sm:text-3xl font-black font-['Fraunces',serif] text-[#1C1917] dark:text-[#FAF9F5] leading-snug">
-                Estudar Baralho Completo
+                Estudo com Repetição Espaçada
               </h2>
               <p className="text-xs sm:text-sm text-[#78716C] dark:text-[#A8A29E] mt-1 leading-relaxed">
-                Um método unificado e rigoroso em duas etapas para garantir a fixação de cada conceito:
+                Classifique cada cartão em 4 níveis: <strong className="text-[#1C1917] dark:text-[#FAF9F5]">Não sei</strong>,{' '}
+                <strong className="text-[#1C1917] dark:text-[#FAF9F5]">Muito difícil</strong>,{' '}
+                <strong className="text-[#1C1917] dark:text-[#FAF9F5]">Razoável</strong> e{' '}
+                <strong className="text-[#1C1917] dark:text-[#FAF9F5]">Fácil</strong>. Os mais difíceis reaparecem
+                com mais frequência, e o baralho é reagendado para revisão em ~3 dias para refrescar a memória.
               </p>
             </div>
 
-            {/* Two Phases Preview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div className="p-3.5 rounded-2xl bg-white dark:bg-[#141416] border border-[#E7E2D9] dark:border-[#2C2C30]">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#2D5A46] font-mono uppercase">
-                  <span>1ª Fase</span>
-                  <span>•</span>
-                  <span>Reconhecimento Ativo</span>
-                </div>
-                <p className="text-xs text-[#57534E] dark:text-[#A8A29E] mt-1 leading-relaxed">
-                  Surge cada carta: avalie se sabe ou não. Se não souber, ela ressurge até você acertar.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white dark:bg-[#141416] border border-[#E7E2D9] dark:border-[#2C2C30]">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#2D5A46] dark:text-[#52B788] font-mono uppercase">
-                  <span>2ª Fase</span>
-                  <span>•</span>
-                  <span>Domínio por Escrita</span>
-                </div>
-                <p className="text-xs text-[#57534E] dark:text-[#A8A29E] mt-1 leading-relaxed">
-                  Reinicia do zero para você digitar a resposta. Se seu formato for diferente, salve para o futuro!
-                </p>
+            {/* Filtro de foco do estudo */}
+            <div className="pt-1">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#8C7A6B] dark:text-[#A8A29E] block mb-1.5">
+                O que estudar agora?
+              </span>
+              <div className="flex flex-wrap gap-1.5 p-1 bg-[#EFECE6] dark:bg-[#202024] rounded-xl text-xs font-semibold w-fit">
+                <button
+                  onClick={() => setStudyFocus('all')}
+                  className={`px-3.5 py-2 rounded-lg font-medium transition-all ${
+                    studyFocus === 'all'
+                      ? 'bg-white dark:bg-[#161618] text-[#1C1917] dark:text-white shadow-xs'
+                      : 'text-[#78716C] dark:text-[#A8A29E] hover:text-[#1C1917]'
+                  }`}
+                >
+                  Baralho completo ({totalCards})
+                </button>
+                <button
+                  onClick={() => setStudyFocus('hard')}
+                  className={`px-3.5 py-2 rounded-lg font-medium transition-all ${
+                    studyFocus === 'hard'
+                      ? 'bg-white dark:bg-[#161618] text-[#A8423F] dark:text-[#F87171] shadow-xs'
+                      : 'text-[#78716C] dark:text-[#A8A29E] hover:text-[#1C1917]'
+                  }`}
+                >
+                  Difíceis e "não sei" ({hardCount})
+                </button>
               </div>
             </div>
           </div>
@@ -337,18 +353,30 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
           <div className="flex flex-col sm:flex-row lg:flex-col items-center justify-center gap-3 lg:border-l lg:border-[#E7E2D9] dark:lg:border-[#2C2C30] lg:pl-8 shrink-0">
             <button
               id="btn-start-study-session"
-              onClick={onStartStudy}
-              disabled={totalCards === 0}
+              onClick={() => onStartStudy(studyFocus)}
+              disabled={totalCards === 0 || (studyFocus === 'hard' && hardCount === 0)}
               className="w-full sm:w-auto lg:w-full flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-[#2D5A46] hover:bg-[#21483A] disabled:opacity-40 disabled:pointer-events-none text-white text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer group"
             >
-              <span>Começar a Estudar</span>
-              <span className="font-mono text-xs opacity-90">({totalCards} {totalCards === 1 ? 'carta' : 'cartas'})</span>
+              <span>{studyFocus === 'hard' ? 'Estudar Difíceis' : 'Começar a Estudar'}</span>
+              <span className="font-mono text-xs opacity-90">
+                ({studyFocus === 'hard' ? hardCount : totalCards} {studyFocus === 'hard' && hardCount === 1 ? 'carta' : totalCards === 1 ? 'carta' : 'cartas'})
+              </span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
 
             {totalCards === 0 && (
               <span className="text-[11px] text-[#A8A29E] text-center">
                 Cadastre pelo menos 1 cartão abaixo para iniciar
+              </span>
+            )}
+            {totalCards > 0 && studyFocus === 'hard' && hardCount === 0 && (
+              <span className="text-[11px] text-[#A8A29E] text-center">
+                Nenhum cartão difícil por enquanto — estude o baralho completo.
+              </span>
+            )}
+            {totalCards > 0 && (
+              <span className="text-[11px] text-[#8C7A6B] dark:text-[#A8A29E] text-center max-w-[220px]">
+                "Não sei" mantém o cartão na sessão até acertar; "Fácil" tira da categoria difícil.
               </span>
             )}
           </div>
@@ -406,7 +434,7 @@ export const DeckDetail: React.FC<DeckDetailProps> = ({
                     : 'text-[#78716C] dark:text-[#A8A29E] hover:text-[#1C1917]'
                 }`}
               >
-                Desafiadores
+                Desafiadores ({hardCount})
               </button>
             </div>
 

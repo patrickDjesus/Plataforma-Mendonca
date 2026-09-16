@@ -82,13 +82,13 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
         }
       } else {
         if (e.key === '1') {
-          handleRating(0); // Errei
+          handleRating(0); // Não sei
         } else if (e.key === '2') {
-          handleRating(3); // Difícil
+          handleRating(1); // Muito difícil
         } else if (e.key === '3') {
-          handleRating(4); // Bom
+          handleRating(2); // Razoável
         } else if (e.key === '4') {
-          handleRating(5); // Fácil
+          handleRating(3); // Fácil
         }
       }
     };
@@ -307,52 +307,52 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
               className="p-3 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 flex flex-col items-center justify-center transition-all hover:scale-102 group"
             >
               <span className="text-xs font-bold text-rose-700 dark:text-rose-400">
-                1. Errei
+                1. Não sei
               </span>
               <span className="text-[11px] text-rose-600/80 dark:text-rose-400/80 font-mono mt-0.5">
                 {intervalPreviews[0]}
               </span>
             </button>
 
-            {/* Difícil */}
+            {/* Muito difícil */}
             <button
               id="btn-sm2-hard"
-              onClick={() => handleRating(3)}
+              onClick={() => handleRating(1)}
               className="p-3 rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 flex flex-col items-center justify-center transition-all hover:scale-102 group"
             >
               <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
-                2. Difícil
+                2. Muito difícil
               </span>
               <span className="text-[11px] text-amber-600/80 dark:text-amber-400/80 font-mono mt-0.5">
-                {intervalPreviews[3]}
+                {intervalPreviews[1]}
               </span>
             </button>
 
-            {/* Bom */}
+            {/* Razoável */}
             <button
               id="btn-sm2-good"
-              onClick={() => handleRating(4)}
+              onClick={() => handleRating(2)}
               className="p-3 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 flex flex-col items-center justify-center transition-all hover:scale-102 group"
             >
               <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                3. Bom
+                3. Razoável
               </span>
               <span className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 font-mono mt-0.5">
-                {intervalPreviews[4]}
+                {intervalPreviews[2]}
               </span>
             </button>
 
             {/* Fácil */}
             <button
               id="btn-sm2-easy"
-              onClick={() => handleRating(5)}
+              onClick={() => handleRating(3)}
               className="p-3 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 flex flex-col items-center justify-center transition-all hover:scale-102 group"
             >
               <span className="text-xs font-bold text-blue-700 dark:text-blue-400">
                 4. Fácil
               </span>
               <span className="text-[11px] text-blue-600/80 dark:text-blue-400/80 font-mono mt-0.5">
-                {intervalPreviews[5]}
+                {intervalPreviews[3]}
               </span>
             </button>
           </div>

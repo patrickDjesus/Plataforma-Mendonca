@@ -43,6 +43,9 @@ export interface Deck {
 
 export type StudyMode = 'unified' | 'classic' | 'spaced' | 'quiz' | 'write' | 'match';
 
+// Foco do estudo: baralho completo ou somente os cartões mais difíceis
+export type StudyFocus = 'all' | 'hard';
+
 export interface DailyStudyLog {
   reviewed: number;
   correct: number;

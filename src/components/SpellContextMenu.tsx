@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { BookMarked } from 'lucide-react';
 
 export interface SpellPopupState {
   x: number;
@@ -71,11 +72,35 @@ export default function SpellContextMenu({
 
   return createPortal(
     <div ref={ref} className="doc-ctx-menu" style={{ left: pos.left, top: pos.top }}>
-      {isSpellError ? (
+      {hasWord ? (
         <>
           <div className="doc-ctx-word">{anchor.word}</div>
-          {message ? <div className="doc-ctx-msg">{message}</div> : null}
           <div className="doc-ctx-sep" />
+        </>
+      ) : null}
+
+      {/* Opção principal: Definir no glossário — SEMPRE visível para qualquer
+          palavra ou trecho selecionado, independente de erro ortográfico. */}
+      {hasWord && onDefineGlossary ? (
+        <button
+          type="button"
+          className="doc-ctx-item doc-ctx-define"
+          onClick={() => {
+            onDefineGlossary(anchor.word);
+          }}
+        >
+          <BookMarked className="doc-ctx-define-icon" />
+          <span>Definir no glossário</span>
+        </button>
+      ) : null}
+
+      <button type="button" className="doc-ctx-item" onClick={onCopy}>Copiar</button>
+      <button type="button" className="doc-ctx-item" onClick={onPaste}>Colar</button>
+
+      {hasWord && isSpellError ? (
+        <>
+          <div className="doc-ctx-sep" />
+          {message ? <div className="doc-ctx-msg">{message}</div> : null}
           <div className="doc-ctx-label">Sugestões</div>
           {loading ? (
             <div className="doc-ctx-empty">Buscando sugestões…</div>
@@ -91,44 +116,10 @@ export default function SpellContextMenu({
             <div className="doc-ctx-empty">Nenhuma sugestão encontrada.</div>
           )}
           <div className="doc-ctx-sep" />
-        </>
-      ) : hasWord ? (
-        <>
-          <div className="doc-ctx-word">{anchor.word}</div>
-          <div className="doc-ctx-sep" />
-        </>
-      ) : null}
-
-      <button type="button" className="doc-ctx-item" onClick={onCopy}>Copiar</button>
-      <button type="button" className="doc-ctx-item" onClick={onPaste}>Colar</button>
-
-      {hasWord ? (
-        <>
-          {isSpellError ? (
-            <>
-              <div className="doc-ctx-sep" />
-              <button type="button" className="doc-ctx-item" onClick={onIgnore}>Ignorar erro</button>
-            </>
-          ) : null}
-          {onDefineGlossary ? (
-            <div className="doc-ctx-sep" />
-          ) : null}
-          {onDefineGlossary ? (
-            <button
-              type="button"
-              className="doc-ctx-item"
-              onClick={() => {
-                onDefineGlossary(anchor.word);
-              }}
-            >
-              Definir no glossário
-            </button>
-          ) : null}
-          {isSpellError ? (
-            <div className="doc-ctx-footer">
-              Correção por <a href="https://languagetool.org" target="_blank" rel="noopener noreferrer">LanguageTool</a>
-            </div>
-          ) : null}
+          <button type="button" className="doc-ctx-item" onClick={onIgnore}>Ignorar erro</button>
+          <div className="doc-ctx-footer">
+            Correção por <a href="https://languagetool.org" target="_blank" rel="noopener noreferrer">LanguageTool</a>
+          </div>
         </>
       ) : null}
     </div>,

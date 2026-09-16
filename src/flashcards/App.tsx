@@ -4,6 +4,7 @@ import {
   Flashcard,
   UserStats,
   StudyMode,
+  StudyFocus,
   DifficultyLevel,
   DeckColor,
 } from './types';
@@ -19,7 +20,8 @@ import {
   updateStatsWithReview,
   incrementSessionsCompleted,
 } from './utils/storage';
-import { calculateSM2 } from './utils/sm2';
+import { calculateSRS, SRSRating } from './utils/sm2';
+import { isHardCard } from './utils/studyFilter';
 import { soundFx } from './utils/sound';
 import { Navbar } from './components/Navbar';
 import { DeckList } from './components/DeckList';
@@ -30,6 +32,7 @@ import { BatchImportModal } from './components/BatchImportModal';
 import { StatsModal } from './components/StatsModal';
 import { SessionSummaryModal } from './components/SessionSummaryModal';
 import { UnifiedStudySession } from './components/study/UnifiedStudySession';
+import { SrsStudySession } from './components/study/SrsStudySession';
 import {
   getFlashcardUserId,
   subscribeToFlashcardAuth,
@@ -63,6 +66,7 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
   // Navigation & Active View state
   const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
   const [activeStudyMode, setActiveStudyMode] = useState<StudyMode | null>(null);
+  const [studyFocus, setStudyFocus] = useState<StudyFocus>('all');
   const [deckInitialSearch, setDeckInitialSearch] = useState<string | undefined>(undefined);
 
   // Modals
@@ -419,7 +423,7 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
           lastStudiedAt: Date.now(),
           cards: d.cards.map((c) => {
             if (c.id !== cardId) return c;
-            const sm2 = calculateSM2(c, correct ? 4 : 0);
+            const sm2 = calculateSRS(c, correct ? 2 : 0);
             return {
               ...c,
               repetition: sm2.repetition,
@@ -432,6 +436,46 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
               reviewHistory: [
                 ...(c.reviewHistory || []),
                 { timestamp: Date.now(), rating: correct ? 4 : 0, mode: 'unified' },
+              ],
+            };
+          }),
+        };
+      })
+    );
+
+    setStats((prev) => updateStatsWithReview(prev, correct));
+  };
+
+  // Live rating feedback for the spaced-repetition study session (4 níveis):
+  // "Não sei" reinicia o ciclo; os demais níveis ajustam o intervalo e a
+  // categoria do cartão (Fácil ⇒ promove-o e tira da categoria de difíceis).
+  const handleCardRated = (card: Flashcard, rating: SRSRating) => {
+    if (!activeDeckId) return;
+    const cardId = card.id;
+    const correct = rating > 0;
+
+    setDecks((prev) =>
+      prev.map((d) => {
+        if (d.id !== activeDeckId) return d;
+        return {
+          ...d,
+          lastStudiedAt: Date.now(),
+          cards: d.cards.map((c) => {
+            if (c.id !== cardId) return c;
+            const srs = calculateSRS(c, rating);
+            return {
+              ...c,
+              repetition: srs.repetition,
+              interval: srs.interval,
+              easeFactor: srs.easeFactor,
+              dueDate: srs.dueDate,
+              status: srs.status,
+              difficulty: srs.difficulty,
+              correctCount: (c.correctCount || 0) + (correct ? 1 : 0),
+              errorCount: (c.errorCount || 0) + (correct ? 0 : 1),
+              reviewHistory: [
+                ...(c.reviewHistory || []),
+                { timestamp: Date.now(), rating, mode: 'spaced' },
               ],
             };
           }),
@@ -569,16 +613,32 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
         {/* VIEW 1: Study Mode in progress */}
         {activeDeck && activeStudyMode ? (
           <div className="w-full animate-in fade-in duration-150">
-            <UnifiedStudySession
-              deck={activeDeck}
-              cards={activeDeck.cards}
-              onCardReviewed={handleCardReviewed}
-              onUpdateCardAcceptedAnswer={handleUpdateCardAcceptedAnswer}
-              onFinish={({ totalCards, correctCount }) => {
-                handleFinishStudySession(totalCards, correctCount);
-              }}
-              onExit={() => setActiveStudyMode(null)}
-            />
+            {activeStudyMode === 'spaced' ? (
+              <SrsStudySession
+                deck={activeDeck}
+                cards={activeDeck.cards.filter((c) => (studyFocus === 'hard' ? isHardCard(c) : true))}
+                focus={studyFocus}
+                onToggleStar={(cardId) => {
+                  if (activeDeckId) handleToggleStarCard(cardId);
+                }}
+                onRateCard={handleCardRated}
+                onFinish={(studiedCount, correctCount) => {
+                  handleFinishStudySession(studiedCount, correctCount);
+                }}
+                onExit={() => setActiveStudyMode(null)}
+              />
+            ) : (
+              <UnifiedStudySession
+                deck={activeDeck}
+                cards={activeDeck.cards}
+                onCardReviewed={handleCardReviewed}
+                onUpdateCardAcceptedAnswer={handleUpdateCardAcceptedAnswer}
+                onFinish={({ totalCards, correctCount }) => {
+                  handleFinishStudySession(totalCards, correctCount);
+                }}
+                onExit={() => setActiveStudyMode(null)}
+              />
+            )}
           </div>
         ) : activeDeck ? (
           /* VIEW 2: Deck Detail & Cards Manager */
@@ -589,7 +649,10 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
               setActiveDeckId(null);
               setDeckInitialSearch(undefined);
             }}
-            onStartStudy={() => setActiveStudyMode('unified')}
+            onStartStudy={(focus) => {
+              setStudyFocus(focus);
+              setActiveStudyMode('spaced');
+            }}
             onAddCard={() => {
               setEditingCard(null);
               setIsCardModalOpen(true);
