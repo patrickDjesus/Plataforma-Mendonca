@@ -915,6 +915,9 @@ export const getUserDocuments = async (userId: string): Promise<NotebookDoc[]> =
           starred: row.starred || false,
           isPublic: row.is_public !== false,
           glossary: row.glossary || {},
+          group: row.group_name || undefined,
+          createdAtTs: row.created_at_ts || undefined,
+          lastEditedTs: row.last_edited_ts || undefined,
         } as NotebookDoc));
       }
     } catch (e) {
@@ -962,6 +965,9 @@ export const saveDocument = async (
       glossary: doc.glossary || {},
       word_count: doc.wordCount || 0,
       last_edited: doc.lastEdited || '',
+      group_name: doc.group || '',
+      created_at_ts: doc.createdAtTs || 0,
+      last_edited_ts: doc.lastEditedTs || 0,
       updated_at: new Date().toISOString(),
     };
 
@@ -1018,6 +1024,9 @@ export const getPublicDocuments = async (excludeUserId: string): Promise<Noteboo
           starred: row.starred || false,
           isPublic: true,
           glossary: row.glossary || {},
+          group: row.group_name || undefined,
+          createdAtTs: row.created_at_ts || undefined,
+          lastEditedTs: row.last_edited_ts || undefined,
         } as NotebookDoc));
       }
     } catch (e) {

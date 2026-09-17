@@ -52,6 +52,9 @@ export interface NotebookDoc {
   starred?: boolean;
   isPublic?: boolean;
   glossary?: Record<string, GlossaryDefinition>;
+  group?: string;
+  createdAtTs?: number;
+  lastEditedTs?: number;
 }
 
 export interface Discipline {

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ScreenId } from '../types/design';
 import { DISCIPLINES, Discipline, NotebookDoc, DocSection, GlossaryDefinition } from '../data/disciplinesData';
 import { motion, AnimatePresence } from 'motion/react';
@@ -38,7 +38,9 @@ import {
   MousePointer2,
   Smile,
   Play,
-  X
+  X,
+  Folder,
+  FolderPlus
 } from 'lucide-react';
 import { CreateDocModal } from './CreateDocModal';
 import { AddGlossaryTermModal } from './AddGlossaryTermModal';
@@ -114,6 +116,10 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
   const [publicDocs, setPublicDocs] = useState<NotebookDoc[]>([]);
   const [selectedPublicDoc, setSelectedPublicDoc] = useState<NotebookDoc | null>(null);
 
+  // Filtro por grupo na galeria + grupo digitado para atribuição em massa
+  const [activeGroupFilter, setActiveGroupFilter] = useState<string | null>(null);
+  const [bulkGroupInput, setBulkGroupInput] = useState('');
+
   // Carrega documentos públicos (excluindo os do próprio usuário)
   useEffect(() => {
     let active = true;
@@ -131,6 +137,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
   // Limpa documento público selecionado ao trocar de disciplina
   useEffect(() => {
     setSelectedPublicDoc(null);
+    setActiveGroupFilter(null);
   }, [selectedDisciplineId]);
 
   // Modals & Drawers State
@@ -244,11 +251,52 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     return d.category === selectedCategory;
   });
 
-  const filteredDocs = selectedDiscipline?.documents.filter(doc =>
-    doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
-  ) || [];
+  // Timestamp confiável para ordenar (mais recente primeiro). O simulador é
+  // sempre fixado no topo da galeria.
+  const docSortTs = (doc: NotebookDoc): number =>
+    doc.id === SIMULATOR_DOC_ID ? Number.POSITIVE_INFINITY : (doc.lastEditedTs ?? doc.createdAtTs ?? 0);
+
+  const filteredDocs = (selectedDiscipline?.documents || [])
+    .filter(doc =>
+      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
+    .filter(doc => activeGroupFilter == null || (doc.group || '') === activeGroupFilter)
+    .sort((a, b) => docSortTs(b) - docSortTs(a));
+
+  // Grupos disponíveis (sem repetição) nos documentos da disciplina atual
+  const availableGroups = Array.from(
+    new Set(
+      (selectedDiscipline?.documents ?? [])
+        .map(d => (d.group || '').trim())
+        .filter(Boolean)
+    )
+  );
+
+  // Divide os documentos em seções por grupo. O simulador fica de fora e é
+  // renderizado fixo no topo. A ordem das seções segue o documento mais recente
+  // de cada grupo; "Sem grupo" sempre por último.
+  const groupedDocs = useMemo(() => {
+    const groups = new Map<string, NotebookDoc[]>();
+    for (const doc of filteredDocs) {
+      if (doc.id === SIMULATOR_DOC_ID) continue;
+      const g = (doc.group || '').trim() || 'Sem grupo';
+      const arr = groups.get(g) ?? [];
+      arr.push(doc);
+      groups.set(g, arr);
+    }
+    return Array.from(groups.entries()).sort((a, b) => {
+      const aNone = a[0] === 'Sem grupo';
+      const bNone = b[0] === 'Sem grupo';
+      if (aNone !== bNone) return aNone ? 1 : -1;
+      const aTs = Math.max(...a[1].map(docSortTs));
+      const bTs = Math.max(...b[1].map(docSortTs));
+      return bTs - aTs;
+    });
+  }, [filteredDocs]);
+
+  const simDoc = filteredDocs.find(doc => doc.id === SIMULATOR_DOC_ID);
 
   // Documentos públicos da comunidade filtrados pela disciplina selecionada
   const disciplinePublicDocs = (selectedDiscipline
@@ -294,7 +342,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
             ...d,
             documents: d.documents.map(doc => {
               if (doc.id === updated.id) {
-                return { ...doc, ...updated, disciplineId: d.id, lastEdited: 'Agora mesmo' };
+                return { ...doc, ...updated, disciplineId: d.id, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() };
               }
               return doc;
             })
@@ -305,7 +353,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     );
 
     if (userId) {
-      saveDocument(userId, { ...updated, disciplineId: selectedDisciplineId, lastEdited: 'Agora mesmo' }).catch(err =>
+      saveDocument(userId, { ...updated, disciplineId: selectedDisciplineId, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() }).catch(err =>
         console.warn('Erro ao salvar alterações do documento no Supabase:', err)
       );
     }
@@ -353,7 +401,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
             ...d,
             documents: d.documents.map(doc => {
               if (doc.id === selectedDocId) {
-                return { ...doc, title: newTitle, lastEdited: 'Agora mesmo' };
+                return { ...doc, title: newTitle, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() };
               }
               return doc;
             })
@@ -364,7 +412,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     );
 
     if (userId) {
-      saveDocument(userId, { ...selectedDoc, title: newTitle, lastEdited: 'Agora mesmo' }).catch(err =>
+      saveDocument(userId, { ...selectedDoc, title: newTitle, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() }).catch(err =>
         console.warn('Erro ao salvar documento no Supabase:', err)
       );
     }
@@ -388,6 +436,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                 return {
                   ...doc,
                   lastEdited: 'Agora mesmo',
+                  lastEditedTs: Date.now(),
                   sections: newSections,
                   wordCount,
                   readTime
@@ -404,7 +453,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     if (userId) {
       if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
       saveDebounceRef.current = setTimeout(() => {
-        saveDocument(userId, { ...selectedDocRef.current, sections: newSections, wordCount, lastEdited: 'Agora mesmo' }).catch(err =>
+        saveDocument(userId, { ...selectedDocRef.current, sections: newSections, wordCount, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() }).catch(err =>
           console.warn('Erro ao salvar documento no Supabase:', err)
         );
       }, 500);
@@ -583,6 +632,39 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     }
   };
 
+  // Move os documentos selecionados para um grupo (cria o grupo se necessário)
+  const handleBulkAssignGroup = () => {
+    if (!selectedDisciplineId || selectedDocIds.length === 0) return;
+    const groupName = bulkGroupInput.trim();
+    if (!groupName) return;
+    const ids = new Set(selectedDocIds.filter(id => id !== SIMULATOR_DOC_ID));
+    const targetDocs = selectedDocs.filter(doc => ids.has(doc.id));
+    if (targetDocs.length === 0) return;
+
+    const now = Date.now();
+    setAllDisciplines(prev => prev.map(d => {
+      if (d.id === selectedDisciplineId) {
+        return {
+          ...d,
+          documents: d.documents.map(doc =>
+            ids.has(doc.id) ? { ...doc, group: groupName, lastEdited: 'Agora mesmo', lastEditedTs: now } : doc
+          )
+        };
+      }
+      return d;
+    }));
+
+    if (userId) {
+      targetDocs.forEach(doc => saveDocument(userId, {
+        ...doc,
+        group: groupName,
+        lastEdited: 'Agora mesmo',
+        lastEditedTs: now
+      }).catch(err => console.warn('Erro ao salvar grupo no Supabase:', err)));
+    }
+    setBulkGroupInput('');
+  };
+
   // Add custom glossary term to current document
   const handleAddGlossaryTerm = (term: string, definition: GlossaryDefinition) => {
     if (!selectedDisciplineId || !selectedDocId || !selectedDoc) return;
@@ -643,6 +725,148 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
       case 'GraduationCap': return <GraduationCap className="w-5 h-5" />;
       default: return <BookOpen className="w-5 h-5" />;
     }
+  };
+
+  // Card da galeria (grade), usado para o simulador fixo e para cada seção de grupo
+  const renderDocCard = (doc: NotebookDoc) => {
+    const sel = isSelected(doc.id);
+    const isSim = doc.id === SIMULATOR_DOC_ID;
+    return (
+      <motion.div
+        key={doc.id}
+        data-doc-card={doc.id}
+        whileHover={selectionMode ? { scale: 1.02 } : { y: -4, transition: { duration: 0.15 } }}
+        onClick={() => {
+          if (didDragRef.current) { didDragRef.current = false; return; }
+          if (selectionMode) { toggleSelect(doc.id); return; }
+          setSelectedDocId(doc.id);
+        }}
+        className={`group relative rounded-[28px] p-6 border shadow-2xs transition-all flex flex-col justify-between cursor-pointer ${
+          isSim
+            ? 'bg-gradient-to-br from-emerald-50 to-[#CFE1D6] dark:from-emerald-950/30 dark:to-[#15221B] border-emerald-200 dark:border-emerald-900/60 hover:shadow-xl hover:shadow-emerald-500/15'
+            : sel
+            ? 'border-[#2D5A46] ring-2 ring-[#2D5A46]/70 dark:ring-[#2D5A46]/60 bg-[#EBF3EF]/60 dark:bg-[#15221B]/40 shadow-lg shadow-[#2D5A46]/20'
+            : 'bg-white dark:bg-[#18181B] border-[#E7E2D9] dark:border-[#2C2C30] hover:shadow-xl hover:shadow-[#2D5A46]/10'
+        }`}
+      >
+        {/* Indicador de seleção (canto superior direito) */}
+        {selectionMode && (
+          <div className={`absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full border-[3px] border-white dark:border-[#18181B] shadow-md flex items-center justify-center z-10 transition-all ${
+            sel ? 'bg-[#2D5A46] text-white' : 'bg-white dark:bg-[#18181B] text-[#D6D3D1] dark:text-[#78716C]'
+          }`}>
+            {sel && <Check className="w-3.5 h-3.5" />}
+          </div>
+        )}
+
+        <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {isSim ? (
+              <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-xl bg-emerald-600 text-white flex items-center gap-1 shadow-md shadow-emerald-500/25">
+                <Play className="w-3 h-3" /> Simulador Interativo
+              </span>
+            ) : (
+              <span className="text-xs font-bold px-2.5 py-1 bg-[#EFECE6] dark:bg-[#252529] rounded-xl text-[#44403C] dark:text-[#E7E5E4]">
+                {doc.readTime}
+              </span>
+            )}
+          </div>
+
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${
+            isSim
+              ? 'bg-[#EBF3EF] dark:bg-[#15221B]/60 text-[#224A38] dark:text-[#52B788]'
+              : doc.isPublic !== false
+              ? 'bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788]'
+              : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+          }`}>
+            {isSim ? <Sparkles className="w-3 h-3" /> : doc.isPublic !== false ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+            {isSim ? 'Interativo' : doc.isPublic !== false ? 'Público' : 'Privado'}
+          </span>
+        </div>
+
+        <h3 className={`font-display font-extrabold text-base transition-colors leading-snug ${
+          isSim ? 'text-emerald-800 dark:text-emerald-300' : 'text-[#1C1917] dark:text-[#FAF9F5] group-hover:text-[#2D5A46] dark:group-hover:text-[#52B788]'
+        }`}>
+          {doc.title}
+        </h3>
+
+        <p className="text-xs text-[#78716C] dark:text-[#A8A29E] line-clamp-2 leading-relaxed">
+          {doc.summary}
+        </p>
+
+        {/* Tags */}
+        {doc.tags && doc.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {doc.tags.map(t => (
+              <span key={t} className={`px-2 py-0.5 rounded-lg text-[10px] font-medium ${
+                isSim ? 'bg-white/70 dark:bg-[#18181B]/80 text-emerald-700 dark:text-emerald-300' : 'bg-[#EFECE6] dark:bg-[#252529] text-[#57534E] dark:text-[#A8A29E]'
+              }`}>
+                #{t}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className={`pt-4 mt-4 border-t flex items-center justify-between text-[11px] ${
+        isSim ? 'border-emerald-200/70 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400' : 'border-[#E7E2D9] dark:border-[#2C2C30] text-[#A8A29E]'
+      }`}>
+        <span>{doc.lastEdited}</span>
+        <span className={`font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1 ${
+          isSim ? 'text-emerald-600 dark:text-emerald-400' : 'text-[#2D5A46] dark:text-[#52B788]'
+        }`}>
+          {selectionMode ? (sel ? 'Selecionado' : 'Selecionar') : isSim ? 'Abrir Simulador' : 'Abrir e Editar'} <ChevronRight className="w-3.5 h-3.5" />
+        </span>
+      </div>
+    </motion.div>
+    );
+  };
+
+  // Linha da galeria (lista)
+  const renderDocRow = (doc: NotebookDoc) => {
+    const isSim = doc.id === SIMULATOR_DOC_ID;
+    return (
+      <tr
+        key={doc.id}
+        onClick={() => setSelectedDocId(doc.id)}
+        className={`transition-colors cursor-pointer group ${
+          isSim
+            ? 'bg-gradient-to-r from-emerald-50 to-[#CFE1D6] dark:from-emerald-950/25 dark:to-[#15221B] hover:bg-emerald-50/90 dark:hover:bg-emerald-950/30'
+            : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50'
+        }`}
+      >
+        <td className="p-4">
+          <span className={`font-bold transition-colors ${
+            isSim ? 'text-emerald-800 dark:text-emerald-300 group-hover:text-emerald-600' : 'text-[#1C1917] dark:text-white group-hover:text-[#2D5A46]'
+          }`}>
+            {doc.title}
+          </span>
+          <p className="text-[11px] text-slate-400 truncate max-w-sm">{doc.summary}</p>
+        </td>
+        <td className="p-4 hidden sm:table-cell">
+          {isSim ? (
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center gap-1 w-fit">
+              <Sparkles className="w-3 h-3" /> Interativo
+            </span>
+          ) : (
+          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+            doc.isPublic !== false ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'
+          }`}>
+            {doc.isPublic !== false ? '🌐 Público' : '🔒 Privado'}
+          </span>
+          )}
+        </td>
+        <td className={`p-4 hidden md:table-cell ${isSim ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-slate-500'}`}>{doc.readTime}</td>
+        <td className={`p-4 hidden lg:table-cell ${isSim ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400'}`}>{doc.lastEdited}</td>
+        <td className="p-4 text-right">
+          <span className={`font-bold group-hover:underline flex items-center justify-end gap-0.5 ${
+            isSim ? 'text-emerald-600 dark:text-emerald-400' : 'text-[#2D5A46] dark:text-[#52B788]'
+          }`}>
+            {isSim ? 'Abrir Simulador' : 'Abrir'} <ChevronRight className="w-3.5 h-3.5" />
+          </span>
+        </td>
+      </tr>
+    );
   };
 
   return (
@@ -1022,6 +1246,37 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
             />
           </div>
 
+          {/* Filtro por Grupo */}
+          {availableGroups.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setActiveGroupFilter(null)}
+                className={`text-[11px] font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center gap-1 ${
+                  activeGroupFilter == null
+                    ? 'bg-[#2D5A46] text-white border-[#2D5A46] shadow-sm'
+                    : 'bg-white dark:bg-[#18181B] border-[#E7E2D9] dark:border-[#3B3B40] text-[#57534E] dark:text-[#A8A29E] hover:bg-[#EFECE6] dark:hover:bg-[#333338]'
+                }`}
+              >
+                <Folder className="w-3 h-3" />
+                Todos os grupos
+              </button>
+              {availableGroups.map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setActiveGroupFilter(activeGroupFilter === g ? null : g)}
+                  className={`text-[11px] font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center gap-1 ${
+                    activeGroupFilter === g
+                      ? 'bg-[#2D5A46] text-white border-[#2D5A46] shadow-sm'
+                      : 'bg-white dark:bg-[#18181B] border-[#E7E2D9] dark:border-[#3B3B40] text-[#57534E] dark:text-[#A8A29E] hover:bg-[#EFECE6] dark:hover:bg-[#333338]'
+                  }`}
+                >
+                  <Folder className="w-3 h-3" />
+                  {g}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Barra de Ações em Lote (Modo Seleção) */}
           {selectionMode && selectedDocs.length > 0 && (
             <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-[#EBF3EF]/80 dark:bg-[#15221B]/40 border border-[#CFE1D6]/70 dark:border-[#22392D]/60 shadow-sm">
@@ -1046,6 +1301,24 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                   <Trash2 className="w-3.5 h-3.5" />
                   Deletar ({selectedDocs.length})
                 </button>
+                <div className="flex items-center gap-1.5 bg-white dark:bg-[#18181B] border border-[#CFE1D6] dark:border-[#22392D] rounded-xl p-1 pl-2.5">
+                  <FolderPlus className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788]" />
+                  <input
+                    type="text"
+                    value={bulkGroupInput}
+                    onChange={(e) => setBulkGroupInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleBulkAssignGroup(); } }}
+                    placeholder="Novo grupo..."
+                    className="w-32 bg-transparent text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none"
+                  />
+                  <button
+                    onClick={handleBulkAssignGroup}
+                    className="px-2.5 py-1 rounded-lg bg-[#2D5A46] hover:bg-[#21483A] text-white text-[11px] font-bold transition-colors cursor-pointer"
+                    title="Mover selecionados para o grupo digitado"
+                  >
+                    Mover
+                  </button>
+                </div>
                 <button
                   onClick={handleSelectAllVisible}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#333338] text-[#57534E] dark:text-[#E7E5E4] text-xs font-bold hover:bg-[#FAF8F5] dark:hover:bg-[#252529] transition-colors cursor-pointer"
@@ -1101,100 +1374,21 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
               onMouseUp={onGridMouseUp}
               onMouseLeave={() => { if (dragStartRef.current) onGridMouseUp(); }}
             >
-              {filteredDocs.map((doc) => {
-                const sel = isSelected(doc.id);
-                const isSim = doc.id === SIMULATOR_DOC_ID;
-                return (
-                  <motion.div
-                    key={doc.id}
-                    data-doc-card={doc.id}
-                    whileHover={selectionMode ? { scale: 1.02 } : { y: -4, transition: { duration: 0.15 } }}
-                    onClick={() => {
-                      if (didDragRef.current) { didDragRef.current = false; return; }
-                      if (selectionMode) { toggleSelect(doc.id); return; }
-                      setSelectedDocId(doc.id);
-                    }}
-                    className={`group relative rounded-[28px] p-6 border shadow-2xs transition-all flex flex-col justify-between cursor-pointer ${
-                      isSim
-                        ? 'bg-gradient-to-br from-emerald-50 to-[#CFE1D6] dark:from-emerald-950/30 dark:to-[#15221B] border-emerald-200 dark:border-emerald-900/60 hover:shadow-xl hover:shadow-emerald-500/15'
-                        : sel
-                        ? 'border-[#2D5A46] ring-2 ring-[#2D5A46]/70 dark:ring-[#2D5A46]/60 bg-[#EBF3EF]/60 dark:bg-[#15221B]/40 shadow-lg shadow-[#2D5A46]/20'
-                        : 'bg-white dark:bg-[#18181B] border-[#E7E2D9] dark:border-[#2C2C30] hover:shadow-xl hover:shadow-[#2D5A46]/10'
-                    }`}
-                  >
-                    {/* Indicador de seleção (canto superior direito) */}
-                    {selectionMode && (
-                      <div className={`absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full border-[3px] border-white dark:border-[#18181B] shadow-md flex items-center justify-center z-10 transition-all ${
-                        sel ? 'bg-[#2D5A46] text-white' : 'bg-white dark:bg-[#18181B] text-[#D6D3D1] dark:text-[#78716C]'
-                      }`}>
-                        {sel && <Check className="w-3.5 h-3.5" />}
-                      </div>
-                    )}
-
-
-                    <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {isSim ? (
-                          <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-xl bg-emerald-600 text-white flex items-center gap-1 shadow-md shadow-emerald-500/25">
-                            <Play className="w-3 h-3" /> Simulador Interativo
-                          </span>
-                        ) : (
-                          <span className="text-xs font-bold px-2.5 py-1 bg-[#EFECE6] dark:bg-[#252529] rounded-xl text-[#44403C] dark:text-[#E7E5E4]">
-                            {doc.readTime}
-                          </span>
-                        )}
-                      </div>
-
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${
-                        isSim
-                          ? 'bg-[#EBF3EF] dark:bg-[#15221B]/60 text-[#224A38] dark:text-[#52B788]'
-                          : doc.isPublic !== false 
-                          ? 'bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788]'
-                          : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                      }`}>
-                        {isSim ? <Sparkles className="w-3 h-3" /> : doc.isPublic !== false ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
-                        {isSim ? 'Interativo' : doc.isPublic !== false ? 'Público' : 'Privado'}
-                      </span>
-                    </div>
-
-                    <h3 className={`font-display font-extrabold text-base transition-colors leading-snug ${
-                      isSim ? 'text-emerald-800 dark:text-emerald-300' : 'text-[#1C1917] dark:text-[#FAF9F5] group-hover:text-[#2D5A46] dark:group-hover:text-[#52B788]'
-                    }`}>
-                      {doc.title}
-                    </h3>
-
-                    <p className="text-xs text-[#78716C] dark:text-[#A8A29E] line-clamp-2 leading-relaxed">
-                      {doc.summary}
-                    </p>
-
-                    {/* Tags */}
-                    {doc.tags && doc.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {doc.tags.map(t => (
-                          <span key={t} className={`px-2 py-0.5 rounded-lg text-[10px] font-medium ${
-                            isSim ? 'bg-white/70 dark:bg-[#18181B]/80 text-emerald-700 dark:text-emerald-300' : 'bg-[#EFECE6] dark:bg-[#252529] text-[#57534E] dark:text-[#A8A29E]'
-                          }`}>
-                            #{t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className={`pt-4 mt-4 border-t flex items-center justify-between text-[11px] ${
-                    isSim ? 'border-emerald-200/70 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400' : 'border-[#E7E2D9] dark:border-[#2C2C30] text-[#A8A29E]'
-                  }`}>
-                    <span>{doc.lastEdited}</span>
-                    <span className={`font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1 ${
-                      isSim ? 'text-emerald-600 dark:text-emerald-400' : 'text-[#2D5A46] dark:text-[#52B788]'
-                    }`}>
-                      {selectionMode ? (sel ? 'Selecionado' : 'Selecionar') : isSim ? 'Abrir Simulador' : 'Abrir e Editar'} <ChevronRight className="w-3.5 h-3.5" />
+              {simDoc && renderDocCard(simDoc)}
+              {groupedDocs.map(([groupName, docs]) => (
+                <React.Fragment key={groupName}>
+                  <div className="sm:col-span-2 lg:col-span-3 flex items-center gap-2 px-1 pt-1 pb-1 select-none">
+                    <Folder className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
+                    <span className="font-display font-extrabold text-xs text-[#57534E] dark:text-[#E7E5E4] uppercase tracking-wider leading-none">
+                      {groupName}
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#252529] text-[#A8A29E]">
+                      {docs.length} {docs.length === 1 ? 'documento' : 'documentos'}
                     </span>
                   </div>
-                </motion.div>
-                );
-              })}
+                  {docs.map(doc => renderDocCard(doc))}
+                </React.Fragment>
+              ))}
 
               {/* Quadrado de seleção (rubber-band) */}
               {dragRect && (
@@ -1226,51 +1420,23 @@ background: 'rgba(45, 90, 70, 0.15)',
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredDocs.map((doc) => {
-                    const isSim = doc.id === SIMULATOR_DOC_ID;
-                    return (
-                    <tr
-                      key={doc.id}
-                      onClick={() => setSelectedDocId(doc.id)}
-                      className={`transition-colors cursor-pointer group ${
-                        isSim
-                          ? 'bg-gradient-to-r from-emerald-50 to-[#CFE1D6] dark:from-emerald-950/25 dark:to-[#15221B] hover:bg-emerald-50/90 dark:hover:bg-emerald-950/30'
-                          : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50'
-                      }`}
-                    >
-                      <td className="p-4">
-                        <span className={`font-bold transition-colors ${
-                          isSim ? 'text-emerald-800 dark:text-emerald-300 group-hover:text-emerald-600' : 'text-[#1C1917] dark:text-white group-hover:text-[#2D5A46]'
-                        }`}>
-                          {doc.title}
-                        </span>
-                        <p className="text-[11px] text-slate-400 truncate max-w-sm">{doc.summary}</p>
-                      </td>
-                      <td className="p-4 hidden sm:table-cell">
-                        {isSim ? (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center gap-1 w-fit">
-                            <Sparkles className="w-3 h-3" /> Interativo
+                  {simDoc && renderDocRow(simDoc)}
+                  {groupedDocs.map(([groupName, docs]) => (
+                    <React.Fragment key={groupName}>
+                      <tr>
+                        <td colSpan={5} className="px-4 py-2.5 bg-[#EFECE6]/60 dark:bg-[#252529]/40">
+                          <span className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#57534E] dark:text-[#E7E5E4] uppercase tracking-wider">
+                            <Folder className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788]" />
+                            {groupName}
+                            <span className="text-[10px] font-medium normal-case text-[#A8A29E]">
+                              {docs.length} {docs.length === 1 ? 'documento' : 'documentos'}
+                            </span>
                           </span>
-                        ) : (
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                          doc.isPublic !== false ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'
-                        }`}>
-                          {doc.isPublic !== false ? '🌐 Público' : '🔒 Privado'}
-                        </span>
-                        )}
-                      </td>
-                      <td className={`p-4 hidden md:table-cell ${isSim ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-slate-500'}`}>{doc.readTime}</td>
-                      <td className={`p-4 hidden lg:table-cell ${isSim ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400'}`}>{doc.lastEdited}</td>
-                      <td className="p-4 text-right">
-                        <span className={`font-bold group-hover:underline flex items-center justify-end gap-0.5 ${
-                          isSim ? 'text-emerald-600 dark:text-emerald-400' : 'text-[#2D5A46] dark:text-[#52B788]'
-                        }`}>
-                          {isSim ? 'Abrir Simulador' : 'Abrir'} <ChevronRight className="w-3.5 h-3.5" />
-                        </span>
-                      </td>
-                    </tr>
-                    );
-                  })}
+                        </td>
+                      </tr>
+                      {docs.map(doc => renderDocRow(doc))}
+                    </React.Fragment>
+                  ))}
                 </tbody>
               </table>
             </div>

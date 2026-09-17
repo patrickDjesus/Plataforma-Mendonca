@@ -13,7 +13,8 @@ import {
   User,
   Smile,
   Search,
-  CheckCircle2
+  CheckCircle2,
+  Folder
 } from 'lucide-react';
 import { Discipline, NotebookDoc, DocSection } from '../data/disciplinesData';
 
@@ -112,6 +113,20 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [activeCategoryTab, setActiveCategoryTab] = useState('all');
   const [emojiSearch, setEmojiSearch] = useState('');
+  const [group, setGroup] = useState('');
+
+  // Grupos já usados nesta disciplina (para criar/atribuir com 1 clique)
+  const existingGroups = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          (discipline?.documents ?? [])
+            .map(d => (d.group || '').trim())
+            .filter(Boolean)
+        )
+      ),
+    [discipline]
+  );
 
   // Sincroniza os campos com o documento a editar (ou limpa ao criar)
   useEffect(() => {
@@ -123,12 +138,14 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
       setSummary(editDoc.summary || '');
       setSelectedTags(editDoc.tags?.length ? [...editDoc.tags] : [discipline.name]);
       setIsPublic(editDoc.isPublic !== false);
+      setGroup(editDoc.group || '');
     } else {
       setSelectedEmoji('📝');
       setTitle('');
       setSummary('');
       setSelectedTags([discipline.name]);
       setIsPublic(true);
+      setGroup('');
     }
     setTagsInput('');
     setShowEmojiPicker(false);
@@ -184,7 +201,9 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
         tags: combinedTags,
         summary: finalSummary,
         isPublic,
-        lastEdited: 'Agora mesmo'
+        group: group.trim() || undefined,
+        lastEdited: 'Agora mesmo',
+        lastEditedTs: Date.now()
       };
       onEditDoc(updatedDoc);
       onClose();
@@ -201,8 +220,10 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
       }
     ];
 
+    const now = Date.now();
+
     const newDoc: NotebookDoc = {
-      id: `doc-${Date.now()}`,
+      id: `doc-${now}`,
       title: finalTitle,
       disciplineId: discipline.id,
       lastEdited: 'Agora mesmo',
@@ -215,7 +236,10 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
       readTime: '1 min',
       starred: false,
       isPublic,
-      glossary: {}
+      glossary: {},
+      group: group.trim() || undefined,
+      createdAtTs: now,
+      lastEditedTs: now
     };
 
     onCreateDoc(newDoc);
@@ -490,7 +514,46 @@ export const CreateDocModal: React.FC<CreateDocModalProps> = ({
                   />
                 </div>
 
-                {/* 4. Visibilidade / Privacidade */}
+                {/* 4. Grupo do Documento */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] uppercase tracking-wider flex items-center gap-1.5">
+                    <Folder className="w-3.5 h-3.5 text-[#A8A29E]" />
+                    Grupo <span className="text-[10px] text-[#A8A29E] font-normal lowercase">(opcional)</span>
+                  </label>
+
+                  {existingGroups.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {existingGroups.map((g) => {
+                        const isSelected = group.trim() === g;
+                        return (
+                          <button
+                            key={g}
+                            type="button"
+                            onClick={() => setGroup(isSelected ? '' : g)}
+                            className={`text-[11px] font-bold px-2.5 py-1 rounded-xl border transition-all cursor-pointer flex items-center gap-1 ${
+                              isSelected
+                                ? 'bg-[#EBF3EF] dark:bg-[#15221B]/60 border-[#CFE1D6] dark:border-[#22392D] text-[#224A38] dark:text-[#52B788] shadow-2xs'
+                                : 'bg-white dark:bg-[#232326] border-[#E7E2D9] dark:border-[#3B3B40] text-[#57534E] dark:text-[#A8A29E] hover:bg-[#EFECE6] dark:hover:bg-[#333338]'
+                            }`}
+                          >
+                            {isSelected ? <Check className="w-3 h-3 text-[#2D5A46]" /> : <Folder className="w-3 h-3 text-[#A8A29E]" />}
+                            <span>{g}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <input
+                    type="text"
+                    value={group}
+                    onChange={(e) => setGroup(e.target.value)}
+                    placeholder="Agrupe por conteúdo (ex: Aula 01, Revisão, Lista de Exercícios...)"
+                    className="w-full bg-white dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-2xl px-3.5 py-2 text-xs text-[#1C1917] dark:text-[#FAF9F5] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#2D5A46]/30 focus:border-[#2D5A46] shadow-2xs"
+                  />
+                </div>
+
+                {/* 5. Visibilidade / Privacidade */}
                 <div className="space-y-1.5">
                   <label className="block text-xs font-extrabold text-[#44403C] dark:text-[#E7E5E4] uppercase tracking-wider">
                     Privacidade do Caderno

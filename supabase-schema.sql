@@ -93,6 +93,9 @@ CREATE TABLE IF NOT EXISTS public.documents (
   glossary JSONB DEFAULT '{}'::jsonb,
   word_count NUMERIC DEFAULT 0,
   last_edited TEXT DEFAULT '',
+  group_name TEXT DEFAULT '',
+  created_at_ts BIGINT DEFAULT 0,
+  last_edited_ts BIGINT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   PRIMARY KEY (id, user_id)

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCreateBlockNote, useActiveStyles, useSelectedBlocks } from '@blocknote/react';
-import { SuggestionMenu } from '@blocknote/core';
+import { SuggestionMenu, createExtension } from '@blocknote/core';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
 import { motion } from 'motion/react';
@@ -15,9 +15,9 @@ import SpellContextMenu from './SpellContextMenu';
 import type { SpellPopupState } from './SpellContextMenu';
 import { SpecialCharPicker } from './SpecialCharPicker';
 import { playSound } from '../utils/sounds';
-import { createSpellPlugin, getSpellMatches, clearSpellMatches, spellKey } from '../lib/spellcheckPlugin';
+import { createSpellPlugin, getSpellMatches, clearSpellMatches } from '../lib/spellcheckPlugin';
 import type { MappedMatch } from '../lib/spellcheckPlugin';
-import { createGlossaryPlugin, glossaryKey, setGlossaryTerms } from '../lib/glossaryPlugin';
+import { createGlossaryPlugin, setGlossaryTerms } from '../lib/glossaryPlugin';
 import { mergeGlossary } from '../lib/glossary';
 import {
   createSpellCheckStore,
@@ -28,6 +28,21 @@ import {
 } from '../lib/spellcheck';
 import type { SpellCheckStatus } from '../lib/spellcheck';
 import '../styles/docEditor.css';
+
+// O glossário e o corretor ortográfico são registrados na CRIAÇÃO do editor
+// via a API oficial de extensões do BlockNote (prosemirrorPlugins), em vez de
+// depender do registro dinâmico via _tiptapEditor.registerPlugin depois do
+// mount. Isso elimina a corrida de tempo (polling) que deixava os plugins
+// desregistrados silenciosamente e o glossário "morto".
+const glossaryPluginExtension = createExtension({
+  key: 'docGlossaryPlugin',
+  prosemirrorPlugins: [createGlossaryPlugin()],
+});
+
+const spellPluginExtension = createExtension({
+  key: 'docSpellPlugin',
+  prosemirrorPlugins: [createSpellPlugin()],
+});
 
 interface BlockNoteDocEditorProps {
   doc: NotebookDoc;
@@ -115,7 +130,10 @@ export function BlockNoteDocEditor({
         content: [{ type: 'text', text: doc.title || '', styles: {} }],
       }];
 
-  const editor = useCreateBlockNote({ initialContent });
+  const editor = useCreateBlockNote({
+    initialContent,
+    extensions: [glossaryPluginExtension, spellPluginExtension],
+  });
 
   const activeStyles = useActiveStyles(editor);
   const selectedBlocks = useSelectedBlocks(editor);
@@ -538,56 +556,35 @@ export function BlockNoteDocEditor({
     let attempts = 0;
     const store = spellStoreRef.current;
 
-    const tryInit = () => {
+    const tryAttach = () => {
       if (cancelled) return;
       const view = editor.prosemirrorView;
-      const tiptap = (editor as unknown as {
-        _tiptapEditor?: {
-          view?: { dom?: HTMLElement };
-          plugins?: Array<{ key: string }>;
-          registerPlugin?: (p: unknown) => unknown;
-          unregisterPlugin?: (key: string) => unknown;
-        };
-      })._tiptapEditor;
-
-      if (!view || !tiptap?.view) {
+      if (!view) {
         if (attempts < 60) {
           attempts++;
-          setTimeout(tryInit, 200);
+          setTimeout(tryAttach, 200);
         }
         return;
       }
 
-      const hasSpellPlugin = tiptap.plugins?.some((p) => p.key === (spellKey as unknown as { key: string }).key);
-      if (!hasSpellPlugin) tiptap.registerPlugin?.(createSpellPlugin());
-
-      const hasGlossaryPlugin = tiptap.plugins?.some((p) => p.key === (glossaryKey as unknown as { key: string }).key);
-      if (!hasGlossaryPlugin) tiptap.registerPlugin?.(createGlossaryPlugin());
-
       const dom = view.dom as HTMLElement;
       if (dom) dom.setAttribute('spellcheck', 'false');
 
-      const viewReady = editor.prosemirrorView;
-      if (viewReady) {
-        setGlossaryTerms(viewReady, glossaryMapRef.current);
+      setGlossaryTerms(view, glossaryMapRef.current);
+
+      if (store.enabled) {
         setSpellDebug('verificando…');
-        runSpellCheck(viewReady, store, (s) => {
+        runSpellCheck(view, store, (s) => {
           if (!cancelled) reportSpellStatus(s);
         });
       }
     };
 
-    tryInit();
+    tryAttach();
 
     return () => {
       cancelled = true;
       store.runToken++;
-      (editor as unknown as {
-        _tiptapEditor?: { unregisterPlugin?: (key: string) => unknown };
-      })._tiptapEditor?.unregisterPlugin?.((spellKey as unknown as { key: string }).key);
-      (editor as unknown as {
-        _tiptapEditor?: { unregisterPlugin?: (key: string) => unknown };
-      })._tiptapEditor?.unregisterPlugin?.((glossaryKey as unknown as { key: string }).key);
     };
   }, [editor, reportSpellStatus]);
 
