@@ -916,6 +916,7 @@ export const getUserDocuments = async (userId: string): Promise<NotebookDoc[]> =
           isPublic: row.is_public !== false,
           glossary: row.glossary || {},
           group: row.group_name || undefined,
+          groupColor: row.group_color || undefined,
           createdAtTs: row.created_at_ts || undefined,
           lastEditedTs: row.last_edited_ts || undefined,
         } as NotebookDoc));
@@ -966,6 +967,7 @@ export const saveDocument = async (
       word_count: doc.wordCount || 0,
       last_edited: doc.lastEdited || '',
       group_name: doc.group || '',
+      group_color: doc.groupColor || '',
       created_at_ts: doc.createdAtTs || 0,
       last_edited_ts: doc.lastEditedTs || 0,
       updated_at: new Date().toISOString(),
@@ -1025,6 +1027,7 @@ export const getPublicDocuments = async (excludeUserId: string): Promise<Noteboo
           isPublic: true,
           glossary: row.glossary || {},
           group: row.group_name || undefined,
+          groupColor: row.group_color || undefined,
           createdAtTs: row.created_at_ts || undefined,
           lastEditedTs: row.last_edited_ts || undefined,
         } as NotebookDoc));

@@ -53,6 +53,7 @@ export interface NotebookDoc {
   isPublic?: boolean;
   glossary?: Record<string, GlossaryDefinition>;
   group?: string;
+  groupColor?: string;
   createdAtTs?: number;
   lastEditedTs?: number;
 }

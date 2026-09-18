@@ -40,7 +40,8 @@ import {
   Play,
   X,
   Folder,
-  FolderPlus
+  FolderPlus,
+  Palette
 } from 'lucide-react';
 import { CreateDocModal } from './CreateDocModal';
 import { AddGlossaryTermModal } from './AddGlossaryTermModal';
@@ -60,6 +61,38 @@ const RichText: React.FC<{ html?: string; text: string; className?: string }> = 
     return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
   }
   return <span className={className}>{text}</span>;
+};
+
+// Cor do grupo: a primeira cor definida pelo usuário entre os documentos do grupo
+const getGroupColor = (docs: NotebookDoc[], fallbackColor: string): string => {
+  const colored = docs.find(doc => doc.groupColor);
+  return colored?.groupColor || fallbackColor;
+};
+
+// Divide os documentos em seções por grupo. "Sem grupo" sempre por último, e a
+// ordem das seções segue o documento mais recente de cada grupo.
+const groupDocs = (docs: NotebookDoc[]): { name: string; docs: NotebookDoc[] }[] => {
+  const ts = (d: NotebookDoc) => d.lastEditedTs ?? d.createdAtTs ?? 0;
+  const groups = new Map<string, NotebookDoc[]>();
+  for (const doc of docs) {
+    const g = (doc.group || '').trim() || 'Sem grupo';
+    const arr = groups.get(g) ?? [];
+    arr.push(doc);
+    groups.set(g, arr);
+  }
+  return Array.from(groups.entries())
+    .sort((a, b) => {
+      const aNone = a[0] === 'Sem grupo';
+      const bNone = b[0] === 'Sem grupo';
+      if (aNone !== bNone) return aNone ? 1 : -1;
+      const aTs = Math.max(...a[1].map(ts));
+      const bTs = Math.max(...b[1].map(ts));
+      return bTs - aTs;
+    })
+    .map(([name, groupMembers]) => ({
+      name,
+      docs: groupMembers.slice().sort((x, y) => ts(y) - ts(x)),
+    }));
 };
 
 export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: _onNavigate }) => {
@@ -286,14 +319,19 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
       arr.push(doc);
       groups.set(g, arr);
     }
-    return Array.from(groups.entries()).sort((a, b) => {
-      const aNone = a[0] === 'Sem grupo';
-      const bNone = b[0] === 'Sem grupo';
-      if (aNone !== bNone) return aNone ? 1 : -1;
-      const aTs = Math.max(...a[1].map(docSortTs));
-      const bTs = Math.max(...b[1].map(docSortTs));
-      return bTs - aTs;
-    });
+    return Array.from(groups.entries())
+      .sort((a, b) => {
+        const aNone = a[0] === 'Sem grupo';
+        const bNone = b[0] === 'Sem grupo';
+        if (aNone !== bNone) return aNone ? 1 : -1;
+        const aTs = Math.max(...a[1].map(docSortTs));
+        const bTs = Math.max(...b[1].map(docSortTs));
+        return bTs - aTs;
+      })
+      .map(([name, groupMembers]) => ({
+        name,
+        docs: groupMembers.slice().sort((x, y) => docSortTs(y) - docSortTs(x)),
+      }));
   }, [filteredDocs]);
 
   const simDoc = filteredDocs.find(doc => doc.id === SIMULATOR_DOC_ID);
@@ -302,6 +340,13 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
   const disciplinePublicDocs = (selectedDiscipline
     ? publicDocs.filter(doc => doc.disciplineId === selectedDiscipline.id)
     : []);
+
+  // Públicos também agrupados: grupos aparecem como um card único, com apenas
+  // os documentos públicos dentro (o grupo só expõe o que é público).
+  const publicGroupedDocs = useMemo(
+    () => groupDocs(publicDocs.filter(doc => doc.disciplineId === selectedDisciplineId)),
+    [publicDocs, selectedDisciplineId]
+  );
 
   // Handlers for Document Creation & Updating
   const handleCreateDocument = (newDoc: NotebookDoc) => {
@@ -335,6 +380,9 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     if (!selectedDisciplineId || !selectedDocId || !updated.id) return;
     setSaveStatus('saving');
 
+    const groupName = (updated.group || '').trim();
+    const groupColor = updated.groupColor || null;
+
     setAllDisciplines(prev =>
       prev.map(d => {
         if (d.id === selectedDisciplineId) {
@@ -342,7 +390,11 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
             ...d,
             documents: d.documents.map(doc => {
               if (doc.id === updated.id) {
-                return { ...doc, ...updated, disciplineId: d.id, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() };
+                return { ...doc, ...updated, groupColor: groupColor || doc.groupColor, disciplineId: d.id, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() };
+              }
+              // Propaga a nova cor para os demais documentos do mesmo grupo
+              if (groupName && groupColor && (doc.group || '').trim() === groupName && doc.groupColor !== groupColor) {
+                return { ...doc, groupColor, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() };
               }
               return doc;
             })
@@ -353,9 +405,18 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     );
 
     if (userId) {
-      saveDocument(userId, { ...updated, disciplineId: selectedDisciplineId, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() }).catch(err =>
+      const savedDoc = { ...updated, groupColor: groupColor || updated.groupColor, disciplineId: selectedDisciplineId, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() };
+      saveDocument(userId, savedDoc).catch(err =>
         console.warn('Erro ao salvar alterações do documento no Supabase:', err)
       );
+      // Também propaga a cor do grupo para os outros documentos no Supabase
+      if (groupName && groupColor) {
+        const others = (selectedDiscipline?.documents ?? [])
+          .filter(doc => doc.id !== updated.id && (doc.group || '').trim() === groupName && doc.groupColor !== groupColor);
+        others.forEach(doc => saveDocument(userId, { ...doc, groupColor, lastEdited: 'Agora mesmo', lastEditedTs: Date.now() }).catch(err =>
+          console.warn('Erro ao propagar cor do grupo no Supabase:', err)
+        ));
+      }
     }
     setTimeout(() => setSaveStatus('saved'), 400);
     setDocToEdit(null);
@@ -642,12 +703,18 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     if (targetDocs.length === 0) return;
 
     const now = Date.now();
+    const groupColor = (selectedDiscipline?.documents ?? [])
+      .find(doc => (doc.group || '').trim() === groupName && doc.groupColor)
+      ?.groupColor;
+
     setAllDisciplines(prev => prev.map(d => {
       if (d.id === selectedDisciplineId) {
         return {
           ...d,
           documents: d.documents.map(doc =>
-            ids.has(doc.id) ? { ...doc, group: groupName, lastEdited: 'Agora mesmo', lastEditedTs: now } : doc
+            ids.has(doc.id)
+              ? { ...doc, group: groupName, ...(groupColor && { groupColor }), lastEdited: 'Agora mesmo', lastEditedTs: now }
+              : doc
           )
         };
       }
@@ -658,6 +725,7 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
       targetDocs.forEach(doc => saveDocument(userId, {
         ...doc,
         group: groupName,
+        ...(groupColor && { groupColor }),
         lastEdited: 'Agora mesmo',
         lastEditedTs: now
       }).catch(err => console.warn('Erro ao salvar grupo no Supabase:', err)));
@@ -821,6 +889,200 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     </motion.div>
     );
   };
+
+  // Miniatura de documento dentro do card de um grupo
+  const renderDocMini = (doc: NotebookDoc, color: string, readOnly: boolean = false) => {
+    const sel = isSelected(doc.id);
+    const isSim = doc.id === SIMULATOR_DOC_ID;
+
+    return (
+      <motion.div
+        key={doc.id}
+        data-doc-card={doc.id}
+        whileHover={selectionMode ? { scale: 1.02 } : { y: -3, transition: { duration: 0.15 } }}
+        onClick={() => {
+          if (didDragRef.current) { didDragRef.current = false; return; }
+          if (selectionMode) { toggleSelect(doc.id); return; }
+          if (readOnly) { setSelectedPublicDoc(doc); return; }
+          setSelectedDocId(doc.id);
+        }}
+        className={`group relative rounded-2xl border p-4 transition-all cursor-pointer flex flex-col justify-between overflow-hidden select-none ${
+          sel
+            ? 'border-[#2D5A46] ring-2 ring-[#2D5A46]/70 dark:ring-[#2D5A46]/60 bg-[#EBF3EF]/60 dark:bg-[#15221B]/40 shadow-lg shadow-[#2D5A46]/20'
+            : 'bg-white dark:bg-[#18181B] border-[#E7E2D9] dark:border-[#2C2C30] hover:shadow-lg hover:shadow-[#2D5A46]/10'
+        }`}
+      >
+        {/* Faixa superior na cor do grupo */}
+        <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: color }} />
+
+        {/* Indicador de seleção (canto superior direito) */}
+        {selectionMode && (
+          <div className={`absolute -top-2 -right-2 w-5 h-5 rounded-full border-[3px] border-white dark:border-[#18181B] shadow-md flex items-center justify-center z-10 ${
+            sel ? 'bg-[#2D5A46] text-white' : 'bg-white dark:bg-[#18181B] text-[#D6D3D1] dark:text-[#78716C]'
+          }`}>
+            {sel && <Check className="w-3 h-3" />}
+          </div>
+        )}
+
+        <div className="space-y-2.5 pt-1">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-[#EFECE6] dark:bg-[#252529] text-[#44403C] dark:text-[#E7E5E4] whitespace-nowrap">
+              {isSim ? 'Interativo' : doc.readTime}
+            </span>
+            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold flex items-center gap-1 whitespace-nowrap ${
+              readOnly
+                ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400'
+                : isSim
+                ? 'bg-[#EBF3EF] dark:bg-[#15221B]/60 text-[#224A38] dark:text-[#52B788]'
+                : doc.isPublic !== false
+                ? 'bg-[#EBF3EF] dark:bg-[#15221B] text-[#224A38] dark:text-[#52B788]'
+                : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+            }`}>
+              {readOnly ? <Eye className="w-2.5 h-2.5" /> : isSim ? <Sparkles className="w-2.5 h-2.5" /> : doc.isPublic !== false ? <Globe className="w-2.5 h-2.5" /> : <Lock className="w-2.5 h-2.5" />}
+              {readOnly ? 'Público' : isSim ? 'Interativo' : doc.isPublic !== false ? 'Público' : 'Privado'}
+            </span>
+          </div>
+
+          <h4 className="font-display font-extrabold text-sm text-[#1C1917] dark:text-[#FAF9F5] leading-snug line-clamp-2">
+            {doc.title}
+          </h4>
+
+          <p className="text-[11px] text-[#78716C] dark:text-[#A8A29E] line-clamp-2 leading-relaxed">
+            {doc.summary}
+          </p>
+
+          {doc.tags && doc.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {doc.tags.slice(0, 3).map(t => (
+                <span key={t} className={`px-1.5 py-0.5 rounded-md text-[9px] font-medium ${
+                  isSim
+                    ? 'bg-white/70 dark:bg-[#232326] text-emerald-700 dark:text-emerald-300'
+                    : 'bg-[#EFECE6] dark:bg-[#252529] text-[#57534E] dark:text-[#A8A29E]'
+                }`}>
+                  #{t}
+                </span>
+              ))}
+              {doc.tags.length > 3 && (
+                <span className="text-[9px] text-[#A8A29E] px-1">+{doc.tags.length - 3}</span>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="pt-3 mt-3 border-t border-[#E7E2D9] dark:border-[#2C2C30] flex items-center justify-between text-[10px] text-[#A8A29E]">
+          <span>{doc.lastEdited}</span>
+          <span className="font-bold flex items-center gap-0.5" style={{ color: isSim ? undefined : color }}>
+            {isSim ? 'Abrir Simulador' : selectionMode ? (sel ? 'Selecionado' : 'Selecionar') : readOnly ? 'Visualizar' : 'Abrir'} <ChevronRight className="w-3 h-3" />
+          </span>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // Card de grupo: título acima, cor definida pelo usuário e miniaturas dos documentos
+  const renderGroupCard = (groupName: string, docs: NotebookDoc[], fallbackColor: string, readOnly: boolean = false) => {
+    const color = getGroupColor(docs, fallbackColor);
+    const publicCount = docs.filter(d => d.isPublic !== false).length;
+    const privateCount = docs.length - publicCount;
+
+    return (
+      <div
+        key={`group-card-${groupName}`}
+        className="sm:col-span-2 lg:col-span-3 rounded-[28px] border-2 overflow-hidden transition-all"
+        style={{
+          borderColor: `${color}66`,
+          boxShadow: `0 14px 36px -16px ${color}66`,
+        }}
+      >
+        {/* Cabeçalho do grupo com a cor definida pelo usuário */}
+        <div
+          className="px-5 sm:px-6 py-4 flex flex-wrap items-center gap-3"
+          style={{ background: `linear-gradient(90deg, ${color}, ${color}E6)` }}
+        >
+          <div className="w-10 h-10 rounded-2xl bg-white/25 backdrop-blur flex items-center justify-center text-white shadow-sm shrink-0">
+            <Folder className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-[140px]">
+            <h3 className="font-display font-extrabold text-base sm:text-lg text-white leading-tight drop-shadow-sm">
+              {groupName}
+            </h3>
+            <p className="text-[11px] text-white/85 font-medium">
+              {docs.length} {docs.length === 1 ? 'documento' : 'documentos'}
+              <span className="mx-1.5 opacity-60">•</span>
+              {publicCount} {publicCount === 1 ? 'público' : 'públicos'}
+              {privateCount > 0 && (
+                <>
+                  <span className="mx-1.5 opacity-60">•</span>
+                  {privateCount} {privateCount === 1 ? 'privado' : 'privados'}
+                </>
+              )}
+            </p>
+          </div>
+          {readOnly ? (
+            <span className="ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/20 text-white backdrop-blur flex items-center gap-1">
+              <Eye className="w-3 h-3" /> Somente leitura
+            </span>
+          ) : (
+            <span
+              className="ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/25 text-white backdrop-blur flex items-center gap-1"
+              title="Cor escolhida por você para este grupo"
+            >
+              <Palette className="w-3 h-3" /> Cor do grupo
+            </span>
+          )}
+        </div>
+
+        {/* Miniaturas dos documentos do grupo */}
+        <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-white dark:bg-[#18181B]">
+          {docs.map(doc => renderDocMini(doc, color, readOnly))}
+        </div>
+      </div>
+    );
+  };
+
+  // Card de documento público da comunidade (sem grupo)
+  const renderPublicDocCard = (doc: NotebookDoc) => (
+    <motion.div
+      key={`${doc.id}-${doc.lastEdited}`}
+      whileHover={{ y: -4, transition: { duration: 0.15 } }}
+      onClick={() => setSelectedPublicDoc(doc)}
+      className="group bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-purple-200/60 dark:border-purple-900/40 shadow-2xs hover:shadow-xl hover:shadow-purple-500/10 transition-all cursor-pointer flex flex-col justify-between"
+    >
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center gap-1">
+            <Eye className="w-3 h-3" /> Público
+          </span>
+          <span className="text-[10px] text-slate-400">Somente leitura</span>
+        </div>
+
+        <h4 className="font-display font-extrabold text-base text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors leading-snug line-clamp-2">
+          {doc.title}
+        </h4>
+
+        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+          {doc.summary}
+        </p>
+
+        {doc.tags && doc.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {doc.tags.slice(0, 4).map(t => (
+              <span key={t} className="px-2 py-0.5 rounded-lg text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                #{t}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+        <span>{doc.lastEdited}</span>
+        <span className="font-bold text-purple-600 dark:text-purple-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
+          Visualizar <ChevronRight className="w-3.5 h-3.5" />
+        </span>
+      </div>
+    </motion.div>
+  );
 
   // Linha da galeria (lista)
   const renderDocRow = (doc: NotebookDoc) => {
@@ -1375,20 +1637,24 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
               onMouseLeave={() => { if (dragStartRef.current) onGridMouseUp(); }}
             >
               {simDoc && renderDocCard(simDoc)}
-              {groupedDocs.map(([groupName, docs]) => (
-                <React.Fragment key={groupName}>
-                  <div className="sm:col-span-2 lg:col-span-3 flex items-center gap-2 px-1 pt-1 pb-1 select-none">
-                    <Folder className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
-                    <span className="font-display font-extrabold text-xs text-[#57534E] dark:text-[#E7E5E4] uppercase tracking-wider leading-none">
-                      {groupName}
-                    </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#252529] text-[#A8A29E]">
-                      {docs.length} {docs.length === 1 ? 'documento' : 'documentos'}
-                    </span>
-                  </div>
-                  {docs.map(doc => renderDocCard(doc))}
-                </React.Fragment>
-              ))}
+              {groupedDocs.map(({ name, docs }) =>
+                name === 'Sem grupo' ? (
+                  <React.Fragment key={name}>
+                    <div className="sm:col-span-2 lg:col-span-3 flex items-center gap-2 px-1 pt-1 pb-1 select-none">
+                      <Folder className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
+                      <span className="font-display font-extrabold text-xs text-[#57534E] dark:text-[#E7E5E4] uppercase tracking-wider leading-none">
+                        {name}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#252529] text-[#A8A29E]">
+                        {docs.length} {docs.length === 1 ? 'documento' : 'documentos'}
+                      </span>
+                    </div>
+                    {docs.map(doc => renderDocCard(doc))}
+                  </React.Fragment>
+                ) : (
+                  renderGroupCard(name, docs, selectedDiscipline.color)
+                )
+              )}
 
               {/* Quadrado de seleção (rubber-band) */}
               {dragRect && (
@@ -1421,7 +1687,7 @@ background: 'rgba(45, 90, 70, 0.15)',
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {simDoc && renderDocRow(simDoc)}
-                  {groupedDocs.map(([groupName, docs]) => (
+                  {groupedDocs.map(({ name: groupName, docs }) => (
                     <React.Fragment key={groupName}>
                       <tr>
                         <td colSpan={5} className="px-4 py-2.5 bg-[#EFECE6]/60 dark:bg-[#252529]/40">
@@ -1461,48 +1727,11 @@ background: 'rgba(45, 90, 70, 0.15)',
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {disciplinePublicDocs.map((doc) => (
-                  <motion.div
-                    key={`${doc.id}-${doc.lastEdited}`}
-                    whileHover={{ y: -4, transition: { duration: 0.15 } }}
-                    onClick={() => setSelectedPublicDoc(doc)}
-                    className="group bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-purple-200/60 dark:border-purple-900/40 shadow-2xs hover:shadow-xl hover:shadow-purple-500/10 transition-all cursor-pointer flex flex-col justify-between"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center gap-1">
-                          <Eye className="w-3 h-3" /> Público
-                        </span>
-                        <span className="text-[10px] text-slate-400">Somente leitura</span>
-                      </div>
-
-                      <h4 className="font-display font-extrabold text-base text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors leading-snug line-clamp-2">
-                        {doc.title}
-                      </h4>
-
-                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                        {doc.summary}
-                      </p>
-
-                      {doc.tags && doc.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          {doc.tags.slice(0, 4).map(t => (
-                            <span key={t} className="px-2 py-0.5 rounded-lg text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                              #{t}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                      <span>{doc.lastEdited}</span>
-                      <span className="font-bold text-purple-600 dark:text-purple-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                        Visualizar <ChevronRight className="w-3.5 h-3.5" />
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
+                {publicGroupedDocs.map(({ name: groupName, docs: groupMembers }) =>
+                  groupName === 'Sem grupo'
+                    ? groupMembers.map(doc => renderPublicDocCard(doc))
+                    : renderGroupCard(groupName, groupMembers, selectedDiscipline.color, true)
+                )}
               </div>
             </div>
           )}

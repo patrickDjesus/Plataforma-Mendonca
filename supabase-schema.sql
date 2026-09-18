@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS public.documents (
   word_count NUMERIC DEFAULT 0,
   last_edited TEXT DEFAULT '',
   group_name TEXT DEFAULT '',
+  group_color TEXT DEFAULT '',
   created_at_ts BIGINT DEFAULT 0,
   last_edited_ts BIGINT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
