@@ -26,7 +26,11 @@ const buildPattern = (terms: Record<string, GlossaryDefinition>): RegExp | null 
     .filter(Boolean)
     .sort((a, b) => b.length - a.length);
   if (keys.length === 0) return null;
-  return new RegExp(`(?:${keys.map(escapeRegExp).join('|')})`, 'gu');
+  // 'i' para casar "Logaritmo"/"LOGARITMO" com a chave "logaritmo" do
+  // glossário — sem isso, termos capitalizados (início de frase) nunca
+  // eram destacados. A checagem de palavra inteira continua no
+  // computeGlossaryMatches, usando o texto real casado.
+  return new RegExp(`(?:${keys.map(escapeRegExp).join('|')})`, 'giu');
 };
 
 // Varre os nós de texto do documento envolvendo cada ocorrência dos termos do

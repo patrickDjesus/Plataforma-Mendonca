@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useCreateBlockNote, useActiveStyles, useSelectedBlocks } from '@blocknote/react';
 import { SuggestionMenu, createExtension } from '@blocknote/core';
 import { BlockNoteView } from '@blocknote/mantine';
@@ -162,6 +162,8 @@ export function BlockNoteDocEditor({
     definition: GlossaryDefinition;
   } | null>(null);
   const glossaryTipTermRef = useRef('');
+  const glossaryTipRef = useRef<HTMLDivElement | null>(null);
+  const [glossaryTipAnchor, setGlossaryTipAnchor] = useState<{ left: number; top: number } | null>(null);
 
   useEffect(() => {
     spellStoreRef.current.ignored = loadIgnoredWords(doc.id);
@@ -550,6 +552,31 @@ export function BlockNoteDocEditor({
     setGlossaryTip(null);
     onDefineGlossary(term);
   }, [onDefineGlossary]);
+
+  // Posiciona o popover medindo o próprio tamanho: maior, ele pode estourar a
+  // tela se o termo estiver perto das bordas. Vira para baixo do termo quando
+  // não cabe acima e limita a largura visível da viewport.
+  const repositionGlossaryTip = useCallback(() => {
+    const el = glossaryTipRef.current;
+    if (!glossaryTip || !el) return;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const margin = 12;
+    const left = Math.min(
+      Math.max(glossaryTip.x - w / 2, margin),
+      Math.max(margin, window.innerWidth - w - margin),
+    );
+    const termY = glossaryTip.y - 14;
+    const spaceAbove = termY - margin;
+    const spaceBelow = window.innerHeight - termY - margin;
+    const above = spaceAbove >= h || spaceAbove >= spaceBelow;
+    const top = above ? termY - h : termY + 16;
+    setGlossaryTipAnchor({ left, top });
+  }, [glossaryTip]);
+
+  useLayoutEffect(() => {
+    repositionGlossaryTip();
+  }, [repositionGlossaryTip]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1000,12 +1027,16 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
 
       {glossaryTip ? (
         <motion.div
+          ref={glossaryTipRef}
           initial={{ opacity: 0, y: 8, scale: 0.92 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 4, scale: 0.96 }}
           transition={{ type: 'spring', damping: 26, stiffness: 500, mass: 0.4 }}
-          className="fixed z-[99999] w-72 p-4 rounded-2xl bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-xl border border-[#CFE1D6]/80 dark:border-[#22392D]/80 shadow-2xl text-left pointer-events-none transform -translate-x-1/2 -translate-y-full"
-          style={{ left: glossaryTip.x, top: glossaryTip.y - 14 }}
+          className="fixed z-[99999] w-[24rem] max-w-[calc(100vw-1.5rem)] p-4 rounded-2xl bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-xl border border-[#CFE1D6]/80 dark:border-[#22392D]/80 shadow-2xl text-left pointer-events-none overflow-y-auto max-h-[70vh]"
+          style={{
+            left: glossaryTipAnchor?.left ?? glossaryTip.x,
+            top: glossaryTipAnchor?.top ?? glossaryTip.y - 14,
+          }}
         >
           <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-[#E7E2D9] dark:border-[#2C2C30]">
             <div className="flex items-center gap-2 min-w-0">
@@ -1027,7 +1058,8 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
             <img
               src={glossaryTip.definition.imageUrl}
               alt={glossaryTip.definition.term}
-              className="w-full h-36 object-cover rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] shadow-md mb-2.5"
+              className="w-full max-h-48 object-contain rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] shadow-md mb-2.5 bg-[#F5F1EA] dark:bg-[#242426]/70"
+              onLoad={repositionGlossaryTip}
               onError={(e) => { (e.currentTarget.style.display = 'none'); }}
             />
           )}
