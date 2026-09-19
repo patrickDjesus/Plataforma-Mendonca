@@ -46,6 +46,7 @@ import {
 import { CreateDocModal } from './CreateDocModal';
 import { AddGlossaryTermModal } from './AddGlossaryTermModal';
 import { BlockNoteDocEditor } from './BlockNoteDocEditor';
+import { DocQuiz } from './DocQuiz';
 import { EmojiQuickPicker } from './EmojiQuickPicker';
 import { countWordsOfSections, sectionsToText } from '../utils/docConverter';
 import { CorpoHumanoSimulator } from '../corpoHumano/CorpoHumanoSimulator';
@@ -733,36 +734,48 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     setBulkGroupInput('');
   };
 
-  // Add custom glossary term to current document
+  // Add custom glossary term to current document. Se o documento pertencer a um
+  // grupo, o termo é salvo no glossário de TODOS os documentos do mesmo grupo,
+  // para que o termo fique disponível em qualquer documento do grupo.
   const handleAddGlossaryTerm = (term: string, definition: GlossaryDefinition) => {
     if (!selectedDisciplineId || !selectedDocId || !selectedDoc) return;
+
+    const group = (selectedDoc.group || '').trim();
 
     const newGlossary = {
       ...(selectedDoc.glossary || {}),
       [term]: definition
     };
 
+    const withTerm = (doc: NotebookDoc): NotebookDoc =>
+      doc.id === selectedDocId
+        ? { ...doc, glossary: newGlossary }
+        : { ...doc, glossary: { ...(doc.glossary || {}), [term]: definition } };
+
     setAllDisciplines(prev =>
       prev.map(d => {
-        if (d.id === selectedDisciplineId) {
-          return {
-            ...d,
-            documents: d.documents.map(doc => {
-              if (doc.id === selectedDocId) {
-                return { ...doc, glossary: newGlossary };
-              }
-              return doc;
-            })
-          };
-        }
-        return d;
+        if (d.id !== selectedDisciplineId) return d;
+        return {
+          ...d,
+          documents: d.documents.map(doc => {
+            if (!group) return doc.id === selectedDocId ? withTerm(doc) : doc;
+            const sameGroup = (doc.group || '').trim() === group;
+            return sameGroup ? withTerm(doc) : doc;
+          })
+        };
       })
     );
 
     if (userId) {
-      saveDocument(userId, { ...selectedDoc, glossary: newGlossary }).catch(err =>
-        console.warn('Erro ao salvar glossário no Supabase:', err)
-      );
+      const affected = (selectedDiscipline?.documents || []).filter(doc => {
+        if (doc.id === selectedDocId) return true;
+        return group && (doc.group || '').trim() === group;
+      });
+      affected.forEach(doc => {
+        saveDocument(userId, withTerm(doc)).catch(err =>
+          console.warn('Erro ao salvar glossário no Supabase:', err)
+        );
+      });
     }
   };
 
@@ -1972,7 +1985,7 @@ background: 'rgba(45, 90, 70, 0.15)',
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 15, scale: 0.8 }}
                     onClick={handleDocScrollToTop}
-                    className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-xl hover:border-blue-500 text-xs font-bold transition-all cursor-pointer group"
+                    className="fixed bottom-[6.5rem] right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-xl hover:border-blue-500 text-xs font-bold transition-all cursor-pointer group"
                   >
                     <div className="w-5 h-5 rounded-full bg-[#EBF3EF] dark:bg-[#15221B] text-[#2D5A46] dark:text-[#52B788] flex items-center justify-center group-hover:-translate-y-0.5 transition-transform">
                       <ArrowUp className="w-3 h-3" />
@@ -1985,6 +1998,11 @@ background: 'rgba(45, 90, 70, 0.15)',
             </div>
 
           </div>
+          )}
+
+          {/* Botão flutuante "Teste" — gera um mini-questionário com IA sobre o documento */}
+          {!isSimulatorDoc && selectedDoc && selectedDiscipline && (
+            <DocQuiz doc={selectedDoc} discipline={selectedDiscipline} />
           )}
 
         </div>
