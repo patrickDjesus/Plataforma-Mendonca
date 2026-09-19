@@ -146,77 +146,93 @@ const alignOf = (props: any): DocSection['align'] =>
     ? (props.textAlignment as DocSection['align'])
     : 'left';
 
+// Converte um bloco BlockNote em DocSection + seus filhos aninhados,
+// preservando TODO o conteúdo (listas aninhadas via Tab, toggles etc.).
+const sectionFromBlock = (b: PartialBlocks[number]): DocSection | null => {
+  const type = b.type;
+  if (!type) return null;
+  const text = textOfInline(b.content);
+  const props = (b.props || {}) as Record<string, any>;
+  const id = typeof b.id === 'string' ? b.id : `s-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+  const base: DocSection = {
+    id,
+    heading: '',
+    content: text,
+    align: alignOf(props),
+  };
+
+  switch (type) {
+    case 'heading': {
+      const level = props.level;
+      base.type = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3';
+      base.fontSize = level === 1 ? '3xl' : level === 2 ? '2xl' : 'xl';
+      base.heading = text;
+      break;
+    }
+    case 'bulletListItem':
+      base.type = 'bullet';
+      break;
+    case 'numberedListItem':
+      base.type = 'numbered';
+      break;
+    case 'checkListItem':
+      base.type = 'todo';
+      base.checked = !!props.checked;
+      break;
+    case 'quote':
+      base.type = 'quote';
+      break;
+    case 'codeBlock':
+      base.type = 'code';
+      base.formula = text;
+      break;
+    case 'image':
+      base.type = 'image';
+      base.imageUrl = props.url || '';
+      base.imageCaption = props.caption || '';
+      base.imageSize = props.previewWidth ?? 100;
+      break;
+    case 'table': {
+      base.type = 'table';
+      const content = b.content as any;
+      if (content && content.type === 'tableContent' && Array.isArray(content.rows)) {
+        base.tableData = content.rows.map((row: any) =>
+          Array.isArray(row?.cells) ? row.cells.map((cell: any) => textOfInline(cell?.content)) : []
+        );
+      } else {
+        base.tableData = [['', '']];
+      }
+      break;
+    }
+    case 'divider':
+      base.type = 'divider';
+      base.content = '';
+      break;
+    default:
+      base.type = 'paragraph';
+  }
+
+  return base;
+};
+
 // Converte blocos BlockNote de volta para DocSection, preservando o que for
-// possível no formato nativo de armazenamento da aplicação.
+// possível no formato nativo de armazenamento da aplicação. Percorre também os
+// `children` (sub-itens de listas criados com Tab, toggles etc.), pois antes
+// eles eram IGNORADOS e todo o conteúdo aninhado era perdido ao salvar.
 export const blocksToSections = (blocks: PartialBlocks): DocSection[] => {
   const sections: DocSection[] = [];
 
-  for (const b of blocks) {
-    const type = b.type;
-    const text = textOfInline(b.content);
-    const props = (b.props || {}) as Record<string, any>;
-    const id = typeof b.id === 'string' ? b.id : `s-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-
-    const base: DocSection = {
-      id,
-      heading: '',
-      content: text,
-      align: alignOf(props),
-    };
-
-    switch (type) {
-      case 'heading': {
-        const level = props.level;
-        base.type = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3';
-        base.fontSize = level === 1 ? '3xl' : level === 2 ? '2xl' : 'xl';
-        base.heading = text;
-        break;
-      }
-      case 'bulletListItem':
-        base.type = 'bullet';
-        break;
-      case 'numberedListItem':
-        base.type = 'numbered';
-        break;
-      case 'checkListItem':
-        base.type = 'todo';
-        base.checked = !!props.checked;
-        break;
-      case 'quote':
-        base.type = 'quote';
-        break;
-      case 'codeBlock':
-        base.type = 'code';
-        base.formula = text;
-        break;
-      case 'image':
-        base.type = 'image';
-        base.imageUrl = props.url || '';
-        base.imageCaption = props.caption || '';
-        base.imageSize = props.previewWidth ?? 100;
-        break;
-      case 'table': {
-        base.type = 'table';
-        const content = b.content as any;
-        if (content && content.type === 'tableContent' && Array.isArray(content.rows)) {
-          base.tableData = content.rows.map((row: any) =>
-            Array.isArray(row?.cells) ? row.cells.map((cell: any) => textOfInline(cell?.content)) : []
-          );
-        } else {
-          base.tableData = [['', '']];
-        }
-        break;
-      }
-      case 'divider':
-        base.type = 'divider';
-        base.content = '';
-        break;
-      default:
-        base.type = 'paragraph';
+  const appendBlock = (b: PartialBlocks[number]) => {
+    const section = sectionFromBlock(b);
+    if (section) sections.push(section);
+    const children = (b as any)?.children;
+    if (Array.isArray(children) && children.length > 0) {
+      for (const child of children) appendBlock(child);
     }
+  };
 
-    sections.push(base);
-  }
+  for (const b of blocks) appendBlock(b);
 
   return sections;
 };
