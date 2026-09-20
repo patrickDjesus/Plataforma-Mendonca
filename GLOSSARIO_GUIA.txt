@@ -1,0 +1,560 @@
+================================================================================
+GUIA COMPLETO DO SISTEMA DE GLOSSÁRIO — Plataforma Mendonça
+================================================================================
+Este documento explica, em detalhe, como o glossário funciona no projeto: o que
+ele é, onde vive no código, qual é a estrutura de dados, como os termos são
+destacados dentro do editor, como o menu de contexto funciona e todas as
+maneiras de definir um termo (com os nomes exatos de classes CSS, divs, spans,
+inputs, estados React e funções envolvidos).
+
+--------------------------------------------------------------------------------
+1. O QUE É O GLOSSÁRIO
+--------------------------------------------------------------------------------
+O glossário é um dicionário conceitual da plataforma. Cada verbete associa um
+TERMO (palavra ou expressão) a uma DEFINIÇÃO. Existem duas camadas de glossário:
+
+  1) GLOSSÁRIO GLOBAL (definitions.json)
+     - Fica em:  src/data/definitions.json
+     - Carregado em runtime a partir do arquivo JSON.
+     - Vale para TODOS os documentos de todos os usuários.
+     - Contém verbetes de Matemática, Cálculo, Física, Biologia, Química,
+       História, Geografia, Filosofia, Sociologia, Linguagens e Redação.
+
+  2) GLOSSÁRIO PERSONALIZADO DO DOCUMENTO (propriedade "glossary" do doc)
+     - Fica dentro de cada NotebookDoc, na propriedade:
+         glossary?: Record<string, GlossaryDefinition>
+     - É salvo no banco (Supabase) na coluna JSONB "glossary" da tabela
+       de documentos (ver supabase-schema.sql, linha 93).
+     - Só vale para o documento (ou para o grupo de documentos) ao qual
+       foi associado.
+
+Durante a leitura/edição os DOIS glossários são mesclados em um único mapa, de
+forma que os termos de ambos são destacados igualmente.
+
+--------------------------------------------------------------------------------
+2. ESTRUTURA DE DADOS (tipagem)
+--------------------------------------------------------------------------------
+Definição de um verbete (interface GlossaryDefinition) — definida em:
+    src/data/disciplinesData.ts
+
+    interface GlossaryDefinition {
+      term: string;        // Nome de exibição do termo (ex.: "Logaritmo")
+      definition?: string; // Significado conceitual (texto)
+      example?: string;    // Exemplo ou analogia prática (opcional)
+      category?: string;   // Matéria/categoria (ex.: "Matemática")
+      imageUrl?: string;   // URL de imagem do conceito (opcional)
+    }
+
+O campo "glossary" de um documento é um Record cuja CHAVE é o termo em
+minúsculas e o VALOR é um GlossaryDefinition. Exemplo real (definitions.json):
+
+    "logaritmo": {
+      "term": "Logaritmo",
+      "definition": "Expoente ao qual se deve elevar uma base fixa...",
+      "example": "Se 2³ = 8, então log₂(8) = 3.",
+      "category": "Matemática"
+    }
+
+--------------------------------------------------------------------------------
+3. ARQUIVOS ENVOLVIDOS
+--------------------------------------------------------------------------------
+  src/data/definitions.json            -> Verbetes globais (JSON puro).
+  src/lib/glossary.ts                  -> GLOBAL_GLOSSARY, mergeGlossary(),
+                                          isAlphaNumericChar(), escapeRegExp().
+  src/lib/glossaryPlugin.ts            -> Plugin ProseMirror que destaca os
+                                          termos (decorações inline).
+  src/components/BlockNoteDocEditor.tsx -> Editor de documento; registra o
+                                          plugin, aplica os termos e renderiza
+                                          o balão (Tooltip) do glossário.
+  src/components/SpellContextMenu.tsx  -> Menu de contexto (clique direito)
+                                          com a ação "Definir no glossário".
+  src/components/AddGlossaryTermModal.tsx -> Modal de criação/edição do verbete.
+  src/components/CadernoWorkspace.tsx  -> Orquestra tudo: estado do modal,
+                                          salvar no Supabase, propagar para o
+                                          grupo de documentos.
+  src/data/disciplinesData.ts          -> Tipos (GlossaryDefinition, NotebookDoc).
+  src/styles/docEditor.css             -> Classes CSS (doc-glossary-term,
+                                          doc-ctx-menu, doc-ctx-define, etc.).
+  src/components/GlossaryTooltip.tsx   -> Versão legada de destaque (usada em
+                                          conteúdos "ruled"); exporta também
+                                          GLOBAL_GLOSSARY.
+
+--------------------------------------------------------------------------------
+4. MESCLAGEM DOS GLOSSÁRIOS (src/lib/glossary.ts)
+--------------------------------------------------------------------------------
+Função principal:
+
+    mergeGlossary(custom?: Record<string, GlossaryDefinition>):
+      Record<string, GlossaryDefinition>
+
+    - Inicializa um mapa vazio.
+    - "Absorve" primeiro o GLOBAL_GLOSSARY (definitions.json).
+    - Depois "absorve" o glossário personalizado do documento.
+    - Para cada verbete insere DUAS chaves minúsculas:
+        * a própria chave do verbete (trim + toLowerCase)
+        * o valor de def.term (trim + toLowerCase)  -> serve de "alias".
+    - A ordem é importante: o custom sobrepõe o global em caso de conflito.
+
+Arquivo src/lib/glossary.ts, exportações:
+    GLOBAL_GLOSSARY: Record<string, GlossaryDefinition>
+        = definitionsData (JSON importado).
+
+    isAlphaNumericChar(ch: string): boolean
+        Retorna true se o caractere for letra/acentuada (\p{L}), número (\p{N})
+        ou underscore. Usado para garantir que o termo corresponda a PALAVRA
+        INTEIRA (não casar dentro de outra palavra).
+
+    escapeRegExp(s: string): string
+        Escapa metacaracteres de regex (usado ao montar o padrão de busca).
+
+Exemplos de uso do mergeGlossary:
+    BlockNoteDocEditor.tsx:157
+        const glossaryMap = useMemo(() => mergeGlossary(glossary), [glossary]);
+
+--------------------------------------------------------------------------------
+5. DESTAQUE DOS TERMOS NO EDITOR (src/lib/glossaryPlugin.ts)
+--------------------------------------------------------------------------------
+É um Plugin ProseMirror (a engine de edição por baixo do BlockNote). Ele varre o
+documento e, em tempo real, envolve cada ocorrência de um termo do glossário com
+uma DECORAÇÃO INLINE. As IDEs/CFS usam isso para não alterar o texto real (é só
+visual/interativo).
+
+Partes do plugin:
+
+  - glossaryKey = new PluginKey<GlossaryPluginState>('docGlossary')
+    Chave única que identifica o estado e as transações do plugin.
+
+  - GlossaryPluginState { terms, pattern, matches }
+      terms: Record<string, GlossaryDefinition>
+      pattern: RegExp | null       -> regex com TODOS os termos (OR).
+      matches: GlossaryTermMatch[] -> lista de { from, to, term }.
+
+  - buildPattern(terms)
+      Ordena as chaves do MAIOR para o MENOR comprimento (termos compostos
+      como "função exponencial" casam antes de "função"). Monta:
+          new RegExp(`(?:termo1|termo2|...)`, 'giu')
+      Flags: g (global), i (case-insensitive — destaca "LOGARITMO" com chave
+      "logaritmo"), u (unicode).
+
+  - computeGlossaryMatches(doc, terms, pattern)
+      Percorre cada nó de texto do documento (doc.descendants). Para cada match
+      do pattern, verifica o caractere ANTES e DEPOIS com isAlphaNumericChar;
+      se os dois vizinhos NÃO forem alfanuméricos => palavra inteira => registra:
+          { from: pos + m.index, to: pos + m.index + matched.length, term }
+      O termo guardado vem de def.term (ou do texto casado).
+      Só atravessa um nó de texto por vez, o que preserva negrito/itálico.
+
+  - createGlossaryPlugin(): Plugin
+      state.init  -> { terms: {}, pattern: null, matches: [] }
+      state.apply -> Reage a metas (meta do glossaryKey):
+         * { terms: {...} }  => reconstrói pattern e recalcula matches.
+         * tr.docChanged OU { refresh: true } => recalcula sem mudar termos.
+      props.decorations -> Cria DecorationSet inline para cada match:
+          Decoration.inline(m.from, m.to, {
+            class: 'doc-glossary-term',
+            'data-glossary-term': m.term,
+          })
+        Resultado: cada ocorrência vira, na DOM, um <span class="doc-glossary-term"
+        data-glossary-term="Termo">...</span>.
+
+  - setGlossaryTerms(view, terms)
+      view.dispatch(view.state.tr.setMeta(glossaryKey, { terms }));
+      Envia os termos para o plugin recalcular.
+
+  - refreshGlossaryDecorations(view)
+      view.dispatch(view.state.tr.setMeta(glossaryKey, { refresh: true }));
+      Força o destaque se atualizar sem trocar os dados.
+
+Registro do plugin no editor (BlockNoteDocEditor.tsx:37-45):
+    const glossaryPluginExtension = createExtension({
+      key: 'docGlossaryPlugin',
+      prosemirrorPlugins: [createGlossaryPlugin()],
+    });
+    // Usado na criação do editor:
+    const editor = useCreateBlockNote({
+      initialContent,
+      extensions: [glossaryPluginExtension, spellPluginExtension],
+    });
+
+Aplicar os termos quando o editor monta (BlockNoteDocEditor.tsx:176-179):
+    useEffect(() => {
+      const view = editor.prosemirrorView;
+      if (view) setGlossaryTerms(view, glossaryMap);
+    }, [editor, glossaryMap]);
+
+E também dentro da rotina de retry tryAttach (linha ~600):
+    setGlossaryTerms(view, glossaryMapRef.current);
+
+--------------------------------------------------------------------------------
+6. A CLASSE CSS DO TERMO DESTACADO (src/styles/docEditor.css)
+--------------------------------------------------------------------------------
+O bloco "--- Termos do glossário dentro do documento ---" (linhas 638-659):
+
+  .doc-glossary-term {
+    background-color: rgba(45, 90, 70, 0.14);   /* verde translúcido */
+    border-bottom: 2px solid rgba(45, 90, 70, 0.45);
+    border-radius: 4px;
+    padding: 0 1px;
+    cursor: pointer;                              /* sinaliza que é clicável */
+    transition: background-color 0.12s ease;
+  }
+
+  .doc-glossary-term:hover {
+    background-color: rgba(45, 90, 70, 0.24);   /* mais forte no hover */
+  }
+
+  .dark .doc-glossary-term {                     /* modo escuro */
+    background-color: rgba(82, 183, 136, 0.16);
+    border-bottom-color: rgba(82, 183, 136, 0.5);
+  }
+
+  .dark .doc-glossary-term:hover {
+    background-color: rgba(82, 183, 136, 0.28);
+  }
+
+Cor do modo claro = verde-sombra #2D5A46; modo escuro = verde-claro #52B788.
+
+--------------------------------------------------------------------------------
+7. O BALÃO/TOOLTIP DO GLOSSÁRIO (BlockNoteDocEditor.tsx)
+--------------------------------------------------------------------------------
+Estados React (linhas 159-166):
+    const [glossaryTip, setGlossaryTip] = useState<{
+      x: number; y: number; definition: GlossaryDefinition;
+    } | null>(null);
+    const glossaryTipTermRef = useRef('');          // termo atual exibido
+    const glossaryTipRef = useRef<HTMLDivElement|null>(null); // ref do balão
+    const [glossaryTipAnchor] = useState<{left:number;top:number}|null>(null);
+
+Handlers:
+  - handleGlossaryPointerMove (linha 511)
+      document.elementFromPoint(x, y) -> procura
+      el.closest('.doc-glossary-term'), lê dataset.glossaryTerm. Busca a
+      definição em glossaryMap[term.toLowerCase()] e posiciona o balão no topo
+      central do termo (getBoundingClientRect).
+  - handleGlossaryLeave (linha 540)
+      Limpa glossaryTipTermRef e fecha o balão.
+  - repositionGlossaryTip (linha 559)
+      Mede offsetWidth/offsetHeight do balão e vira para BAIXO do termo quando
+      não cabe acima; limita às bordas da viewport (margem = 12px).
+  - handleGlossaryClick (linha 545)
+      Clica num termo destacado => fecha o balão e chama:
+          onDefineGlossary(term)
+      (que abre o modal, veja seção 10).
+
+Onde os handlers são anexados (linhas 929-936):
+  <div className="doc-editor-paper"
+       onContextMenu={handleContextMenu}
+       onMouseMove={handleGlossaryPointerMove}
+       onMouseLeave={handleGlossaryLeave}
+       onClick={handleGlossaryClick}>
+
+Renderização do balão (linhas 1028-1087) — estrutura/classes EXATAS:
+  <motion.div ref={glossaryTipRef}
+      className="fixed z-[99999] w-[24rem] max-w-[calc(100vw-1.5rem)] p-4
+                 rounded-2xl bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-xl
+                 border border-[#CFE1D6]/80 dark:border-[#22392D]/80 shadow-2xl
+                 text-left pointer-events-none overflow-y-auto max-h-[70vh]"
+      style={{ left: glossaryTipAnchor?.left ?? glossaryTip.x,
+               top: glossaryTipAnchor?.top ?? glossaryTip.y - 14 }}>
+
+    <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5
+                    border-b border-[#E7E2D9] dark:border-[#2C2C30]">
+      <div className="flex items-center gap-2 min-w-0">
+        <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-[#2D5A46]
+                        to-[#224A38] text-white flex items-center justify-center">
+          <Sparkles className="w-3.5 h-3.5" />   (ícone de brilho)
+        </div>
+        <h4 className="font-display font-bold ...">{term}</h4>
+      </div>
+      {category && (
+        <span className="... rounded-full bg-[#EBF3EF] ... text-[#2D5A46]">{category}</span>
+      )}
+    </div>
+
+    {imageUrl && <img src={imageUrl} className="w-full max-h-48 object-contain ..." />}
+
+    {definition && (
+      <>
+        <span className="text-[10px] font-bold ... uppercase tracking-wider">
+          Significado Acadêmico:
+        </span>
+        <p className="text-xs ...">{definition}</p>
+      </>
+    )}
+
+    {example && (
+      <div className="mt-2.5 pt-2 border-t ... bg-[#EBF3EF]/60 ...">
+        <Lightbulb ... />
+        <p className="italic leading-snug">
+          <strong className="not-italic...">{example}</strong>
+        </p>
+      </div>
+    )}
+  </motion.div>
+
+--------------------------------------------------------------------------------
+8. MENU DE CONTEXTO (CLIQUE DIREITO) — "DEFINIR NO GLOSSÁRIO"
+--------------------------------------------------------------------------------
+Componente: src/components/SpellContextMenu.tsx
+Esse é o menu principal para definir um termo rapidamente dentro do editor.
+
+Fluxo de abertura (BlockNoteDocEditor.tsx, handleContextMenu, linhas ~355-447):
+  1) Se há TEXTO SELECIONADO no documento, usa esse trecho como termo.
+     const sel = view.state.selection; if (!sel.empty) { from/to/text }
+  2) Sem seleção, detecta erro de ortografia sob o cursor (classe
+     .bn-spell-error / .bn-spell-grammar no HTML).
+  3) Sem seleção e sem erro, usa wordAtPos() — função local que acha a palavra
+     completa sob o mouse dentro do próprio bloco (respeitando limites do
+     bloco com $pos.start()/$pos.end()).
+  Depois, setSpellPopup({ x, y, from, to, word }) abre o menu.
+
+Renderização (SpellContextMenu.tsx):
+  createPortal(<div ref={ref} className="doc-ctx-menu" style={{left, top}}>,
+               document.body)
+  -> O menu é um portal montado no <body>, classe .doc-ctx-menu.
+
+  Estrutura do menu e classes usadas:
+  - <div className="doc-ctx-word">      : a palavra/termo sob o cursor.
+  - <div className="doc-ctx-sep" />     : separador.
+  - BOTÃO PRINCIPAL — sempre visível quando há palavra e onDefineGlossary:
+      <button type="button"
+              className="doc-ctx-item doc-ctx-define"
+              onClick={() => onDefineGlossary(anchor.word)}>
+        <BookMarked className="doc-ctx-define-icon" />
+        <span>Definir no glossário</span>
+      </button>
+  - <button className="doc-ctx-item">Copiar</button>
+  - <button className="doc-ctx-item">Colar</button>
+  - (Se erro de ortografia) bloco de sugestões:
+      <div className="doc-ctx-sep" />
+      <div className="doc-ctx-msg">mensagem</div>
+      <div className="doc-ctx-label">Sugestões</div>
+      <div className="doc-ctx-sugs"> ... botões .doc-ctx-sug ...</div>
+      <button className="doc-ctx-item">Ignorar erro</button>
+      <div className="doc-ctx-footer">Correção por LanguageTool</div>
+
+CSS do menu (docEditor.css, "--- Menu de contexto ---", linhas 661-789):
+  .doc-ctx-menu     -> caixa fixa, fundo branco (dark: #18181B), borda
+                       #E7E2D9, raio 12px, sombra, z-index 500,
+                       min-width 220px, max-height 72vh (scroll).
+  .doc-ctx-word     -> palavra em destaque (bold 15px).
+  .doc-ctx-msg      -> mensagem do corretor.
+  .doc-ctx-label    -> rótulo "Sugestões" uppercase.
+  .doc-ctx-sugs     -> coluna de sugestões flex.
+  .doc-ctx-item     -> item de menu (botão, largura total, hover verde
+                       #EBF3EF). Modo escuro: hover #15221B.
+  .doc-ctx-define   -> ação DESTACADA: fundo #EBF3EF, borda #CFE1D6,
+                       texto #224A38 bold, ícone + rótulo.
+  .doc-ctx-define-icon -> ícone BookMarked 15x15 (#2D5A46 / dark #52B788).
+
+Comportamentos: fecha no clique fora (mousedown fora do menu), fecha com
+Escape, posiciona dentro da viewport (clamp a 8px das bordas).
+
+--------------------------------------------------------------------------------
+9. CLICAR NUM TERMO JÁ DESTACADO
+--------------------------------------------------------------------------------
+Ao clicar (left click) em qualquer palavra destacada com a classe
+.doc-glossary-term, o editor:
+  1. Fecha o balão (glossaryTip = null).
+  2. Chama onDefineGlossary(term) (BlockNoteDocEditor.tsx:545-554).
+  3. O CadernoWorkspace recebe e passa o termo para o modal pré-preenchido
+     (ver seção 10), permitindo EDITAR um verbete existente.
+
+--------------------------------------------------------------------------------
+10. COMO DEFINIR UM TERMO (3 CAMINHOS QUE ACABAM NO MESMO MODAL)
+--------------------------------------------------------------------------------
+Todos os fluxos abrem o componente AddGlossaryTermModal.tsx.
+
+CAMINHO A — Menu de contexto (rápido, dentro do editor):
+  1. Clique com o BOTÃO DIREITO sobre a palavra ou selecione um trecho e dê
+     direito sobre ele.
+  2. No menu .doc-ctx-menu, clique no botão "Definir no glossário"
+     (.doc-ctx-item .doc-ctx-define).
+  3. O CadernoWorkspace executa (linha 1971):
+        onDefineGlossary={(term) => {
+          setInitialGlossaryTerm(term);
+          setIsAddGlossaryOpen(true);
+        }}
+     e o modal abre com o CAMPO "Palavra ou Termo" já preenchido.
+
+CAMINHO B — Clique no termo destacado:
+  1. Clique sobre um termo já destacado (.doc-glossary-term).
+  2. O editor chama onDefineGlossary (seção 9) => mesmo código acima.
+  3. modal preenchido com o termo; se o verbete já existir no glossário do
+     documento, os campos vêm preenchidos para edição.
+
+CAMINHO C — Botão "Novo Termo no Glossário" (menu "•••" da barra do documento):
+  1. No documento aberto, clique no menu de mais opções (o botão com ícone
+     "•••" no cabeçalho do documento).
+  2. No dropdown, item:
+        <button className="w-full px-3 py-2 ... flex items-center gap-2">
+          <BookmarkPlus className="w-4 h-4 text-purple-500" />
+          <span>Novo Termo no Glossário</span>
+        </button>
+     (CadernoWorkspace.tsx:1917-1927)
+  3. onClick => setIsAddGlossaryOpen(true); setIsMoreMenuOpen(false);
+     modal abre com o termo vazio.
+
+--------------------------------------------------------------------------------
+11. O MODAL AddGlossaryTermModal (src/components/AddGlossaryTermModal.tsx)
+--------------------------------------------------------------------------------
+Pré-requisito para exibir (CadernoWorkspace.tsx:2027-2044):
+    {selectedDoc && (
+      <AddGlossaryTermModal
+        isOpen={isAddGlossaryOpen}
+        initialTerm={initialGlossaryTerm}
+        initialDefinition={...procurar verbete existente por chave minúscula...}
+        onClose={... setInitialGlossaryTerm('') ...}
+        onAddTerm={handleAddGlossaryTerm}
+      />
+    )}
+
+Props do componente:
+    isOpen: boolean
+    onClose: () => void
+    initialTerm?: string                          // termo pré-preenchido
+    initialDefinition?: GlossaryDefinition | null
+    onSaveTerm?: (definition: GlossaryDefinition) => void
+    onAddTerm?: (term: string, definition: GlossaryDefinition) => void
+
+Estados internos do modal:
+    term, definition, example, category (default 'Conceito'), imageUrl.
+
+Regra de envio:
+    const canSubmit = term.trim() && (definition.trim() || imageUrl.trim());
+    -> Pode salvar sem definição textual DESDE que tenha imagem.
+
+handleSubmit monta o verbete e dispara:
+    onSaveTerm?.(def);
+    onAddTerm?.(term.trim(), def);
+    Depois limpa os campos e chama onClose().
+
+Estrutura/classes EXATAS do modal (todas dentro de <AnimatePresence>):
+
+  <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6">
+    <!-- Backdrop -->
+    <motion.div onClick={onClose} className="fixed inset-0 bg-[#1C1917]/65 backdrop-blur-sm" />
+
+    <!-- Container -->
+    <motion.div className="relative w-full max-w-md bg-white dark:bg-[#18181B]
+                           rounded-[28px] border border-[#E7E2D9]/80
+                           dark:border-[#2C2C30] shadow-2xl overflow-hidden z-10">
+
+      <!-- Header -->
+      <div className="flex items-center justify-between px-5 py-4 border-b
+                      border-[#E7E2D9] dark:border-[#2C2C30]
+                      bg-[#EBF3EF]/50 dark:bg-[#15221B]/30">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#2D5A46] text-white flex items-center justify-center">
+            <BookOpen className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="font-bold text-sm ... font-display">Definir Significado de Palavra</h3>
+            <p className="text-[11px] ...">Aparecerá como balão interativo ao passar o mouse.</p>
+          </div>
+        </div>
+        <button onClick={onClose} className="p-1.5 ... rounded-xl"> <X className="w-5 h-5" /> </button>
+      </div>
+
+      <!-- Form -->
+      <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
+        1. Palavra ou Termo *
+           <input type="text" required value={term} placeholder="Ex: Derivada, Mitose, Entropia..."
+                  className="w-full bg-white dark:bg-[#18181B] border ... rounded-xl px-3 py-2 text-xs ... font-bold" />
+
+        2. Categoria / Matéria
+           <input type="text" value={category} placeholder="Ex: Biologia, Cálculo, Termodinâmica..." ... />
+
+        3. Significado / Definição Conceitual (ou insira a imagem)
+           <textarea rows={3} value={definition} ... resize-none leading-relaxed ... />
+
+        4. Imagem do Conceito (Opcional)
+           <input type="text" value={imageUrl} placeholder="https://exemplo.com/diagrama.png" ... />
+           {imageUrl.trim() && (
+             <div className="mt-2 rounded-xl overflow-hidden border ...">
+               <img src={imageUrl} alt="Pré-visualização" className="w-full h-28 object-cover"
+                    onError={esconde a div} />
+             </div>
+           )}
+
+        5. Exemplo ou Analogia Prática (Opcional)
+           <input type="text" value={example} placeholder="Ex: A velocidade instantânea do velocímetro..." ... />
+           (<Lightbulb className="w-3.5 h-3.5 text-amber-500" /> no label)
+
+        <!-- Actions -->
+        <div className="pt-2 border-t ... flex items-center justify-end gap-2">
+          <button type="button" onClick={onClose} className="... text-[#57534E] ...">Cancelar</button>
+          <button type="submit" disabled={!canSubmit}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl
+                             bg-[#2D5A46] hover:bg-[#21483A] disabled:opacity-50 ...">
+            <Plus className="w-4 h-4" />
+            Salvar Significado
+          </button>
+        </div>
+      </form>
+    </motion.div>
+  </div>
+
+--------------------------------------------------------------------------------
+12. SALVANDO O TERMO (CadernoWorkspace.tsx, handleAddGlossaryTerm, linha 740)
+--------------------------------------------------------------------------------
+  const handleAddGlossaryTerm = (term, definition) => {
+    const group = (selectedDoc.group || '').trim();
+
+    // Novo mapa = glossário atual + termo novo
+    const newGlossary = { ...(selectedDoc.glossary || {}), [term]: definition };
+
+    const withTerm = (doc) =>
+      doc.id === selectedDocId
+        ? { ...doc, glossary: newGlossary }
+        : { ...doc, glossary: { ...(doc.glossary || {}), [term]: definition } };
+
+    // Atualiza o estado local (todas as disciplinas)
+    setAllDisciplines(prev => prev.map(d => {
+      if (d.id !== selectedDisciplineId) return d;
+      return { ...d, documents: d.documents.map(doc => {
+        if (!group) return doc.id === selectedDocId ? withTerm(doc) : doc;
+        const sameGroup = (doc.group || '').trim() === group;
+        return sameGroup ? withTerm(doc) : doc;
+      })};
+    }));
+
+    // Se o documento pertence a um GRUPO, o termo vai para TODOS os docs do
+    // grupo; senão, só para o documento atual.
+    // Persiste no Supabase (se logado):
+    if (userId) {
+      const affected = (selectedDiscipline?.documents || []).filter(doc =>
+        doc.id === selectedDocId ||
+        (group && (doc.group || '').trim() === group));
+      affected.forEach(doc =>
+        saveDocument(userId, withTerm(doc))
+          .catch(err => console.warn('Erro ao salvar glossário no Supabase:', err)));
+    }
+  };
+
+  OBSERVAÇÃO IMPORTANTE: para o novo termo aparecer destacado NA HORA, o
+  editor precisa re-mesclar o glossário. Isso acontece porque o prop
+  "glossary" do BlockNoteDocEditor muda (Re-render) e o useEffect em
+  BlockNoteDocEditor.tsx:176-179 re-executa setGlossaryTerms(view, glossaryMap).
+
+--------------------------------------------------------------------------------
+13. RESUMO DO FLUXO COMPLETO (do clique ao destaque)
+--------------------------------------------------------------------------------
+  1. Usuário abre documento -> CadernoWorkspace renderiza
+     <BlockNoteDocEditor glossary={selectedDoc.glossary} ...>.
+  2. BlockNoteDocEditor faz mergeGlossary(glossary) (global + do doc).
+  3. Plugin ProseMirror (glossaryPlugin) recebe os termos via setGlossaryTerms
+     e varre o documento (computeGlossaryMatches).
+  4. match-> palavras inteiras recebem decoração inline:
+        <span class="doc-glossary-term" data-glossary-term="Termo">Termo</span>
+  5. Mouse move sobre o termo -> .doc-glossary-term:hover + balão glossaryTip
+     (classe fixed z-[99999] ...).
+  6. Novos termos: clique direito > "Definir no glossário" (ou clique no termo,
+     ou menu "•••" > "Novo Termo no Glossário") -> AddGlossaryTermModal
+     (classes w-full / rounded-[28px] ...) -> Salvar Significado ->
+     handleAddGlossaryTerm salva no doc e no Supabase -> useEffect re-aplica
+     as decorações.
+
+================================================================================
+FIM DO GUIA
+================================================================================

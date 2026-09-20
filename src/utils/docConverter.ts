@@ -146,6 +146,46 @@ const alignOf = (props: any): DocSection['align'] =>
     ? (props.textAlignment as DocSection['align'])
     : 'left';
 
+// Extrai os estilos inline do PRIMEIRO nó de texto com estilos do bloco
+// (incluindo o conteúdo de links aninhados). O modelo DocSection tem um único
+// conjunto de estilos por seção, então usamos o nó mais representativo.
+const inlineStylesOf = (content: any): Record<string, any> => {
+  if (!content) return {};
+  if (Array.isArray(content)) {
+    for (const c of content) {
+      if (!c || typeof c !== 'object') continue;
+      if (c.styles && typeof c.styles === 'object' && Object.keys(c.styles).length > 0) {
+        return c.styles;
+      }
+      if (c.type === 'link' && Array.isArray(c.content)) {
+        const nested = inlineStylesOf(c.content);
+        if (Object.keys(nested).length > 0) return nested;
+      }
+    }
+    return {};
+  }
+  if (typeof content === 'object' && content.styles && typeof content.styles === 'object') {
+    return content.styles;
+  }
+  return {};
+};
+
+// Aplica os estilos inline (cor, highlight, negrito, itálico, etc.) na DocSection,
+// preservando também o backgroundColor de bloco quando não vier dos estilos inline.
+const applyInlineStyles = (section: DocSection, content: any, props: Record<string, any>): DocSection => {
+  const styles = inlineStylesOf(content);
+  if (styles.bold) section.isBold = true;
+  if (styles.italic) section.isItalic = true;
+  if (styles.underline) section.isUnderline = true;
+  if (styles.strikethrough) section.isStrikethrough = true;
+  if (styles.textColor) section.textColor = styles.textColor;
+  if (styles.backgroundColor) section.highlightColor = styles.backgroundColor;
+  if (!section.highlightColor && props?.backgroundColor && props.backgroundColor !== 'default') {
+    section.highlightColor = props.backgroundColor;
+  }
+  return section;
+};
+
 // Converte um bloco BlockNote em DocSection + seus filhos aninhados,
 // preservando TODO o conteúdo (listas aninhadas via Tab, toggles etc.).
 const sectionFromBlock = (b: PartialBlocks[number]): DocSection | null => {
@@ -161,6 +201,8 @@ const sectionFromBlock = (b: PartialBlocks[number]): DocSection | null => {
     content: text,
     align: alignOf(props),
   };
+
+  applyInlineStyles(base, b.content, props);
 
   switch (type) {
     case 'heading': {
