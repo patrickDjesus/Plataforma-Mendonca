@@ -1,6 +1,0 @@
-{
-  "name": "FlashCards Estudo",
-  "description": "Aplicativo de flashcards com fixação ativa em duas etapas: reconhecimento dinâmico até acertar e escrita com validação inteligente de formatos alternativos.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
