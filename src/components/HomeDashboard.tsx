@@ -14,7 +14,6 @@ import {
   Calendar,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { DailyLearningGoal } from './DailyLearningGoal';
 import { StudyTimeSummaryCard } from './StudyTimeSummaryCard';
 import { StudyBadgesAndRewards } from './StudyBadgesAndRewards';
 import { ScrollFade } from './ScrollFade';
@@ -322,37 +321,9 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
             streakCount={streakCount}
           />
           </ScrollFade>
-
-          {/* ========================================================================= */}
-          {/* 2. COMPONENTE RECHARTS: META DIÁRIA DE APRENDIZADO */}
-          {/* ========================================================================= */}
-          <ScrollFade container={scrollContainerRef}>
-          <DailyLearningGoal
-            streakCount={streakCount}
-            onStartTraining={() => onNavigate('treino')}
-            onOpenCaderno={() => onNavigate('caderno')}
-            todayQuestionsAnswered={userProfile?.totalAnswered || 0}
-            todayMinutesStudied={0}
-            todayXpEarned={userProfile?.totalXp || 0}
-          />
-          </ScrollFade>
-
-          {/* ========================================================================= */}
-          {/* 2.5 SISTEMA DE MEDALHAS & RECOMPENSAS VISUAIS DE ESTUDO */}
-          {/* ========================================================================= */}
-          <ScrollFade container={scrollContainerRef}>
-          <StudyBadgesAndRewards
-            streakCount={userProfile?.streak || streakCount || 1}
-            totalAnswered={userProfile?.totalAnswered || 0}
-            totalCorrect={userProfile?.totalCorrect || 0}
-            accuracy={userProfile?.accuracy ?? 0}
-            totalXp={userProfile?.totalXp || 0}
-            onNavigateToTreino={() => onNavigate('treino')}
-          />
-          </ScrollFade>
         </div>
 
-        {/* COLUNA DIREITA: 4 Colunas (Streak & AI Assistant) */}
+        {/* COLUNA DIREITA: 4 Colunas (Streak & Conquistas) */}
         <div className="lg:col-span-4 flex flex-col gap-6">
           
           {/* OFENSIVA SEMANAL */}
@@ -392,7 +363,18 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({ onNavigate, streak
           </div>
           </ScrollFade>
 
-          {/* AI ASSISTANT CHAT REMOVIDO */}
+          {/* CONQUISTAS E MEDALHAS (LOGO ABAIXO DA OFENSIVA, MODO COMPACTO) */}
+          <ScrollFade container={scrollContainerRef}>
+          <StudyBadgesAndRewards
+            streakCount={userProfile?.streak || streakCount || 1}
+            totalAnswered={userProfile?.totalAnswered || 0}
+            totalCorrect={userProfile?.totalCorrect || 0}
+            accuracy={userProfile?.accuracy ?? 0}
+            totalXp={userProfile?.totalXp || 0}
+            onNavigateToTreino={() => onNavigate('treino')}
+            compact={true}
+          />
+          </ScrollFade>
         </div>
 
       </div>

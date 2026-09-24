@@ -8,18 +8,21 @@ import {
   Eye, 
   EyeOff, 
   ShieldCheck, 
-  AlertCircle 
+  AlertCircle,
+  Zap,
+  CloudOff
 } from 'lucide-react';
 import { GeometricTrianglesCanvas } from './GeometricTrianglesCanvas';
 import { LogoMendonca } from './LogoMendonca';
 import { useAuth } from '../context/AuthContext';
+import { isSupabaseConfigured } from '../services/supabase';
 
 interface AuthScreenProps {
   onLoginSuccess: (userData: { name: string; email: string; avatar: string }) => void;
 }
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
-  const { loginWithEmail, registerWithEmail } = useAuth();
+  const { loginWithEmail, registerWithEmail, loginAsGuest } = useAuth();
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -28,6 +31,23 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  const handleGuestLogin = async () => {
+    setIsSubmitting(true);
+    setAuthError(null);
+    try {
+      await loginAsGuest('Estudante Convidado');
+      onLoginSuccess({
+        name: 'Estudante Convidado',
+        email: 'convidado@mendonca.app',
+        avatar: 'EC',
+      });
+    } catch (err: any) {
+      setAuthError(err.message || 'Erro ao entrar como convidado');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,9 +64,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
       .toUpperCase() || 'EM';
 
     try {
+      const emailToUse = email.trim() || 'estudante@mendonca.app';
+      const passwordToUse = password || '123456';
+
       const success = authMode === 'login'
-        ? await loginWithEmail(email.trim(), password)
-        : await registerWithEmail(userName, email.trim(), password);
+        ? await loginWithEmail(emailToUse, passwordToUse)
+        : await registerWithEmail(userName, emailToUse, passwordToUse);
 
       if (!success) {
         setAuthError('Quase lá! Enviamos um link de confirmação para o seu e-mail. Verifique sua caixa de entrada e, depois de confirmar, faça login.');
@@ -55,7 +78,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
 
       onLoginSuccess({
         name: userName,
-        email: email.trim(),
+        email: emailToUse,
         avatar: initials,
       });
     } catch (err: any) {

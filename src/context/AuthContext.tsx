@@ -1,6 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { supabase, signInWithEmail as supabaseSignInWithEmail, signUpWithEmail as supabaseSignUpWithEmail, logout as supabaseLogout, getUserProfile, saveUserProfile, saveLeaderboardEntry } from '../services/supabase';
+import { 
+  supabase, 
+  signInWithEmail as supabaseSignInWithEmail, 
+  signUpWithEmail as supabaseSignUpWithEmail, 
+  signInAsGuest,
+  logout as supabaseLogout, 
+  getUserProfile, 
+  saveUserProfile, 
+  saveLeaderboardEntry 
+} from '../services/supabase';
 
 export interface UserProfileData {
   userId: string;
@@ -25,6 +34,7 @@ interface AuthContextType {
   loading: boolean;
   loginWithEmail: (email: string, pass: string) => Promise<boolean>;
   registerWithEmail: (name: string, email: string, pass: string) => Promise<boolean>;
+  loginAsGuest: (name?: string) => Promise<boolean>;
   logoutUser: () => Promise<void>;
   saveGamificationProgress: (stats: {
     xpEarned: number;
@@ -132,27 +142,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Listener de autenticacao Supabase
+  // Listener de autenticacao Supabase & Sessão Local Offline
   useEffect(() => {
+    // 1. Restaura usuário offline do localStorage se existir
+    const localUserRaw = localStorage.getItem('mendonca_local_auth_user');
+    if (localUserRaw) {
+      try {
+        const localUser = JSON.parse(localUserRaw);
+        setCurrentUser(localUser);
+        syncUserProfile(localUser);
+        setLoading(false);
+      } catch {
+        // ignore
+      }
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       const user = session?.user || null;
-      setCurrentUser(user);
       if (user) {
+        setCurrentUser(user);
         await syncUserProfile(user);
-      } else {
+        setLoading(false);
+      } else if (!localStorage.getItem('mendonca_local_auth_user')) {
+        setCurrentUser(null);
         setUserProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    // Verifica sessao existente
+    // Verifica sessao existente no Supabase
     supabase.auth.getSession().then(({ data: { session } }) => {
       const user = session?.user || null;
-      setCurrentUser(user);
       if (user) {
+        setCurrentUser(user);
         syncUserProfile(user);
+        setLoading(false);
+      } else if (!localStorage.getItem('mendonca_local_auth_user')) {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -161,7 +188,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithEmail = async (email: string, pass: string) => {
     try {
       const user = await supabaseSignInWithEmail(email, pass);
-      if (user) await syncUserProfile(user as any, { email });
+      if (user) {
+        setCurrentUser(user);
+        await syncUserProfile(user as any, { email });
+      }
       return !!user;
     } catch (error: any) {
       console.warn('Aviso de autenticacao por e-mail:', error?.message || error);
@@ -172,10 +202,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const registerWithEmail = async (name: string, email: string, pass: string) => {
     try {
       const result = await supabaseSignUpWithEmail(email, pass, name);
-      // Se o Supabase não gerou sessão (email-confirm), aguarda a confirmação
-      // e NÃO entra na aplicação — evita perfil "logado" sem sessão real.
-      if (result.session?.user) {
-        await syncUserProfile(result.session.user as any, { displayName: name, email });
+      // Se tiver usuário com sessão ativa (seja local ou do Supabase)
+      if (result.session?.user || result.user) {
+        const activeUser = (result.session?.user || result.user) as any;
+        setCurrentUser(activeUser);
+        await syncUserProfile(activeUser, { displayName: name, email });
         return true;
       }
       return false;
@@ -185,7 +216,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginAsGuest = async (name = 'Estudante Convidado') => {
+    try {
+      const guestUser = await signInAsGuest();
+      setCurrentUser(guestUser);
+      await syncUserProfile(guestUser, { displayName: name, email: 'convidado@mendonca.app' });
+      return true;
+    } catch (error: any) {
+      console.warn('Aviso ao entrar como convidado:', error?.message || error);
+      throw error;
+    }
+  };
+
   const logoutUser = async () => {
+    localStorage.removeItem('mendonca_local_auth_user');
     try {
       await supabaseLogout();
     } catch (error) {
@@ -261,7 +305,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         streakDays: newStreak,
         accuracy: newAccuracy,
         totalQuestions: newTotalAnswered,
-        league: newDivision,
+        league:
+          newDivision === 'Diamante' ||
+          newDivision === 'Platina' ||
+          newDivision === 'Ouro' ||
+          newDivision === 'Prata'
+            ? newDivision
+            : 'Prata',
         status: 'online',
       });
     } catch (error) {
@@ -277,6 +327,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         loginWithEmail,
         registerWithEmail,
+        loginAsGuest,
         logoutUser,
         saveGamificationProgress,
       }}

@@ -51,7 +51,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navCategories: { id: ScreenId; label: string; icon: React.ReactNode }[] = [
     { id: 'home', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'caderno', label: 'Caderno de Disciplinas', icon: <BookOpen className="w-4 h-4" /> },
-    { id: 'treino', label: 'Treino', icon: <Target className="w-4 h-4" /> },
     { id: 'flashcards', label: 'FlashCards', icon: <Layers className="w-4 h-4" /> },
   ];
 

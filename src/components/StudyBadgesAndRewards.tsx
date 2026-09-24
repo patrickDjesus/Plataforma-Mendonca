@@ -9,6 +9,7 @@ import {
   CheckCircle2, 
   X, 
   ChevronRight, 
+  ChevronLeft,
   Crown 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -66,6 +67,7 @@ interface StudyBadgesAndRewardsProps {
   accuracy: number;
   totalXp: number;
   onNavigateToTreino?: () => void;
+  compact?: boolean;
 }
 
 export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
@@ -73,11 +75,13 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
   totalAnswered,
   accuracy,
   totalXp,
-  onNavigateToTreino
+  onNavigateToTreino,
+  compact = false,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<StudyBadge | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'unlocked' | 'locked'>('all');
+  const [compactSlideIndex, setCompactSlideIndex] = useState(0);
 
   // Lista dinâmica de todas as medalhas e verificação de critérios
   const badges: StudyBadge[] = useMemo(() => {
@@ -350,6 +354,281 @@ export const StudyBadgesAndRewards: React.FC<StudyBadgesAndRewardsProps> = ({
       };
     }
   };
+
+  if (compact) {
+    const currentBadge = badges[compactSlideIndex % badges.length] || badges[0];
+
+    return (
+      <>
+        <div className="bg-[#FAF8F5] dark:bg-[#18181B] rounded-[32px] border border-[#E7E2D9] dark:border-[#2C2C30] p-6 shadow-xs hover:shadow-md hover:border-[#2D5A46] dark:hover:border-[#2D5A46] transition-all duration-300 min-h-[350px] flex flex-col justify-between relative overflow-hidden">
+          {/* Header do Card */}
+          <div className="flex items-center justify-between z-10">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 to-yellow-500 flex items-center justify-center text-[#1C1917] shadow-xs">
+                <Trophy className="w-4 h-4 fill-[#1C1917]" />
+              </div>
+              <span className="text-base font-bold text-[#1C1917] dark:text-[#FAF9F5] font-display">
+                Conquistas
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="text-xs font-bold text-[#2D5A46] dark:text-[#52B788] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <span>{unlockedCount}/{totalCount} Ver Todas</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Área Principal de 1 Conquista por Vez (Arrastável / Swipeable) */}
+          <div className="relative my-2 flex-1 flex flex-col items-center justify-center z-10 select-none">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentBadge.id}
+                initial={{ opacity: 0, x: 25, scale: 0.95 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -25, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={(_, info) => {
+                  if (info.offset.x < -35) {
+                    setCompactSlideIndex(prev => (prev < badges.length - 1 ? prev + 1 : 0));
+                  } else if (info.offset.x > 35) {
+                    setCompactSlideIndex(prev => (prev > 0 ? prev - 1 : badges.length - 1));
+                  }
+                }}
+                onClick={() => handleOpenBadgeDetails(currentBadge)}
+                className="flex flex-col items-center justify-center text-center cursor-grab active:cursor-grabbing w-full py-1"
+              >
+                {/* Imagem SEM QUADRADO/BORDA ao redor! Flutuando com brilho natural */}
+                {BADGE_IMAGES[currentBadge.id] ? (
+                  <img
+                    src={BADGE_IMAGES[currentBadge.id]}
+                    alt={currentBadge.title}
+                    className={`w-36 h-36 object-contain drop-shadow-xl transition-all duration-300 ${
+                      currentBadge.unlocked ? 'hover:scale-105' : 'grayscale opacity-60'
+                    }`}
+                  />
+                ) : (
+                  <span className="text-6xl filter drop-shadow-lg">{currentBadge.icon}</span>
+                )}
+
+                <h4 className="text-base font-extrabold text-[#1C1917] dark:text-[#FAF9F5] mt-2">
+                  {currentBadge.title}
+                </h4>
+                <p className="text-xs text-[#78716C] dark:text-[#A8A29E] mt-1 max-w-[240px] line-clamp-2">
+                  {currentBadge.description}
+                </p>
+
+                {/* Badge Status */}
+                <div className="mt-2.5">
+                  {currentBadge.unlocked ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300/60 dark:border-emerald-700">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      Conquistada
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 text-xs font-bold border border-amber-300/60 dark:border-amber-700">
+                      <Lock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                      {currentBadge.currentValue} / {currentBadge.targetValue}
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Navegação por Setas e Pontos de Paginação */}
+          <div className="flex items-center justify-between pt-3 border-t border-[#E7E2D9] dark:border-[#2C2C30] z-10">
+            <button
+              type="button"
+              onClick={() => setCompactSlideIndex(prev => (prev > 0 ? prev - 1 : badges.length - 1))}
+              className="w-8 h-8 rounded-full bg-[#EFECE6] dark:bg-[#232326] hover:bg-[#E7E2D9] dark:hover:bg-[#3B3B40] flex items-center justify-center text-[#57534E] dark:text-[#A8A29E] transition-colors cursor-pointer"
+              title="Anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {/* Pontos de navegação */}
+            <div className="flex items-center gap-1.5 max-w-[160px] overflow-x-auto scrollbar-none py-1">
+              {badges.map((b, idx) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => setCompactSlideIndex(idx)}
+                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                    idx === (compactSlideIndex % badges.length)
+                      ? 'w-5 bg-[#2D5A46] dark:bg-[#52B788]'
+                      : 'w-1.5 bg-[#D6D0C5] dark:bg-[#3B3B40]'
+                  }`}
+                  title={b.title}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCompactSlideIndex(prev => (prev < badges.length - 1 ? prev + 1 : 0))}
+              className="w-8 h-8 rounded-full bg-[#EFECE6] dark:bg-[#232326] hover:bg-[#E7E2D9] dark:hover:bg-[#3B3B40] flex items-center justify-center text-[#57534E] dark:text-[#A8A29E] transition-colors cursor-pointer"
+              title="Próxima"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Modal de Vitrine Completa */}
+        <AnimatePresence>
+          {isModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsModalOpen(false)}
+                className="absolute inset-0 bg-[#121214]/70 backdrop-blur-md"
+              />
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                className="relative w-full max-w-4xl bg-white dark:bg-[#18181B] rounded-[36px] shadow-2xl border border-[#E7E2D9]/80 dark:border-[#2C2C30] p-6 sm:p-8 overflow-hidden z-10 max-h-[90vh] flex flex-col text-[#1C1917] dark:text-[#E7E5E4]"
+              >
+                {/* Header do Modal */}
+                <div className="flex items-center justify-between pb-4 border-b border-[#E7E2D9] dark:border-[#2C2C30]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-yellow-500 flex items-center justify-center text-[#1C1917] shadow-md">
+                      <Trophy className="w-5 h-5 fill-[#1C1917]" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold font-display text-[#1C1917] dark:text-[#FAF9F5]">
+                        Vitrine de Conquistas & Medalhas
+                      </h2>
+                      <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
+                        Acompanhe sua evolução e desbloqueie títulos honorários para o ranking
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="w-9 h-9 rounded-xl bg-[#EFECE6] dark:bg-[#232326] hover:bg-[#E7E2D9] dark:hover:bg-[#3B3B40] text-[#78716C] dark:text-[#A8A29E] flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Filtros de Categoria */}
+                <div className="flex items-center justify-between gap-3 pt-4 pb-2">
+                  <div className="flex items-center gap-1.5 p-1 bg-[#EFECE6] dark:bg-[#232326] rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] text-xs font-semibold">
+                    <button
+                      onClick={() => setActiveFilter('all')}
+                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        activeFilter === 'all'
+                          ? 'bg-[#2D5A46] text-white shadow-xs'
+                          : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
+                      }`}
+                    >
+                      Todas ({badges.length})
+                    </button>
+                    <button
+                      onClick={() => setActiveFilter('unlocked')}
+                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        activeFilter === 'unlocked'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
+                      }`}
+                    >
+                      Desbloqueadas ({unlockedCount})
+                    </button>
+                    <button
+                      onClick={() => setActiveFilter('locked')}
+                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        activeFilter === 'locked'
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917]'
+                      }`}
+                    >
+                      A Conquistar ({badges.length - unlockedCount})
+                    </button>
+                  </div>
+
+                  <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
+                    <Flame className="w-4 h-4 fill-amber-500" />
+                    <span>Streak Atual: {streakCount} dias</span>
+                  </div>
+                </div>
+
+                {/* Grid Completo de Medalhas */}
+                <div className="overflow-y-auto flex-1 py-4 pr-1 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+                    {filteredBadges.map((badge) => {
+                      const colors = getTierColor(badge.tier);
+
+                      return (
+                        <motion.div
+                          key={badge.id}
+                          whileHover={{ y: -3 }}
+                          onClick={() => handleOpenBadgeDetails(badge)}
+                          className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between relative ${
+                            badge.unlocked
+                              ? `bg-gradient-to-b ${colors.bg} ${colors.border} shadow-sm`
+                              : 'bg-[#EFECE6] dark:bg-[#232326]/40 border-[#E7E2D9]/80 dark:border-[#3B3B40]/80 opacity-75 hover:opacity-100'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3 mb-2.5">
+                            <div className="flex items-center gap-2.5">
+                              {BADGE_IMAGES[badge.id] ? (
+                                <div className="relative shrink-0">
+                                  <img
+                                    src={BADGE_IMAGES[badge.id]}
+                                    alt={badge.title}
+                                    className={`w-20 h-20 object-cover rounded-2xl border-2 transition-all duration-300 ${
+                                      badge.unlocked
+                                        ? 'border-amber-300/80 dark:border-amber-500/60 shadow-lg'
+                                        : 'grayscale opacity-70 border-[#D6D0C5]/70 dark:border-[#57534E]'
+                                    }`}
+                                  />
+                                  {!badge.unlocked && (
+                                    <span className="absolute bottom-1 right-1 bg-[#18181B]/80 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border border-white/20">
+                                      {badge.currentValue}/{badge.targetValue}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-3xl filter drop-shadow-sm shrink-0">{badge.icon}</span>
+                              )}
+
+                              <div>
+                                <h4 className="text-sm font-extrabold text-[#1C1917] dark:text-[#FAF9F5]">
+                                  {badge.title}
+                                </h4>
+                                <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-[#A8A29E]">
+                                  {badge.tier}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-xs text-[#78716C] dark:text-[#A8A29E]">
+                            {badge.description}
+                          </p>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
 
   return (
     <>

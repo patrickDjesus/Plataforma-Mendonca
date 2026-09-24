@@ -1,9 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Volume2, Star, CheckCircle2, RotateCcw, Brain, X, Check, Flame, Sparkles, RefreshCw, Award, Flower2 } from 'lucide-react';
+import { motion } from 'motion/react';
+import {
+  ArrowLeft,
+  Volume2,
+  Star,
+  CheckCircle2,
+  RotateCcw,
+  Flame,
+  Check,
+  Sparkles,
+  RefreshCw,
+  Award,
+  Flower2,
+  Brain,
+  X,
+} from 'lucide-react';
 import { Flashcard, Deck, StudyFocus } from '../../types';
 import { SRSRating, calculateSRS, getIntervalPreview, formatIntervalLabel } from '../../utils/sm2';
 import { soundFx } from '../../utils/sound';
 import { COLOR_THEMES } from '../../utils/theme';
+import { useStudyTimer } from '../../../hooks/useStudyTimer';
 
 interface SrsStudySessionProps {
   deck: Deck;
@@ -20,46 +36,42 @@ type SessionPhase = 'studying' | 'completed';
 const RATING_CONFIG: Array<{
   rating: SRSRating;
   label: string;
-  shortLabel: string;
   keyLabel: string;
-  classes: string;
-  badge: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  hoverBorder: string;
+  iconColor: string;
 }> = [
   {
     rating: 0,
     label: 'Não sei',
-    shortLabel: 'Repetir',
     keyLabel: '1',
-    classes:
-      'border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-400',
-    badge: 'text-rose-700 dark:text-rose-400',
+    icon: RotateCcw,
+    hoverBorder: 'hover:border-stone-400 dark:hover:border-stone-600',
+    iconColor: 'text-stone-400 dark:text-stone-500 group-hover:text-rose-400/90 dark:group-hover:text-rose-400/90',
   },
   {
     rating: 1,
     label: 'Muito difícil',
-    shortLabel: 'Difícil',
     keyLabel: '2',
-    classes:
-      'border-amber-200 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-700 dark:text-amber-400',
-    badge: 'text-amber-700 dark:text-amber-400',
+    icon: Flame,
+    hoverBorder: 'hover:border-stone-400 dark:hover:border-stone-600',
+    iconColor: 'text-stone-400 dark:text-stone-500 group-hover:text-amber-500/80 dark:group-hover:text-amber-400/80',
   },
   {
     rating: 2,
     label: 'Razoável',
-    shortLabel: 'Razoável',
     keyLabel: '3',
-    classes:
-      'border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400',
-    badge: 'text-emerald-700 dark:text-emerald-400',
+    icon: Check,
+    hoverBorder: 'hover:border-stone-400 dark:hover:border-stone-600',
+    iconColor: 'text-stone-400 dark:text-stone-500 group-hover:text-stone-300 dark:group-hover:text-stone-200',
   },
   {
     rating: 3,
     label: 'Fácil',
-    shortLabel: 'Fácil',
     keyLabel: '4',
-    classes:
-      'border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400',
-    badge: 'text-blue-700 dark:text-blue-400',
+    icon: Sparkles,
+    hoverBorder: 'hover:border-[#2D5A46] dark:hover:border-[#52B788]',
+    iconColor: 'text-stone-400 dark:text-stone-500 group-hover:text-[#2D5A46] dark:group-hover:text-[#52B788]',
   },
 ];
 
@@ -82,8 +94,11 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
   }, [cards]);
 
   const [phase, setPhase] = useState<SessionPhase>('studying');
+  useStudyTimer(phase === 'studying', 'Revisão de Flashcards');
   const [queue, setQueue] = useState<Flashcard[]>(() => sortedCards());
   const [isRevealed, setIsRevealed] = useState(false);
+  // Mantém congelado o cartão que foi revelado para evitar spoiler na virada para o próximo
+  const [revealedCard, setRevealedCard] = useState<Flashcard | null>(null);
   const [attempts, setAttempts] = useState(0);
   const [failedIds, setFailedIds] = useState<Set<string>>(new Set());
   const [answeredIds, setAnsweredIds] = useState<Set<string>>(new Set());
@@ -97,14 +112,21 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
   const progressPercent = sessionTotal > 0 ? Math.round((completedCount / sessionTotal) * 100) : 0;
 
   const handleReveal = useCallback(() => {
+    if (!currentCard) return;
     soundFx.playFlip();
+    setRevealedCard(currentCard);
     setIsRevealed(true);
-  }, []);
+  }, [currentCard]);
 
   const handleRating = useCallback(
     (rating: SRSRating) => {
       if (!currentCard || phase !== 'studying') return;
       const cardId = currentCard.id;
+
+      // Fecha a revelação (inicia a virada de volta para a pergunta).
+      // Como o verso exibirá `revealedCard` (que é o cartão atual respondido),
+      // a resposta do próximo cartão NÃO aparece enquanto ele estiver virando!
+      setIsRevealed(false);
 
       if (rating === 0) {
         // "Não sei": o cartão NÃO sai da sessão — volta para o fim da fila
@@ -113,7 +135,6 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
         onRateCard(currentCard, rating);
         setAttempts((prev) => prev + 1);
         setFailedIds((prev) => new Set(prev).add(cardId));
-        setIsRevealed(false);
         if (queue.length > 1) {
           setQueue((prev) => [...prev.slice(1), prev[0]]);
         }
@@ -133,7 +154,6 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
       if (!wasFailed) setFirstTryCorrect((prev) => prev + 1);
       const newAnswered = new Set(answeredIds).add(cardId);
       setAnsweredIds(newAnswered);
-      setIsRevealed(false);
 
       const remaining = queue.filter((c) => !newAnswered.has(c.id));
       setQueue(remaining);
@@ -295,6 +315,10 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
   }
 
   const intervalPreviews = currentCard ? getIntervalPreview(currentCard) : null;
+  // Cartão que deve ser exibido no verso:
+  // Se revelado, é o cartão atual. Se está virando de volta para a pergunta,
+  // preservamos o cartão recém-respondido para que a resposta do próximo NUNCA apareça precocemente.
+  const backCardToDisplay = isRevealed ? currentCard : (revealedCard || currentCard);
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-6 flex flex-col items-center">
@@ -353,22 +377,33 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
         </span>
       </div>
 
-      {/* Card Box */}
-      <div className="w-full perspective-1000 mb-6">
-        <div
-          className={`grid transform-style-3d transition-transform duration-500 rounded-3xl border border-[#E7E2D9] dark:border-[#2C2C30] ${
-            isRevealed ? 'rotate-y-180' : ''
-          }`}
+      {/* Card Box com Animação Física 3D suave (rotateY) via motion */}
+      <div className="w-full mb-6" style={{ perspective: 1200 }}>
+        <motion.div
+          animate={{ rotateY: isRevealed ? 180 : 0 }}
+          initial={false}
+          transition={{
+            duration: 0.5,
+            ease: [0.23, 1, 0.32, 1],
+          }}
+          style={{ transformStyle: 'preserve-3d' }}
+          className="grid w-full min-h-[380px] rounded-3xl"
         >
-          {/* FRONT FACE */}
+          {/* FRONT FACE (Pergunta) */}
           <div
             id="srs-flashcard-front"
-            onClick={handleReveal}
-            className="[grid-area:1/1] backface-hidden cursor-pointer w-full min-h-[360px] bg-white dark:bg-[#232326] rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-between"
+            onClick={!isRevealed ? handleReveal : undefined}
+            style={{
+              gridArea: '1 / 1',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(0deg)',
+            }}
+            className="cursor-pointer w-full min-h-[380px] bg-white dark:bg-[#1E1E22] rounded-3xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35)] border border-[#E7E2D9] dark:border-[#2C2C30] flex flex-col justify-between select-none"
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#44403C] dark:text-[#D6D3CD]">
+                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#2A2A2E] text-[#44403C] dark:text-[#D6D3CD]">
                   {currentCard.status === 'mastered'
                     ? 'Dominado'
                     : currentCard.status === 'learning'
@@ -378,7 +413,7 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
                     : 'Novo'}
                 </span>
                 {currentCard.tag && (
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#78716C]">
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#2A2A2E] text-[#78716C] dark:text-[#A8A29E]">
                     {currentCard.tag}
                   </span>
                 )}
@@ -391,7 +426,7 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
                     soundFx.speak(currentCard.front);
                   }}
                   title="Ouvir"
-                  className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors"
+                  className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] hover:bg-[#EFECE6] dark:hover:bg-[#2C2C30] transition-colors"
                 >
                   <Volume2 className="w-4 h-4" />
                 </button>
@@ -403,7 +438,7 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
                   className={`p-1.5 rounded-lg transition-colors ${
                     currentCard.starred
                       ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
-                      : 'text-[#A8A29E] hover:text-amber-500 hover:bg-[#EFECE6] dark:hover:bg-[#232326]'
+                      : 'text-[#A8A29E] hover:text-amber-500 hover:bg-[#EFECE6] dark:hover:bg-[#2C2C30]'
                   }`}
                 >
                   <Star className={`w-4 h-4 ${currentCard.starred ? 'fill-amber-500' : ''}`} />
@@ -411,7 +446,7 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
               </div>
             </div>
 
-            <div className="py-6 text-center">
+            <div className="py-6 text-center my-auto">
               <span className="text-xs font-semibold text-[#A8A29E] dark:text-[#78716C] uppercase tracking-widest block mb-2">
                 Pergunta / Termo
               </span>
@@ -420,113 +455,136 @@ export const SrsStudySession: React.FC<SrsStudySessionProps> = ({
               </p>
             </div>
 
-            <div className="text-center pt-6 border-t border-[#E7E2D9] dark:border-[#2C2C30]">
+            <div className="text-center pt-5 border-t border-[#E7E2D9] dark:border-[#2C2C30]">
               <span className="text-xs font-semibold text-[#A8A29E] dark:text-[#78716C] uppercase tracking-wider">
                 Clique no card para ver a resposta [Espaço]
               </span>
             </div>
           </div>
 
-          {/* BACK FACE */}
-          <div id="srs-flashcard-back" className="[grid-area:1/1] backface-hidden rotate-y-180 w-full min-h-[360px] bg-[#FAF8F5] dark:bg-[#1A1A1D] rounded-3xl p-6 sm:p-8 shadow-xl border border-[#CFE1D6] dark:border-[#22392D] flex flex-col justify-between">
+          {/* BACK FACE (Resposta) */}
+          <div
+            id="srs-flashcard-back"
+            style={{
+              gridArea: '1 / 1',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+            }}
+            className="w-full min-h-[380px] bg-[#FAF8F5] dark:bg-[#18181B] rounded-3xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35)] border border-[#CFE1D6]/80 dark:border-[#2A3F33] flex flex-col justify-between select-none"
+          >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EBF3EF] dark:bg-[#1D2B24] text-[#2D5A46] dark:text-[#52B788]">
-                  {currentCard.status === 'mastered'
+                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EBF3EF] dark:bg-[#1A2E23] text-[#2D5A46] dark:text-[#52B788]">
+                  {backCardToDisplay && backCardToDisplay.status === 'mastered'
                     ? 'Dominado'
-                    : currentCard.status === 'learning'
+                    : backCardToDisplay && backCardToDisplay.status === 'learning'
                     ? 'Aprendendo'
-                    : currentCard.status === 'review'
+                    : backCardToDisplay && backCardToDisplay.status === 'review'
                     ? 'Em Revisão'
                     : 'Novo'}
                 </span>
-                {currentCard.tag && (
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#78716C]">
-                    {currentCard.tag}
+                {backCardToDisplay && backCardToDisplay.tag && (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#2A2A2E] text-[#78716C] dark:text-[#A8A29E]">
+                    {backCardToDisplay.tag}
                   </span>
                 )}
               </div>
 
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => soundFx.speak(currentCard.back)}
+                  onClick={() => backCardToDisplay && soundFx.speak(backCardToDisplay.back)}
                   title="Ouvir resposta"
-                  className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors"
+                  className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] hover:bg-[#EFECE6] dark:hover:bg-[#2C2C30] transition-colors"
                 >
                   <Volume2 className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => onToggleStar(currentCard.id)}
+                  onClick={() => backCardToDisplay && onToggleStar(backCardToDisplay.id)}
                   className={`p-1.5 rounded-lg transition-colors ${
-                    currentCard.starred
+                    backCardToDisplay && backCardToDisplay.starred
                       ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
-                      : 'text-[#A8A29E] hover:text-amber-500 hover:bg-[#EFECE6] dark:hover:bg-[#232326]'
+                      : 'text-[#A8A29E] hover:text-amber-500 hover:bg-[#EFECE6] dark:hover:bg-[#2C2C30]'
                   }`}
                 >
-                  <Star className={`w-4 h-4 ${currentCard.starred ? 'fill-amber-500' : ''}`} />
+                  <Star className={`w-4 h-4 ${backCardToDisplay && backCardToDisplay.starred ? 'fill-amber-500' : ''}`} />
                 </button>
               </div>
             </div>
 
-            <div className="py-6 text-center">
-              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block mb-2">
+            <div className="py-6 text-center my-auto">
+              <span className="text-xs font-semibold text-[#2D5A46] dark:text-[#52B788] uppercase tracking-widest block mb-2">
                 Resposta / Definição
               </span>
               <p className="text-lg sm:text-xl font-medium text-[#1C1917] dark:text-[#FAF9F5] leading-relaxed">
-                {currentCard.back}
+                {backCardToDisplay ? backCardToDisplay.back : currentCard.back}
               </p>
             </div>
 
-            <div className="text-center pt-6 border-t border-[#E7E2D9] dark:border-[#2C2C30]">
+            <div className="text-center pt-5 border-t border-[#E7E2D9] dark:border-[#2C2C30]">
               <span className="text-xs font-semibold text-[#A8A29E] dark:text-[#78716C] uppercase tracking-wider">
-                Como foi lembrar deste card? Classifique abaixo.
+                Como foi lembrar deste card? Avalie abaixo.
               </span>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* 4 Rating Buttons */}
+      {/* 4 Rating Buttons Redesenhados Minimalistas */}
       {isRevealed && intervalPreviews ? (
-        <div className="w-full animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <p className="text-center text-xs font-semibold text-[#78716C] dark:text-[#A8A29E] uppercase tracking-wider mb-2.5">
+        <div className="w-full animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <p className="text-center text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-3">
             Como foi lembrar deste card?
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 mb-3">
-            {RATING_CONFIG.map((cfg) => (
-              <button
-                key={cfg.rating}
-                onClick={() => handleRating(cfg.rating)}
-                className={`p-3 rounded-2xl border flex flex-col items-center justify-center transition-all hover:scale-[1.02] cursor-pointer ${cfg.classes}`}
-              >
-                <span className="text-xs font-bold">{cfg.label}</span>
-                <span className={`text-[11px] font-mono mt-0.5 opacity-80 ${cfg.badge}`}>
-                  {intervalPreviews[cfg.rating]}
-                </span>
-                <span className="text-[10px] font-mono opacity-50 mt-1">
-                  Tecla {cfg.keyLabel}
-                </span>
-              </button>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+            {RATING_CONFIG.map((cfg) => {
+              const Icon = cfg.icon;
+              return (
+                <button
+                  key={cfg.rating}
+                  type="button"
+                  onClick={() => handleRating(cfg.rating)}
+                  className={`group relative p-4 sm:p-4.5 rounded-2xl border border-[#E7E2D9] dark:border-[#2C2C30] ${cfg.hoverBorder} bg-white/90 dark:bg-[#1A1A1D]/90 hover:bg-[#F8F6F2] dark:hover:bg-[#232326] flex flex-col items-center justify-between text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:hover:shadow-black/40 cursor-pointer`}
+                >
+                  {/* Ícone minimalista com sutil destaque dessaturado no hover */}
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-stone-100 dark:bg-[#242428] group-hover:bg-stone-200/70 dark:group-hover:bg-[#2E2E33] transition-colors mb-2">
+                    <Icon className={`w-4 h-4 ${cfg.iconColor} transition-colors`} strokeWidth={1.75} />
+                  </div>
+
+                  {/* Nome do botão em destaque */}
+                  <span className="text-xs sm:text-[13px] font-semibold text-[#1C1917] dark:text-[#E7E2D9] tracking-tight">
+                    {cfg.label}
+                  </span>
+
+                  {/* Prazo em texto secundário discreto */}
+                  <span className="text-[11px] font-mono text-stone-500 dark:text-stone-400 mt-1">
+                    {intervalPreviews[cfg.rating]}
+                  </span>
+
+                  {/* Atalho de teclado em texto secundário discreto */}
+                  <span className="mt-2.5 text-[10px] font-mono text-stone-400 dark:text-stone-500 px-2 py-0.5 rounded-md bg-stone-100/90 dark:bg-[#242428] border border-stone-200/60 dark:border-stone-700/60">
+                    Tecla {cfg.keyLabel}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="flex items-start justify-center gap-2 text-[11px] text-[#78716C] dark:text-[#A8A29E] max-w-lg mx-auto leading-snug">
-            <Sparkles className="w-3.5 h-3.5 text-[#2D5A46] shrink-0 mt-0.5" />
+          <div className="flex items-start justify-center gap-2 text-[11px] text-stone-500 dark:text-stone-400 max-w-lg mx-auto leading-snug">
+            <Sparkles className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788] shrink-0 mt-0.5" />
             <p>
-              <strong className="text-[#44403C] dark:text-[#D6D3CD] font-semibold">Não sei</strong> mantém o cartão
-              na sessão até você acertar. Quanto <strong className="font-semibold">mais difícil</strong>, mais rápido
-              ele reaparece; marcando <strong className="font-semibold">Fácil</strong> ele sai da categoria de difíceis.
+              <strong className="text-stone-700 dark:text-stone-300 font-medium">Não sei</strong> repete na sessão e agenda para daqui a algumas horas. O intervalo máximo é de 1 semana para garantir prática diária consistente.
             </p>
           </div>
         </div>
       ) : (
         <button
           onClick={handleReveal}
-          className="w-full py-4 rounded-2xl bg-white dark:bg-[#1A1A1D] border-2 border-[#E7E2D9] dark:border-[#2C2C30] hover:border-[#2D5A46] text-[#1C1917] dark:text-[#FAF9F5] font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+          className="w-full py-4 rounded-2xl bg-white dark:bg-[#1A1A1D] border border-[#E7E2D9] dark:border-[#2C2C30] hover:border-[#2D5A46] dark:hover:border-[#52B788] text-[#1C1917] dark:text-[#FAF9F5] font-semibold text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all cursor-pointer"
         >
-          <RotateCcw className="w-4 h-4 text-[#2D5A46]" />
-          <span>Virar e Ver a Resposta (Espaço)</span>
+          <RotateCcw className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" strokeWidth={1.75} />
+          <span>Virar e Ver a Resposta [Espaço]</span>
         </button>
       )}
 

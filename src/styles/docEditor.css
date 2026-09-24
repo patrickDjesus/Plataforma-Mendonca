@@ -152,18 +152,19 @@
   color: #44403C !important;
   font-family: 'Inter', sans-serif;
   font-size: 15px;
-  line-height: 36px;
-  padding: 14px 0 40px;
+  line-height: 36px !important;
+  padding: 0 0 40px !important;
   min-height: 540px !important;
-  background: repeating-linear-gradient(
+  background-image: linear-gradient(
       to bottom,
       rgba(168, 162, 158, 0.45) 0px,
       rgba(168, 162, 158, 0.45) 1px,
       transparent 1px,
       transparent 36px
     ) !important;
-  background-origin: content-box !important;
-  background-clip: content-box !important;
+  background-size: 100% 36px !important;
+  background-repeat: repeat-y !important;
+  background-position: 0 0 !important;
   overflow: hidden !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
@@ -173,15 +174,16 @@
 
 .dark .doc-editor-paper .bn-editor.bn-editor {
   color: #D6D3CD !important;
-  background: repeating-linear-gradient(
+  background-image: linear-gradient(
       to bottom,
-      rgba(168, 162, 158, 0.45) 0px,
-      rgba(168, 162, 158, 0.45) 1px,
+      rgba(168, 162, 158, 0.35) 0px,
+      rgba(168, 162, 158, 0.35) 1px,
       transparent 1px,
       transparent 36px
     ) !important;
-  background-origin: content-box !important;
-  background-clip: content-box !important;
+  background-size: 100% 36px !important;
+  background-repeat: repeat-y !important;
+  background-position: 0 0 !important;
   overflow: hidden !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
@@ -207,14 +209,7 @@
 }
 
 .doc-paper-holes {
-  position: absolute;
-  left: 16px;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  padding-top: 40px;
-  gap: 0;
+  display: none !important;
 }
 
 .doc-paper-holes span {
@@ -235,39 +230,21 @@
   min-height: 0;
 }
 
-/* === ZERA TUDO que o BlockNote injeta nos wrappers internos ===
-   Bloco DOM do BlockNote:
-     .bn-block-outer  (line-height: 1.5  — mata o alinhamento 36px)
-       .bn-block
-         .bn-block-content  (padding: 3px 0 — desloca 6px por bloco)
-           .bn-inline-content  (o texto real)
-   A gente precisa anular cada camada para que o texto nasça
-   exatamente na borda da content-box e o half-leading centralize
-   o glyph no meio da célula da régua (36 px). */
+/* === ZERA TUDO que o BlockNote injeta nos wrappers internos === */
 
-/* 1) wrapper externo — herda line-height do .bn-editor (36 px) */
-.doc-editor-paper .bn-block-outer {
-  line-height: inherit !important;
+.doc-editor-paper .ProseMirror,
+.doc-editor-paper .bn-block-group,
+.doc-editor-paper .bn-block-outer,
+.doc-editor-paper .bn-block,
+.doc-editor-paper .bn-block-content,
+.doc-editor-paper [data-node-type="blockContainer"],
+.doc-editor-paper [data-node-type="blockGroup"] {
+  line-height: 36px !important;
   margin: 0 !important;
   padding: 0 !important;
-}
-
-/* 2) bloco interno — sem margin/padding */
-.doc-editor-paper .bn-block {
-  margin: 0 !important;
-  padding: 0 !important;
+  gap: 0 !important;
+  row-gap: 0 !important;
   background: transparent !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-/* 3) bloco de conteúdo — anula o padding 3px do BlockNote */
-.doc-editor-paper .bn-block-content {
-  padding: 0 !important;
-  margin: 0 !important;
-  width: 100% !important;
-  max-width: 100% !important;
   box-sizing: border-box !important;
 }
 
@@ -285,7 +262,6 @@
 }
 
 .doc-editor-paper .bn-editor {
-  background: transparent !important;
   height: auto !important;
   min-height: unset !important;
   max-height: none !important;
@@ -300,34 +276,38 @@
   min-height: 36px !important;
 }
 
-/* 5) Todos os data-content-type: zera margin/padding e garante
-      word-break + centralização vertical via line-height herdado */
+/* 5) Todos os data-content-type: zera margin/padding e garante line-height 36px */
 .doc-editor-paper [data-content-type] {
   margin: 0 !important;
   padding: 0 !important;
-  line-height: inherit !important;
+  line-height: 36px !important;
   word-break: break-word !important;
   overflow-wrap: break-word !important;
   max-width: 100% !important;
 }
 
-/* 6) Texto inline real — garante quebra de palavra */
+/* 6) Texto inline real */
 .doc-editor-paper .bn-inline-content {
+  line-height: 36px !important;
   word-break: break-word !important;
   overflow-wrap: break-word !important;
   max-width: 100% !important;
   display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* === Parágrafos e listas: exatamente 1 célula da régua (36 px) ===
-   O half-leading centraliza o texto:
-     font-size 15 px → (36 − 15) / 2 = 10.5 px acima + abaixo */
+/* === Parágrafos e listas: exatamente 1 célula da régua (36 px) === */
 .doc-editor-paper [data-content-type="paragraph"],
 .doc-editor-paper [data-content-type="bulletListItem"],
 .doc-editor-paper [data-content-type="numberedListItem"],
-.doc-editor-paper [data-content-type="checkListItem"] {
+.doc-editor-paper [data-content-type="checkListItem"],
+.doc-editor-paper p,
+.doc-editor-paper span {
   line-height: 36px !important;
   min-height: 36px !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* --- Blocos de imagem: TAMANHO FIXO (P/M/G). Sem redimensionamento por
@@ -581,16 +561,17 @@
   max-width: 100% !important;
 }
 
-.doc-editor-paper [class*="FormattingToolbar"] {
-  background: #ffffff !important;
-  border: 1px solid #E7E2D9 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 10px 30px rgba(28, 25, 23, 0.12) !important;
-}
-
-.dark .doc-editor-paper [class*="FormattingToolbar"] {
-  background: #232326 !important;
-  border-color: #44403C !important;
+/* Oculta completamente barra flutuante de formatação de seleção */
+.doc-editor-paper [class*="FormattingToolbar"],
+.doc-editor-paper [class*="LinkToolbar"],
+.bn-formatting-toolbar,
+.bn-link-toolbar,
+.mantine-Toolbar-root[class*="FormattingToolbar"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0) !important;
 }
 
 .doc-editor-paper [class*="SuggestionMenu"] {
@@ -637,52 +618,203 @@
 
 /* --- Termos do glossário dentro do documento --- */
 .doc-glossary-term {
-  background-color: rgba(45, 90, 70, 0.14);
-  border-bottom: 2px solid rgba(45, 90, 70, 0.45);
-  border-radius: 4px;
+  background-color: transparent;
+  border-bottom: 1.5px dotted rgba(45, 90, 70, 0.7);
+  border-radius: 3px;
   padding: 0 1px;
   cursor: pointer;
-  transition: background-color 0.12s ease;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  outline: none;
 }
 
-.doc-glossary-term:hover {
-  background-color: rgba(45, 90, 70, 0.24);
+.doc-glossary-term:hover,
+.doc-glossary-term:focus-visible {
+  background-color: rgba(45, 90, 70, 0.12);
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+}
+
+.doc-glossary-term:focus-visible {
+  box-shadow: 0 0 0 2px rgba(45, 90, 70, 0.3);
+}
+
+/* Estado "já visto" - sublinhado mais sutil */
+.doc-glossary-term.doc-glossary-seen {
+  border-bottom-color: rgba(45, 90, 70, 0.35);
+  opacity: 0.92;
 }
 
 .dark .doc-glossary-term {
+  background-color: transparent;
+  border-bottom: 1.5px dotted rgba(82, 183, 136, 0.75);
+}
+
+.dark .doc-glossary-term:hover,
+.dark .doc-glossary-term:focus-visible {
   background-color: rgba(82, 183, 136, 0.16);
-  border-bottom-color: rgba(82, 183, 136, 0.5);
+  border-bottom-style: solid;
 }
 
-.dark .doc-glossary-term:hover {
-  background-color: rgba(82, 183, 136, 0.28);
+.dark .doc-glossary-term:focus-visible {
+  box-shadow: 0 0 0 2px rgba(82, 183, 136, 0.4);
 }
 
-/* --- Menu de contexto (correção / copiar / colar / glossário) --- */
+.dark .doc-glossary-term.doc-glossary-seen {
+  border-bottom-color: rgba(82, 183, 136, 0.35);
+}
+
+/* Cores por disciplina/matéria */
+/* Matemática / Cálculo: azul */
+.doc-glossary-cat-matematica,
+.doc-glossary-cat-calculo {
+  border-bottom-color: rgba(37, 99, 235, 0.75);
+}
+.doc-glossary-cat-matematica:hover,
+.doc-glossary-cat-calculo:hover {
+  background-color: rgba(37, 99, 235, 0.12);
+}
+.dark .doc-glossary-cat-matematica,
+.dark .doc-glossary-cat-calculo {
+  border-bottom-color: rgba(96, 165, 250, 0.8);
+}
+.dark .doc-glossary-cat-matematica:hover,
+.dark .doc-glossary-cat-calculo:hover {
+  background-color: rgba(96, 165, 250, 0.18);
+}
+
+/* Física: âmbar */
+.doc-glossary-cat-fisica {
+  border-bottom-color: rgba(217, 119, 6, 0.8);
+}
+.doc-glossary-cat-fisica:hover {
+  background-color: rgba(217, 119, 6, 0.12);
+}
+.dark .doc-glossary-cat-fisica {
+  border-bottom-color: rgba(251, 191, 36, 0.85);
+}
+.dark .doc-glossary-cat-fisica:hover {
+  background-color: rgba(251, 191, 36, 0.18);
+}
+
+/* Química: roxo */
+.doc-glossary-cat-quimica {
+  border-bottom-color: rgba(147, 51, 234, 0.75);
+}
+.doc-glossary-cat-quimica:hover {
+  background-color: rgba(147, 51, 234, 0.12);
+}
+.dark .doc-glossary-cat-quimica {
+  border-bottom-color: rgba(192, 132, 252, 0.8);
+}
+.dark .doc-glossary-cat-quimica:hover {
+  background-color: rgba(192, 132, 252, 0.18);
+}
+
+/* Biologia: verde esmeralda/oliva */
+.doc-glossary-cat-biologia {
+  border-bottom-color: rgba(22, 163, 74, 0.75);
+}
+.doc-glossary-cat-biologia:hover {
+  background-color: rgba(22, 163, 74, 0.12);
+}
+.dark .doc-glossary-cat-biologia {
+  border-bottom-color: rgba(74, 222, 128, 0.8);
+}
+.dark .doc-glossary-cat-biologia:hover {
+  background-color: rgba(74, 222, 128, 0.18);
+}
+
+/* História: terracota / laranja forte */
+.doc-glossary-cat-historia {
+  border-bottom-color: rgba(234, 88, 12, 0.75);
+}
+.doc-glossary-cat-historia:hover {
+  background-color: rgba(234, 88, 12, 0.12);
+}
+.dark .doc-glossary-cat-historia {
+  border-bottom-color: rgba(251, 146, 60, 0.8);
+}
+.dark .doc-glossary-cat-historia:hover {
+  background-color: rgba(251, 146, 60, 0.18);
+}
+
+/* Geografia: turquesa / teal */
+.doc-glossary-cat-geografia {
+  border-bottom-color: rgba(13, 148, 136, 0.75);
+}
+.doc-glossary-cat-geografia:hover {
+  background-color: rgba(13, 148, 136, 0.12);
+}
+.dark .doc-glossary-cat-geografia {
+  border-bottom-color: rgba(45, 212, 191, 0.8);
+}
+.dark .doc-glossary-cat-geografia:hover {
+  background-color: rgba(45, 212, 191, 0.18);
+}
+
+/* Filosofia / Sociologia: rosa */
+.doc-glossary-cat-filosofia,
+.doc-glossary-cat-sociologia {
+  border-bottom-color: rgba(219, 39, 119, 0.75);
+}
+.doc-glossary-cat-filosofia:hover,
+.doc-glossary-cat-sociologia:hover {
+  background-color: rgba(219, 39, 119, 0.12);
+}
+.dark .doc-glossary-cat-filosofia,
+.dark .doc-glossary-cat-sociologia {
+  border-bottom-color: rgba(244, 114, 182, 0.8);
+}
+.dark .doc-glossary-cat-filosofia:hover,
+.dark .doc-glossary-cat-sociologia:hover {
+  background-color: rgba(244, 114, 182, 0.18);
+}
+
+/* Linguagens / Redação: vermelho suave */
+.doc-glossary-cat-linguagens,
+.doc-glossary-cat-redacao {
+  border-bottom-color: rgba(225, 29, 72, 0.75);
+}
+.doc-glossary-cat-linguagens:hover,
+.doc-glossary-cat-redacao:hover {
+  background-color: rgba(225, 29, 72, 0.12);
+}
+.dark .doc-glossary-cat-linguagens,
+.dark .doc-glossary-cat-redacao {
+  border-bottom-color: rgba(251, 113, 133, 0.8);
+}
+.dark .doc-glossary-cat-linguagens:hover,
+.dark .doc-glossary-cat-redacao:hover {
+  background-color: rgba(251, 113, 133, 0.18);
+}
+
+/* --- Menu de contexto (correção / copiar / colar / glossário / IA) --- */
 .doc-ctx-menu {
   position: fixed;
-  min-width: 220px;
-  max-width: 320px;
-  max-height: 72vh;
+  min-width: 210px;
+  max-width: 280px;
+  max-height: 82vh;
   overflow-y: auto;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.96);
   border: 1px solid #E7E2D9;
   border-radius: 12px;
   box-shadow: 0 16px 40px rgba(28, 25, 23, 0.16);
-  z-index: 500;
+  z-index: 99999;
   padding: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: inherit;
 }
 
 .dark .doc-ctx-menu {
-  background: #18181B;
-  border-color: #44403C;
+  background: rgba(28, 28, 30, 0.96);
+  border-color: #2C2C30;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 
 .doc-ctx-word {
   padding: 6px 10px 2px;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   color: #1C1917;
   word-break: break-word;
 }
@@ -704,9 +836,9 @@
 
 .doc-ctx-label {
   padding: 4px 10px 2px;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  color: #57534E;
+  color: #78716C;
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
@@ -722,16 +854,19 @@
 }
 
 .doc-ctx-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   text-align: left;
-  padding: 8px 10px;
+  padding: 6px 10px;
   border: none;
   border-radius: 8px;
   background: transparent;
   color: #232326;
-  font-family: 'Inter', sans-serif;
-  font-size: 13.5px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   transition: background-color 0.12s ease, color 0.12s ease;
 }
@@ -746,46 +881,50 @@
 }
 
 .dark .doc-ctx-item:hover {
-  background: #15221B;
+  background: #1C2E24;
   color: #52B788;
 }
 
-/* Ação principal do menu de contexto: Definir no glossário */
+/* Ação 'Definir no glossário' com a mesma aparência uniforme dos outros itens */
 .doc-ctx-define {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
-  background: #EBF3EF;
-  border: 1px solid #CFE1D6;
-  color: #224A38;
-  font-weight: 700;
+  background: transparent;
+  border: none;
+  font-weight: 500;
 }
 
 .doc-ctx-define:hover {
-  background: #CFE1D6;
-  color: #18382A;
+  background: #EBF3EF;
+  color: #2D5A46;
 }
 
 .dark .doc-ctx-define {
-  background: #15221B;
-  border-color: #22392D;
-  color: #52B788;
+  background: transparent;
+  border: none;
+  color: #E7E2D9;
 }
 
 .dark .doc-ctx-define:hover {
-  background: #22392D;
-  color: #6BCFA0;
+  background: #1C2E24;
+  color: #52B788;
 }
 
 .doc-ctx-define-icon {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
+  color: #78716C;
+  transition: color 0.12s ease;
+}
+
+.doc-ctx-define:hover .doc-ctx-define-icon {
   color: #2D5A46;
 }
 
 .dark .doc-ctx-define-icon {
+  color: #A8A29E;
+}
+
+.dark .doc-ctx-define:hover .doc-ctx-define-icon {
   color: #52B788;
 }
 

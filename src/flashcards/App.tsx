@@ -545,69 +545,7 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
           }}
           hasActiveDeck={!!activeDeckId}
         />
-      ) : (
-        <div className="sticky top-0 z-30 bg-[#FAF8F5]/90 dark:bg-[#161618]/90 backdrop-blur-md border-b border-[#E7E2D9] dark:border-[#2C2C30] transition-colors">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-[#2D5A46] flex items-center justify-center text-white flex-shrink-0">
-                <Layers className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <span className="font-['Fraunces',serif] font-bold text-base tracking-tight text-[#1C1917] dark:text-[#FAF9F5] flex items-center gap-1.5 truncate">
-                  FlashCards<span className="text-[#2D5A46] font-normal italic">Estudo</span>
-                </span>
-                <p className="text-[10px] text-[#78716C] dark:text-[#A8A29E] hidden sm:block font-sans">
-                  Reconhecimento + escrita ativa
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 sm:gap-3">
-              <button
-                onClick={() => setIsStatsModalOpen(true)}
-                title={`${stats.streak} dia(s) de sequência de estudo seguidos`}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#EBF3EF] dark:bg-[#15221B] border border-[#CFE1D6] dark:border-[#22392D] text-[#2D5A46] dark:text-[#52B788] text-xs font-semibold hover:opacity-90 transition-opacity"
-              >
-                <Flame className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788] fill-[#2D5A46] dark:fill-[#52B788]" />
-                <span className="font-mono">{stats.streak} {stats.streak === 1 ? 'dia' : 'dias'}</span>
-              </button>
-
-              <button
-                onClick={() => setIsStatsModalOpen(true)}
-                title="Estatísticas de Estudo"
-                className="p-2 rounded-xl text-[#57534E] dark:text-[#D6D3CD] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              >
-                <BarChart2 className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={toggleSound}
-                title={soundEnabled ? 'Silenciar efeitos sonoros' : 'Ativar efeitos sonoros'}
-                className="p-2 rounded-xl text-[#57534E] dark:text-[#D6D3CD] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              >
-                {soundEnabled ? (
-                  <Volume2 className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
-                ) : (
-                  <VolumeX className="w-4 h-4 text-[#A8A29E]" />
-                )}
-              </button>
-
-              {!activeDeckId && (
-                <button
-                  onClick={() => {
-                    setEditingDeck(null);
-                    setIsDeckModalOpen(true);
-                  }}
-                  className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#1C1917] hover:bg-[#292524] dark:bg-[#FAF9F5] dark:hover:bg-[#EAE8E3] text-white dark:text-[#1C1917] text-xs font-bold shadow-sm transition-all"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Novo Baralho</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      ) : null}
 
       <main className="flex-1 pb-16">
         {/* VIEW 1: Study Mode in progress */}
@@ -692,6 +630,8 @@ export default function App({ embedded = false, theme, onToggleTheme: _onToggleT
             onDuplicateDeck={handleDuplicateDeck}
             onDeleteDeck={handleDeleteDeck}
             onOpenStats={() => setIsStatsModalOpen(true)}
+            soundEnabled={soundEnabled}
+            onToggleSound={toggleSound}
           />
         )}
       </main>

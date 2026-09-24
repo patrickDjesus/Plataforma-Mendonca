@@ -14,8 +14,10 @@ import {
   X,
   AlertCircle,
   ArrowUpDown,
-  BookOpen,
   Layers,
+  BarChart2,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { Deck, Flashcard, UserStats } from '../types';
 import { COLOR_THEMES, renderDeckIcon } from '../utils/theme';
@@ -29,6 +31,8 @@ interface DeckListProps {
   onDuplicateDeck: (deck: Deck) => void;
   onDeleteDeck: (deckId: string) => void;
   onOpenStats: () => void;
+  soundEnabled?: boolean;
+  onToggleSound?: () => void;
 }
 
 interface MatchedCardItem {
@@ -73,6 +77,9 @@ export const DeckList: React.FC<DeckListProps> = ({
   onEditDeck,
   onDuplicateDeck,
   onDeleteDeck,
+  onOpenStats,
+  soundEnabled,
+  onToggleSound,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDueOnly, setFilterDueOnly] = useState(false);
@@ -173,50 +180,53 @@ export const DeckList: React.FC<DeckListProps> = ({
   );
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in duration-200">
-      {/* Editorial Overview Header */}
-      <div className="rounded-3xl bg-[#FAF8F5] dark:bg-[#18181B] border-2 border-[#E7E2D9] dark:border-[#2C2C30] p-6 sm:p-8 relative overflow-hidden shadow-xs">
-        <div className="relative z-10 max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF3EF] dark:bg-[#1D2B24] border border-[#CFE1D6] dark:border-[#2B4637] text-[#2D5A46] dark:text-[#52B788] text-xs font-semibold">
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>Sistema Ativo: Reconhecimento + Escrita</span>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-in fade-in duration-200">
+      {/* Top Quick Metrics & Action Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FAF8F5] dark:bg-[#18181B] border border-[#E7E2D9] dark:border-[#2C2C30] rounded-2xl p-3.5 sm:p-4 shadow-2xs">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap text-xs font-mono">
+          <div className="flex items-center gap-1.5 bg-[#F5F2EB] dark:bg-[#232326] px-3 py-1.5 rounded-xl border border-[#E7E2D9] dark:border-[#333338] text-[#1C1917] dark:text-[#E7E5E4]">
+            <Flame className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788] fill-[#2D5A46] dark:fill-[#52B788]" />
+            <span>
+              Sequência: <strong>{stats.streak} {stats.streak === 1 ? 'dia' : 'dias'}</strong>
+            </span>
           </div>
-
-          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-[#1C1917] dark:text-[#FAF9F5] font-['Fraunces',serif]">
-            Seus Baralhos de Estudo
-          </h1>
-
-          <p className="text-[#57534E] dark:text-[#A8A29E] text-xs sm:text-sm leading-relaxed">
-            Fixe conceitos com ciclo duplo: primeiro valide o reconhecimento mental de cada cartão e, em seguida, exercite a escrita ativa com tolerância a variações sinônimas.
-          </p>
-
-          <div className="pt-2 flex items-center gap-3 flex-wrap text-xs font-mono">
-            <div className="flex items-center gap-1.5 bg-[#F5F2EB] dark:bg-[#232326] px-3 py-1.5 rounded-xl border border-[#E7E2D9] dark:border-[#333338] text-[#1C1917] dark:text-[#E7E5E4]">
-              <Flame className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788] fill-[#2D5A46] dark:fill-[#52B788]" />
-              <span>
-                Sequência: <strong>{stats.streak} {stats.streak === 1 ? 'dia' : 'dias'}</strong>
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-[#F5F2EB] dark:bg-[#232326] px-3 py-1.5 rounded-xl border border-[#E7E2D9] dark:border-[#333338] text-[#1C1917] dark:text-[#E7E5E4]">
-              <Clock className="w-4 h-4 text-[#2D5A46]" />
-              <span>
-                Revisão diária: <strong>{totalDueToday} cards</strong>
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-[#F5F2EB] dark:bg-[#232326] px-3 py-1.5 rounded-xl border border-[#E7E2D9] dark:border-[#333338] text-[#1C1917] dark:text-[#E7E5E4]">
-              <Layers className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
-              <span>
-                Acervo total: <strong>{totalCardsAllDecks} fichas</strong>
-              </span>
-            </div>
+          <div className="flex items-center gap-1.5 bg-[#F5F2EB] dark:bg-[#232326] px-3 py-1.5 rounded-xl border border-[#E7E2D9] dark:border-[#333338] text-[#1C1917] dark:text-[#E7E5E4]">
+            <Clock className="w-4 h-4 text-[#2D5A46]" />
+            <span>
+              Revisão diária: <strong>{totalDueToday} cards</strong>
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-[#F5F2EB] dark:bg-[#232326] px-3 py-1.5 rounded-xl border border-[#E7E2D9] dark:border-[#333338] text-[#1C1917] dark:text-[#E7E5E4]">
+            <Layers className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
+            <span>
+              Acervo total: <strong>{totalCardsAllDecks} fichas</strong>
+            </span>
           </div>
         </div>
 
-        {/* Subtle decorative stamp */}
-        <div className="absolute -right-8 -bottom-8 w-44 h-44 rounded-full border-4 border-[#E7E2D9]/40 dark:border-[#2C2C30]/40 pointer-events-none flex items-center justify-center opacity-30 select-none">
-          <span className="font-['Fraunces',serif] text-xs uppercase tracking-widest text-[#78716C] rotate-[-20deg]">
-            Arquivo de Estudo
-          </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onOpenStats}
+            title="Estatísticas de Estudo"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F5F2EB] dark:bg-[#232326] hover:bg-[#EFECE6] dark:hover:bg-[#2A2A2F] border border-[#E7E2D9] dark:border-[#333338] text-[#57534E] dark:text-[#D6D3CD] text-xs font-semibold transition-colors cursor-pointer"
+          >
+            <BarChart2 className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788]" />
+            <span className="hidden sm:inline">Estatísticas</span>
+          </button>
+
+          {onToggleSound && (
+            <button
+              onClick={onToggleSound}
+              title={soundEnabled ? 'Silenciar efeitos sonoros' : 'Ativar efeitos sonoros'}
+              className="p-2 rounded-xl bg-[#F5F2EB] dark:bg-[#232326] hover:bg-[#EFECE6] dark:hover:bg-[#2A2A2F] border border-[#E7E2D9] dark:border-[#333338] text-[#57534E] dark:text-[#D6D3CD] transition-colors cursor-pointer"
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-3.5 h-3.5 text-[#2D5A46] dark:text-[#52B788]" />
+              ) : (
+                <VolumeX className="w-3.5 h-3.5 text-[#A8A29E]" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 

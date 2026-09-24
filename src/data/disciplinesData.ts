@@ -27,6 +27,8 @@ export interface DocSection {
   imageLayout?: 'block' | 'float';
   imageFloatSide?: 'left' | 'right';
   imageSize?: number;
+  inlineContent?: any;
+  blockProps?: any;
 }
 
 export interface GlossaryDefinition {
@@ -35,6 +37,11 @@ export interface GlossaryDefinition {
   example?: string;
   category?: string;
   imageUrl?: string;
+  aliases?: string[];
+  scope?: 'document' | 'group' | 'global';
+  isCustom?: boolean;
+  createdAt?: number;
+  updatedAt?: number;
 }
 
 export interface NotebookDoc {

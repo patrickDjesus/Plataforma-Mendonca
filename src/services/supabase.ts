@@ -97,6 +97,24 @@ export const logout = async (): Promise<void> => {
   }
 };
 
+export const signInAsGuest = async (): Promise<User | null> => {
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (!error && data?.user) return data.user;
+    } catch {
+      // Fallback
+    }
+  }
+  return {
+    id: 'guest_' + Math.random().toString(36).substring(2, 9),
+    app_metadata: {},
+    user_metadata: { display_name: 'Visitante' },
+    aud: 'authenticated',
+    created_at: new Date().toISOString(),
+  } as unknown as User;
+};
+
 export const getCurrentUser = () => supabase.auth.getUser();
 export const getCurrentSession = () => supabase.auth.getSession();
 
@@ -605,6 +623,53 @@ export const mergeImportedQuestions = async (
   return newAnalytics;
 };
 
+export const recordStudySessionTime = async (
+  userId: string,
+  elapsedSeconds: number,
+  mode: string = 'Documento / Flashcard'
+): Promise<void> => {
+  if (!userId || elapsedSeconds <= 0) return;
+
+  const current = (await getUserPerformance(userId)) || {
+    totalAnswered: 0,
+    totalCorrect: 0,
+    totalWrong: 0,
+    totalXpEarned: 0,
+    bestStreakCombo: 1,
+    totalSecondsPlayed: 0,
+    subjectStats: {},
+    recentQuestionsLog: [],
+    sessionsHistory: [],
+  };
+
+  const now = new Date();
+  const dateStr = `Hoje às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+  const newSession: PerformanceSessionHistory = {
+    id: `session-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    date: dateStr,
+    gameMode: mode,
+    score: 0,
+    accuracy: 100,
+    totalQuestions: 0,
+    correctQuestions: 0,
+    maxCombo: 1,
+    elapsedSeconds,
+    xpEarned: Math.floor(elapsedSeconds / 60) * 5,
+  };
+
+  const updatedSessions = [newSession, ...(current.sessionsHistory || [])].slice(0, 50);
+
+  const updatedAnalytics: PerformanceAnalytics = {
+    ...current,
+    totalSecondsPlayed: (current.totalSecondsPlayed || 0) + elapsedSeconds,
+    totalXpEarned: (current.totalXpEarned || 0) + newSession.xpEarned,
+    sessionsHistory: updatedSessions,
+  };
+
+  await saveUserPerformance(userId, updatedAnalytics);
+};
+
 export const recordSessionCompleted = async (
   userId: string,
   session: PerformanceSessionHistory,
@@ -900,7 +965,9 @@ export const getUserDocuments = async (userId: string): Promise<NotebookDoc[]> =
         .eq('user_id', userId);
 
       if (!error && data && data.length > 0) {
-        return data.map(row => ({
+        return data
+          .filter(row => !isJunkTestDoc(row))
+          .map(row => ({
           id: row.id,
           title: row.title || 'Documento sem título',
           disciplineId: row.discipline_id || '',
@@ -928,7 +995,10 @@ export const getUserDocuments = async (userId: string): Promise<NotebookDoc[]> =
 
   try {
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEYS.DOCUMENTS}_${userId}`);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed: NotebookDoc[] = JSON.parse(saved);
+      return parsed.filter(d => !isJunkTestDoc(d));
+    }
   } catch {
     // ignore
   }
@@ -1001,6 +1071,56 @@ export const deleteDocument = async (userId: string, docId: string): Promise<voi
   }
 };
 
+export const isJunkTestDoc = (row: any): boolean => {
+  const t = (row.title || '').toLowerCase().trim();
+  const s = (row.summary || '').toLowerCase().trim();
+  const disc = (row.disciplineId || row.discipline_id || '').toLowerCase().trim();
+  const wordCount = row.wordCount || row.word_count || 0;
+  const sections = row.sections || [];
+
+  if (
+    t.includes('full cycle') ||
+    t.includes('estilo db') ||
+    t.includes('doc test') ||
+    t.includes('test doc') ||
+    t.includes('teste full') ||
+    t.includes('teste') ||
+    t.includes('test') ||
+    t === 'doc' ||
+    t === 'documento sem título' ||
+    t === 'novo caderno' ||
+    t === 'sem título' ||
+    t === 'caderno teste' ||
+    t === 'matematica' ||
+    t === 'matemática' ||
+    t === 'caderno de matemática'
+  ) {
+    return true;
+  }
+
+  // Corrupted or missing sections
+  if (!sections || !Array.isArray(sections) || sections.length === 0) {
+    return true;
+  }
+
+  const hasRealContent = sections.some((sec: any) => {
+    const content = (sec.content || '').trim();
+    const blocks = Array.isArray(sec.blocks) && sec.blocks.some((b: any) => (b.content || '').trim().length > 5);
+    return content.length > 20 || blocks;
+  });
+
+  if (!hasRealContent) {
+    return true;
+  }
+
+  // Filter out bugged test public notebooks in matematica
+  if (disc === 'matematica' && (wordCount < 30 || t.length < 5)) {
+    return true;
+  }
+
+  return false;
+};
+
 export const getPublicDocuments = async (excludeUserId: string): Promise<NotebookDoc[]> => {
   if (isSupabaseConfigured) {
     try {
@@ -1011,7 +1131,9 @@ export const getPublicDocuments = async (excludeUserId: string): Promise<Noteboo
         .neq('user_id', excludeUserId);
 
       if (!error && data && data.length > 0) {
-        return data.map(row => ({
+        return data
+          .filter(row => !isJunkTestDoc(row))
+          .map(row => ({
           id: row.id,
           title: row.title || 'Documento sem título',
           disciplineId: row.discipline_id || '',

@@ -18,13 +18,83 @@ const functionsBase = isSupabaseConfigured && envUrl
   ? `${envUrl.replace(/\/$/, '')}/functions/v1`
   : '';
 
-// Chama a Edge Function "groq-chat" do Supabase (proxy seguro para a API Groq).
-// Retorna a resposta de texto, ou null em caso de falha/configuração ausente
-// para que os componentes possam usar seu fallback local.
+export const GROQ_DIRECT_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
+export const groqDirectKey = (import.meta.env.VITE_GROQ_API_KEY || '').trim();
+export const groqDirectModel = (import.meta.env.VITE_GROQ_MODEL || 'openai/gpt-oss-120b').trim();
+export const groqFallbackModel = (import.meta.env.VITE_GROQ_FALLBACK_MODEL || 'groq/compound').trim();
+
+// Chama a API do Groq (direta com chave VITE_GROQ_API_KEY ou Edge Function do Supabase).
+// Retorna a resposta de texto, ou null em caso de falha.
 export async function chatWithGroq(
   messages: AiChatMessage[],
-  systemInstruction: string
+  systemInstruction: string,
+  temperature = 0.3
 ): Promise<string | null> {
+  // 1) Se VITE_GROQ_API_KEY estiver configurada, tenta o modelo principal
+  if (groqDirectKey) {
+    try {
+      const res = await fetch(GROQ_DIRECT_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${groqDirectKey}`,
+        },
+        body: JSON.stringify({
+          model: groqDirectModel,
+          messages: [
+            { role: 'system', content: systemInstruction },
+            ...messages.map((m) => ({ role: m.role, content: m.content })),
+          ],
+          temperature,
+        }),
+        signal: withTimeout(30000).signal,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const content = data?.choices?.[0]?.message?.content;
+        if (typeof content === 'string' && content.trim()) {
+          return content.trim();
+        }
+      }
+
+      // Se falhar ou der rate limit, tenta modelo de fallback mais resiliente
+      if (res.status === 429 || !res.ok) {
+        try {
+          const fallbackRes = await fetch(GROQ_DIRECT_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${groqDirectKey}`,
+            },
+            body: JSON.stringify({
+              model: groqFallbackModel,
+              messages: [
+                { role: 'system', content: systemInstruction },
+                ...messages.map((m) => ({ role: m.role, content: m.content })),
+              ],
+              temperature,
+            }),
+            signal: withTimeout(30000).signal,
+          });
+
+          if (fallbackRes.ok) {
+            const fbData = await fallbackRes.json();
+            const fbContent = fbData?.choices?.[0]?.message?.content;
+            if (typeof fbContent === 'string' && fbContent.trim()) {
+              return fbContent.trim();
+            }
+          }
+        } catch {
+          // segue para tentar Edge Function
+        }
+      }
+    } catch {
+      // continua para tentar proxy se disponível
+    }
+  }
+
+  // 2) Fallback: Edge Function do Supabase
   if (!isSupabaseConfigured || !functionsBase) return null;
 
   try {
@@ -52,7 +122,7 @@ export async function chatWithGroq(
     if (!res.ok) return null;
 
     const data = await res.json();
-    return typeof data.reply === 'string' && data.reply.trim() ? data.reply : null;
+    return typeof data.reply === 'string' && data.reply.trim() ? data.reply.trim() : null;
   } catch {
     return null;
   }
@@ -60,7 +130,7 @@ export async function chatWithGroq(
 
 /**
  * Cria um AbortController que aborta a requisição após `ms` milissegundos,
- * para que uma Edge Function lenta/ausente não deixe o app travado.
+ * para que uma requisição lenta/ausente não deixe o app travado.
  */
 function withTimeout(ms: number): AbortController & { timeout: ReturnType<typeof setTimeout> } {
   const controller = new AbortController();
@@ -68,41 +138,145 @@ function withTimeout(ms: number): AbortController & { timeout: ReturnType<typeof
   return Object.assign(controller, { timeout });
 }
 
-export type AiEditAction = 'improve' | 'summarize' | 'expand' | 'fix-grammar' | 'simplify';
+export type AiEditAction =
+  | 'organize'
+  | 'simplify'
+  | 'improve'
+  | 'summarize'
+  | 'expand'
+  | 'fix-grammar'
+  | 'custom';
 
-const AI_EDIT_ACTION_LABELS: Record<AiEditAction, string> = {
-  improve: 'Melhorar o texto',
-  summarize: 'Resumir',
-  expand: 'Expandir com mais detalhes',
-  'fix-grammar': 'Corrigir gramática e ortografia',
-  simplify: 'Simplificar a linguagem',
+export const AI_EDIT_ACTION_LABELS: Record<AiEditAction, string> = {
+  organize: 'Organizar e estruturar o texto',
+  simplify: 'Tornar mais fácil de entender e didático',
+  improve: 'Melhorar a redação e fluidez',
+  summarize: 'Resumir em pontos-chave',
+  expand: 'Expandir com mais detalhes e exemplos',
+  'fix-grammar': 'Corrigir gramática, ortografia e pontuação',
+  custom: 'Ajuste personalizado',
 };
+
+export function getLocalEditFallback(text: string, action: AiEditAction, customPrompt?: string): string {
+  const trimmed = text.trim();
+  switch (action) {
+    case 'organize': {
+      const sentences = trimmed.split(/(?<=[.!?])\s+/).filter(Boolean);
+      if (sentences.length <= 1) return `- ${trimmed}`;
+      return sentences.map((s) => `- ${s.trim()}`).join('\n');
+    }
+    case 'simplify':
+      return trimmed
+        .replace(/\butilizar\b/gi, 'usar')
+        .replace(/\brealizar\b/gi, 'fazer')
+        .replace(/\bmediante\b/gi, 'por meio de')
+        .replace(/\bconsoante\b/gi, 'conforme')
+        .replace(/\boutrossim\b/gi, 'além disso')
+        .replace(/\bem virtude de\b/gi, 'devido a');
+    case 'fix-grammar':
+      return trimmed
+        .replace(/\s+/g, ' ')
+        .replace(/\s+([,.;:!?])/g, '$1')
+        .replace(/(^|\.\s+)([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+    case 'summarize': {
+      const words = trimmed.split(/\s+/);
+      if (words.length <= 25) return trimmed;
+      return words.slice(0, 25).join(' ') + '...';
+    }
+    case 'expand':
+      return `${trimmed}\n\nExemplo Prático: Na preparação para vestibulares e ENEM, a aplicação deste conceito aparece frequentemente em questões interdisciplinares e análise de situações-problema.`;
+    case 'custom':
+      if (customPrompt) {
+        return `[Ajuste: ${customPrompt}]\n${trimmed}`;
+      }
+      return trimmed;
+    case 'improve':
+    default:
+      return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  }
+}
 
 export async function aiEditSelectedText(
   selectedText: string,
   action: AiEditAction,
   docTitle?: string,
   discipline?: string,
+  customPrompt?: string,
 ): Promise<string | null> {
-  const actionLabel = AI_EDIT_ACTION_LABELS[action];
+  let taskDescription: string;
+
+  switch (action) {
+    case 'organize':
+      taskDescription =
+        `Sua principal missão é REORGANIZAR e ESTRUTURAR o texto para torná-lo EXTREMAMENTE CLARO, ` +
+        `lógico e agradável de estudar. Divida em parágrafos bem definidos, utilize tópicos ou marcadores quando ` +
+        `adequado para separar conceitos distintos, ordene as ideias por ordem de relevância/causa e efeito, ` +
+        `e garanta que um estudante de vestibular consiga assimilar a hierarquia das ideias imediatamente.`;
+      break;
+
+    case 'simplify':
+      taskDescription =
+        `Sua principal missão é TORNAR O TEXTO DE MAIS FÁCIL ENTENDIMENTO. Explique os conceitos de forma didática, ` +
+        `direta e intuitiva, substituindo construções excessivamente rebuscadas por explicações claras, ` +
+        `sem perder o rigor científico necessário para vestibulares e ENEM. Se houver processos complexos, use uma analogia ou passo a passo claro.`;
+      break;
+
+    case 'improve':
+      taskDescription =
+        `Sua missão é MELHORAR e POLIR a redação, aumentando a fluidez, a coesão textual, a precisão vocabular ` +
+        `e a elegância acadêmica, mantendo todo o sentido e conteúdo original intactos.`;
+      break;
+
+    case 'summarize':
+      taskDescription =
+        `Sua missão é RESUMIR o texto em uma síntese esquematizada dos PONTOS-CHAVE essenciais, ` +
+        `eliminando redundâncias e destacando as conclusões fundamentais para revisão rápida.`;
+      break;
+
+    case 'expand':
+      taskDescription =
+        `Sua missão é EXPANDIR o texto com explicações mais aprofundadas, contextualização histórica/científica ` +
+        `e exemplos práticos que ajudem o aluno a fixar o conteúdo para a prova.`;
+      break;
+
+    case 'fix-grammar':
+      taskDescription =
+        `Sua missão é CORRIGIR minuciosamente ortografia, concordância, regência, crase e pontuação segundo a norma culta do português brasileiro. ` +
+        `Retorne o texto com a correção aplicada de forma fluida e natural. NÃO adicione asteriscos (** ou *) nem marcações para indicar o que mudou; apenas entregue o texto correto pronto para o documento.`;
+      break;
+
+    case 'custom':
+      taskDescription =
+        `O aluno pediu o seguinte ajuste específico no texto: "${customPrompt || 'Melhore e organize o texto'}". ` +
+        `Atenda fielmente a essa instrução mantendo a qualidade acadêmica.`;
+      break;
+
+    default:
+      taskDescription = `Ajuste e organize o texto para melhorar seu entendimento e estrutura.`;
+  }
 
   const systemInstruction =
-    `Você é a Lumina, assistente de estudos da Plataforma Mendonça. ` +
-    `O aluno está editando o documento "${docTitle || 'Anotações'}" de ${discipline || 'estudos gerais'}. ` +
-    `Sua tarefa é ${actionLabel} o trecho de texto selecionado pelo aluno. ` +
-    `Retorne APENAS o texto resultante, sem explicações, sem marcadores, sem formatação markdown extra. ` +
-    `Mantenha o sentido original e o nível acadêmico adequado para vestibular/ENEM. ` +
-    `Se o texto contiver fórmulas ou termos técnicos, preserve-os intactos. ` +
-    `Responda em português do Brasil.`;
+    `Você é a Lumina, assistente de redação e estudos acadêmicos da Plataforma Mendonça, movida por inteligência artificial Groq. ` +
+    `O aluno está editando o documento "${docTitle || 'Anotações'}" da disciplina de ${discipline || 'estudos gerais'}.\n\n` +
+    `DIRETRIZES FUNDAMENTAIS DE FORMATAÇÃO E RESPOSTA:\n` +
+    `1. ${taskDescription}\n` +
+    `2. Retorne APENAS o texto resultante final e pronto para inserção no documento. NÃO inclua saudações, introduções ("Aqui está o seu texto:"), notas explicativas, aspas extras no início/fim ou blocos de código com crases triplas desnecessárias.\n` +
+    `3. COERÊNCIA COM O DOCUMENTO DE TEXTO:\n` +
+    `   - Se o trecho selecionado for apenas uma palavra, oração ou frase em um parágrafo, responda de forma proporcional e direta (sem criar títulos # ou listas a menos que explicitamente solicitado).\n` +
+    `   - Formatações markdown: use **negrito** apenas quando for um conceito ou termo fundamental a destacar, e *itálico* para termos em outras línguas ou ênfase técnica. NUNCA use asteriscos vazios ou soltos (** **, * *), nem use asteriscos para sinalizar alterações feitas.\n` +
+    `   - Para tópicos ou pontos, utilize hifens normais (- tópico).\n` +
+    `4. Se o texto original contiver notações matemáticas em KaTeX/LaTeX no formato \\( ... \\), preserve-as com total fidelidade.\n` +
+    `5. Responda em português do Brasil, com linguagem impecável, clara e de fácil compreensão.`;
 
   const messages: AiChatMessage[] = [
     {
       role: 'user',
-      content: `Texto selecionado:\n\n"${selectedText}"`,
+      content: `Ajuste o seguinte trecho:\n\n${selectedText}`,
     },
   ];
 
-  return chatWithGroq(messages, systemInstruction);
+  const result = await chatWithGroq(messages, systemInstruction, 0.4);
+  return result;
 }
 
 // ============================================================================
@@ -125,12 +299,6 @@ export interface DocQuizResult {
   summary: string;
 }
 
-const GROQ_DIRECT_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-const groqDirectKey = (import.meta.env.VITE_GROQ_API_KEY || '').trim();
-const groqDirectModel = (import.meta.env.VITE_GROQ_MODEL || 'openai/gpt-oss-120b').trim();
-// Modelo usado como fallback automático quando o principal estoura o limite
-// (rate limit). groq/compound tem janela bem maior (~70k tokens/min).
-const groqFallbackModel = (import.meta.env.VITE_GROQ_FALLBACK_MODEL || 'groq/compound').trim();
 const ALUNOS_NIVEL =
   'Ensino Médio, em plena preparação para o ENEM e vestibulares (Fuvest, Unicamp, UERJ, UFRGS e similares)';
 
@@ -302,8 +470,8 @@ async function requestQuizWithModel(
 //     (Retry-After, ou ~20s) e tenta o principal de novo;
 //  4. só devolve rate_limit se mesmo assim continuar bloqueado.
 export async function generateDocQuiz(opts: DocQuizOptions): Promise<QuizGenerationOutcome> {
-  const truncatedText = opts.docText.length > 14000
-    ? `${opts.docText.slice(0, 14000)}\n[... conteúdo truncado por limite de tamanho ...]`
+  const truncatedText = opts.docText.length > 40000
+    ? `${opts.docText.slice(0, 40000)}\n[... conteúdo truncado por limite de tamanho ...]`
     : opts.docText;
 
   const systemInstruction =

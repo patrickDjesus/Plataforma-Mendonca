@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'motion/react';
 import {
   RotateCcw,
   Volume2,
@@ -36,6 +37,7 @@ export const ClassicStudy: React.FC<ClassicStudyProps> = ({
   const [cards, setCards] = useState<Flashcard[]>(initialCards);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [flippedCard, setFlippedCard] = useState<Flashcard | null>(null);
   const [markedKnown, setMarkedKnown] = useState<Record<string, boolean>>({});
   const [quickTimer, setQuickTimer] = useState<number | null>(null); // seconds
   const [timerActive, setTimerActive] = useState(false);
@@ -47,8 +49,14 @@ export const ClassicStudy: React.FC<ClassicStudyProps> = ({
   // Flip card handler
   const handleFlip = useCallback(() => {
     soundFx.playFlip();
-    setIsFlipped((prev) => !prev);
-  }, []);
+    setIsFlipped((prev) => {
+      const next = !prev;
+      if (next && currentCard) {
+        setFlippedCard(currentCard);
+      }
+      return next;
+    });
+  }, [currentCard]);
 
   // Navigation handlers
   const handleNext = useCallback(() => {
@@ -229,17 +237,30 @@ export const ClassicStudy: React.FC<ClassicStudyProps> = ({
         />
       </div>
 
-      {/* 3D Flashcard Container */}
-      <div className="w-full perspective-1000 mb-6">
-        <div
+      {/* 3D Flashcard Container with motion rotateY */}
+      <div className="w-full mb-6" style={{ perspective: 1200 }}>
+        <motion.div
           id="flashcard-3d-box"
-          onClick={handleFlip}
-          className={`w-full min-h-[340px] sm:min-h-[380px] rounded-3xl transition-transform duration-500 transform-style-3d cursor-pointer select-none relative shadow-xl hover:shadow-2xl border border-[#E7E2D9] dark:border-[#2C2C30] ${
-            isFlipped ? 'rotate-y-180' : ''
-          }`}
+          animate={{ rotateY: isFlipped ? 180 : 0 }}
+          initial={false}
+          transition={{
+            duration: 0.5,
+            ease: [0.23, 1, 0.32, 1],
+          }}
+          style={{ transformStyle: 'preserve-3d' }}
+          className="grid w-full min-h-[340px] sm:min-h-[380px] rounded-3xl"
         >
           {/* FRONT FACE */}
-          <div className="absolute inset-0 w-full h-full backface-hidden bg-white dark:bg-[#18181B] rounded-3xl p-6 sm:p-8 flex flex-col justify-between overflow-hidden">
+          <div
+            onClick={!isFlipped ? handleFlip : undefined}
+            style={{
+              gridArea: '1 / 1',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(0deg)',
+            }}
+            className="w-full min-h-[340px] sm:min-h-[380px] bg-white dark:bg-[#18181B] rounded-3xl p-6 sm:p-8 flex flex-col justify-between overflow-hidden cursor-pointer select-none shadow-xl hover:shadow-2xl border border-[#E7E2D9] dark:border-[#2C2C30]"
+          >
             {/* Front Header */}
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -297,62 +318,76 @@ export const ClassicStudy: React.FC<ClassicStudyProps> = ({
           </div>
 
           {/* BACK FACE */}
-          <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-gradient-to-br from-[#EBF3EF]/70 via-white to-[#EBF3EF]/50 dark:from-[#18181B] dark:via-[#18181B] dark:to-[#15221B]/40 rounded-3xl p-6 sm:p-8 flex flex-col justify-between overflow-hidden border border-[#CFE1D6] dark:border-[#22392D]">
-            {/* Back Header */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
-                  Verso • Resposta
-                </span>
-                {currentCard.tag && (
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#57534E] dark:text-[#A8A29E]">
-                    {currentCard.tag}
+          {(() => {
+            const backCard = isFlipped ? currentCard : (flippedCard || currentCard);
+            return (
+              <div
+                onClick={isFlipped ? handleFlip : undefined}
+                style={{
+                  gridArea: '1 / 1',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  transform: 'rotateY(180deg)',
+                }}
+                className="w-full min-h-[340px] sm:min-h-[380px] bg-gradient-to-br from-[#EBF3EF]/70 via-white to-[#EBF3EF]/50 dark:from-[#18181B] dark:via-[#18181B] dark:to-[#15221B]/40 rounded-3xl p-6 sm:p-8 flex flex-col justify-between overflow-hidden border border-[#CFE1D6] dark:border-[#22392D] cursor-pointer select-none"
+              >
+                {/* Back Header */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
+                      Verso • Resposta
+                    </span>
+                    {backCard.tag && (
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EFECE6] dark:bg-[#232326] text-[#57534E] dark:text-[#A8A29E]">
+                        {backCard.tag}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      id="btn-card-tts-back"
+                      onClick={() => soundFx.speak(backCard.back)}
+                      title="Ouvir resposta"
+                      className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      id="btn-card-star-back"
+                      onClick={() => onToggleStar(backCard.id)}
+                      title={backCard.starred ? 'Favorito' : 'Marcar como favorito'}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        backCard.starred
+                          ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                          : 'text-[#A8A29E] hover:text-amber-500 hover:bg-[#EFECE6] dark:hover:bg-[#232326]'
+                      }`}
+                    >
+                      <Star className={`w-4 h-4 ${backCard.starred ? 'fill-amber-500' : ''}`} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Back Content */}
+                <div className="my-auto py-6 text-center">
+                  <p className="text-lg sm:text-xl md:text-2xl font-medium text-[#1C1917] dark:text-[#FAF9F5] leading-relaxed">
+                    {backCard.back}
+                  </p>
+                </div>
+
+                {/* Back Footer */}
+                <div className="flex items-center justify-between text-xs text-[#A8A29E] dark:text-[#78716C] border-t border-[#E7E2D9] dark:border-[#2C2C30] pt-3">
+                  <span className="text-[11px]">
+                    Clique para voltar para a pergunta
                   </span>
-                )}
+                  <span className="hidden sm:inline text-[11px] bg-[#EFECE6] dark:bg-[#232326] px-2 py-0.5 rounded font-mono">
+                    [Espaço]
+                  </span>
+                </div>
               </div>
-
-              <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                <button
-                  id="btn-card-tts-back"
-                  onClick={() => soundFx.speak(currentCard.back)}
-                  title="Ouvir resposta"
-                  className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] dark:hover:text-[#E7E5E4] hover:bg-[#EFECE6] dark:hover:bg-[#232326] transition-colors"
-                >
-                  <Volume2 className="w-4 h-4" />
-                </button>
-                <button
-                  id="btn-card-star-back"
-                  onClick={() => onToggleStar(currentCard.id)}
-                  title={currentCard.starred ? 'Favorito' : 'Marcar como favorito'}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    currentCard.starred
-                      ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
-                      : 'text-[#A8A29E] hover:text-amber-500 hover:bg-[#EFECE6] dark:hover:bg-[#232326]'
-                  }`}
-                >
-                  <Star className={`w-4 h-4 ${currentCard.starred ? 'fill-amber-500' : ''}`} />
-                </button>
-              </div>
-            </div>
-
-            {/* Back Content */}
-            <div className="my-auto py-6 text-center">
-              <p className="text-lg sm:text-xl md:text-2xl font-medium text-[#1C1917] dark:text-[#FAF9F5] leading-relaxed">
-                {currentCard.back}
-              </p>
-            </div>
-
-            {/* Back Footer */}
-            <div className="flex items-center justify-between text-xs text-[#A8A29E] dark:text-[#78716C] border-t border-[#E7E2D9] dark:border-[#2C2C30] pt-3">
-              <span className="text-[11px]">
-                Clique para voltar para a pergunta
-              </span>
-              <span className="hidden sm:inline text-[11px] bg-[#EFECE6] dark:bg-[#232326] px-2 py-0.5 rounded font-mono">
-                [Espaço]
-              </span>
-            </div>
-          </div>
-        </div>
+            );
+          })()}
+        </motion.div>
       </div>
 
       {/* Quick rating / Knowledge buttons */}

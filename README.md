@@ -85,4 +85,4 @@ Espera-se `{"reply":"..."}`.
 
 ## Banco de Dados
 
-O schema (tabelas `questions`, `users`, `performance`, `leaderboard`, RLS com `auth.uid()`) está em `supabase-schema.sql`. As operações do app passam por `src/services/supabase.ts`.
+O schema (tabelas `questions`, `users`, `performance`, `leaderboard`, RLS com `auth.uid()`) está em `supabase/supabase-schema.sql`. As operações do app passam por `src/services/supabase.ts`.

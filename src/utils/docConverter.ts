@@ -8,14 +8,17 @@ const inlineOf = (s: DocSection, text: string): StyledText<DefaultStyleSchema> =
   if (s.isBold) styles.bold = true;
   if (s.isItalic) styles.italic = true;
   if (s.isUnderline) styles.underline = true;
-  if (s.isStrikethrough) styles.strikethrough = true;
+  if (s.isStrikethrough) styles.strike = true;
   if (s.textColor) styles.textColor = s.textColor;
   if (s.highlightColor) styles.backgroundColor = s.highlightColor;
   return { type: 'text', text: text || '', styles };
 };
 
-const contentOf = (s: DocSection): StyledText<DefaultStyleSchema>[] => {
-  const text = s.content ?? s.callout ?? s.formula ?? '';
+const contentOf = (s: DocSection): any => {
+  if (Array.isArray(s.inlineContent) && s.inlineContent.length > 0) {
+    return s.inlineContent;
+  }
+  const text = s.heading || s.content || s.callout || s.formula || '';
   if (!text) return [];
   return [inlineOf(s, text)];
 };
@@ -177,7 +180,7 @@ const applyInlineStyles = (section: DocSection, content: any, props: Record<stri
   if (styles.bold) section.isBold = true;
   if (styles.italic) section.isItalic = true;
   if (styles.underline) section.isUnderline = true;
-  if (styles.strikethrough) section.isStrikethrough = true;
+  if (styles.strike || styles.strikethrough) section.isStrikethrough = true;
   if (styles.textColor) section.textColor = styles.textColor;
   if (styles.backgroundColor) section.highlightColor = styles.backgroundColor;
   if (!section.highlightColor && props?.backgroundColor && props.backgroundColor !== 'default') {
@@ -200,6 +203,8 @@ const sectionFromBlock = (b: PartialBlocks[number]): DocSection | null => {
     heading: '',
     content: text,
     align: alignOf(props),
+    inlineContent: Array.isArray(b.content) ? b.content : undefined,
+    blockProps: Object.keys(props).length > 0 ? props : undefined,
   };
 
   applyInlineStyles(base, b.content, props);
@@ -210,6 +215,7 @@ const sectionFromBlock = (b: PartialBlocks[number]): DocSection | null => {
       base.type = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3';
       base.fontSize = level === 1 ? '3xl' : level === 2 ? '2xl' : 'xl';
       base.heading = text;
+      base.content = text;
       break;
     }
     case 'bulletListItem':

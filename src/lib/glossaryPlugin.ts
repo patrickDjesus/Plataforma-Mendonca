@@ -10,12 +10,15 @@ export interface GlossaryTermMatch {
   from: number;
   to: number;
   term: string;
+  category?: string;
 }
 
 export interface GlossaryPluginState {
   terms: Record<string, GlossaryDefinition>;
   pattern: RegExp | null;
   matches: GlossaryTermMatch[];
+  enabled: boolean;
+  seenTerms: Set<string>;
 }
 
 export const glossaryKey = new PluginKey<GlossaryPluginState>('docGlossary');
@@ -26,16 +29,10 @@ const buildPattern = (terms: Record<string, GlossaryDefinition>): RegExp | null 
     .filter(Boolean)
     .sort((a, b) => b.length - a.length);
   if (keys.length === 0) return null;
-  // 'i' para casar "Logaritmo"/"LOGARITMO" com a chave "logaritmo" do
-  // glossário — sem isso, termos capitalizados (início de frase) nunca
-  // eram destacados. A checagem de palavra inteira continua no
-  // computeGlossaryMatches, usando o texto real casado.
   return new RegExp(`(?:${keys.map(escapeRegExp).join('|')})`, 'giu');
 };
 
-// Varre os nós de texto do documento envolvendo cada ocorrência dos termos do
-// glossário (somente palavra inteira, preservando negrito/itálico por nó, já
-// que atravessa apenas um nó de texto por vez).
+// Varre os nós de texto do documento calculando os termos correspondentes
 export function computeGlossaryMatches(
   doc: Node,
   terms: Record<string, GlossaryDefinition>,
@@ -64,6 +61,7 @@ export function computeGlossaryMatches(
               from: pos + m.index,
               to: pos + m.index + matched.length,
               term: def.term || matched,
+              category: def.category,
             });
           }
         }
@@ -75,48 +73,158 @@ export function computeGlossaryMatches(
   return matches;
 }
 
+// Timer para debounce no cálculo de matches durante digitação
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
 export function createGlossaryPlugin(): Plugin<GlossaryPluginState> {
   return new Plugin<GlossaryPluginState>({
     key: glossaryKey,
     state: {
-      init: (): GlossaryPluginState => ({ terms: {}, pattern: null, matches: [] }),
+      init: (): GlossaryPluginState => ({
+        terms: {},
+        pattern: null,
+        matches: [],
+        enabled: true,
+        seenTerms: new Set<string>(),
+      }),
       apply(tr: Transaction, value: GlossaryPluginState, _oldState: EditorState, newState: EditorState) {
         const meta = tr.getMeta(glossaryKey) as
-          | { terms?: Record<string, GlossaryDefinition>; refresh?: boolean }
+          | {
+              terms?: Record<string, GlossaryDefinition>;
+              refresh?: boolean;
+              enabled?: boolean;
+              markSeen?: string;
+            }
           | undefined;
+
+        let nextSeen = value.seenTerms;
+        if (meta && meta.markSeen) {
+          nextSeen = new Set(value.seenTerms);
+          nextSeen.add(meta.markSeen.trim().toLowerCase());
+        }
+
+        const nextEnabled = meta?.enabled !== undefined ? meta.enabled : value.enabled;
 
         if (meta && meta.terms !== undefined) {
           const pattern = buildPattern(meta.terms);
           return {
             terms: meta.terms,
             pattern,
-            matches: computeGlossaryMatches(newState.doc, meta.terms, pattern),
+            matches: nextEnabled ? computeGlossaryMatches(newState.doc, meta.terms, pattern) : [],
+            enabled: nextEnabled,
+            seenTerms: nextSeen,
           };
         }
 
-        if (tr.docChanged || (meta && meta.refresh)) {
+        if (meta && meta.refresh) {
           return {
             terms: value.terms,
             pattern: value.pattern,
-            matches: computeGlossaryMatches(newState.doc, value.terms, value.pattern),
+            matches: nextEnabled ? computeGlossaryMatches(newState.doc, value.terms, value.pattern) : [],
+            enabled: nextEnabled,
+            seenTerms: nextSeen,
+          };
+        }
+
+        if (meta && meta.enabled !== undefined) {
+          return {
+            terms: value.terms,
+            pattern: value.pattern,
+            matches: nextEnabled ? computeGlossaryMatches(newState.doc, value.terms, value.pattern) : [],
+            enabled: nextEnabled,
+            seenTerms: nextSeen,
+          };
+        }
+
+        if (meta && meta.markSeen) {
+          return {
+            ...value,
+            seenTerms: nextSeen,
+          };
+        }
+
+        // Se o documento mudou via digitação, mapeia posições existentes para resposta instantânea
+        if (tr.docChanged) {
+          if (!nextEnabled || value.matches.length === 0) {
+            return { ...value, enabled: nextEnabled, seenTerms: nextSeen };
+          }
+          // Mapeia decorações pelas mudanças do passo
+          const mappedMatches: GlossaryTermMatch[] = [];
+          for (const m of value.matches) {
+            const from = tr.mapping.map(m.from, 1);
+            const to = tr.mapping.map(m.to, -1);
+            if (from < to) {
+              mappedMatches.push({ ...m, from, to });
+            }
+          }
+          return {
+            ...value,
+            matches: mappedMatches,
+            enabled: nextEnabled,
+            seenTerms: nextSeen,
           };
         }
 
         return value;
       },
     },
+    view(editorView: EditorView) {
+      return {
+        update(view: EditorView, prevState: EditorState) {
+          // Debounce de recálculo preciso após o usuário parar de digitar por 300ms
+          if (view.state.doc !== prevState.doc) {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+              const state = glossaryKey.getState(view.state);
+              if (state && state.enabled && state.pattern) {
+                const accurateMatches = computeGlossaryMatches(view.state.doc, state.terms, state.pattern);
+                view.dispatch(view.state.tr.setMeta(glossaryKey, { refresh: false }).setMeta('accurateMatches', accurateMatches));
+              }
+            }, 300);
+          }
+        },
+        destroy() {
+          if (debounceTimer) {
+            clearTimeout(debounceTimer);
+            debounceTimer = null;
+          }
+        },
+      };
+    },
     props: {
       decorations(state: EditorState): DecorationSet | null {
         const value = glossaryKey.getState(state);
-        if (!value || value.matches.length === 0) return null;
+        if (!value || !value.enabled || value.matches.length === 0) return null;
+
         return DecorationSet.create(
           state.doc,
-          value.matches.map((m) =>
-            Decoration.inline(m.from, m.to, {
-              class: 'doc-glossary-term',
+          value.matches.map((m) => {
+            const isSeen = value.seenTerms.has(m.term.trim().toLowerCase());
+            // Categoria normalizada para classe CSS personalizada de disciplina
+            const catNorm = (m.category || 'default')
+              .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .replace(/[^a-z0-9]/g, '');
+
+            const classes = [
+              'doc-glossary-term',
+              `doc-glossary-cat-${catNorm}`,
+              isSeen ? 'doc-glossary-seen' : '',
+            ]
+              .filter(Boolean)
+              .join(' ');
+
+            return Decoration.inline(m.from, m.to, {
+              class: classes,
               'data-glossary-term': m.term,
-            }),
-          ),
+              'data-glossary-category': m.category || '',
+              tabindex: '0',
+              role: 'button',
+              'aria-haspopup': 'dialog',
+              'aria-label': `Termo do glossário: ${m.term}`,
+            });
+          }),
         );
       },
     },
@@ -125,6 +233,14 @@ export function createGlossaryPlugin(): Plugin<GlossaryPluginState> {
 
 export function setGlossaryTerms(view: EditorView, terms: Record<string, GlossaryDefinition>): void {
   view.dispatch(view.state.tr.setMeta(glossaryKey, { terms }));
+}
+
+export function setGlossaryEnabled(view: EditorView, enabled: boolean): void {
+  view.dispatch(view.state.tr.setMeta(glossaryKey, { enabled }));
+}
+
+export function markGlossaryTermSeen(view: EditorView, term: string): void {
+  view.dispatch(view.state.tr.setMeta(glossaryKey, { markSeen: term }));
 }
 
 export function refreshGlossaryDecorations(view: EditorView): void {

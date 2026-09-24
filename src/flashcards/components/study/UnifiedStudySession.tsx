@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Deck, Flashcard } from '../../types';
 import { soundFx } from '../../utils/sound';
+import { useStudyTimer } from '../../../hooks/useStudyTimer';
 
 interface UnifiedStudySessionProps {
   deck: Deck;
@@ -55,6 +56,8 @@ export const UnifiedStudySession: React.FC<UnifiedStudySessionProps> = ({
   onExit,
 }) => {
   const [phase, setPhase] = useState<StudyPhase>('recognition');
+
+  useStudyTimer(phase !== 'completed', 'Estudo de Flashcards');
 
   // PHASE 1: Recognition queue ("Sei" vs "Não sei")
   const [recognitionQueue, setRecognitionQueue] = useState<Flashcard[]>(() => [...cards]);

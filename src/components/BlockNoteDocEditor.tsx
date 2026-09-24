@@ -10,15 +10,19 @@ import type { NotebookDoc, DocSection, GlossaryDefinition } from '../data/discip
 import { sectionsToBlocks, blocksToSections } from '../utils/docConverter';
 import type { PartialBlocks } from '../utils/docConverter';
 import { countWordsOfSections } from '../utils/docConverter';
-import { FileText, Sparkles, Lightbulb } from 'lucide-react';
+import { FileText, BookMarked, Highlighter } from 'lucide-react';
 import SpellContextMenu from './SpellContextMenu';
 import type { SpellPopupState } from './SpellContextMenu';
 import { SpecialCharPicker } from './SpecialCharPicker';
+import { AiEditPreviewModal } from './AiEditPreviewModal';
+import { aiEditSelectedText, getLocalEditFallback } from '../services/ai';
+import type { AiEditAction } from '../services/ai';
 import { playSound } from '../utils/sounds';
 import { createSpellPlugin, getSpellMatches, clearSpellMatches } from '../lib/spellcheckPlugin';
 import type { MappedMatch } from '../lib/spellcheckPlugin';
-import { createGlossaryPlugin, setGlossaryTerms } from '../lib/glossaryPlugin';
+import { createGlossaryPlugin, setGlossaryTerms, setGlossaryEnabled, markGlossaryTermSeen } from '../lib/glossaryPlugin';
 import { mergeGlossary } from '../lib/glossary';
+import { GlossaryCard } from './GlossaryCard';
 import {
   createSpellCheckStore,
   loadIgnoredWords,
@@ -47,12 +51,18 @@ const spellPluginExtension = createExtension({
 interface BlockNoteDocEditorProps {
   doc: NotebookDoc;
   spellEnabled: boolean;
+  disciplineName?: string;
   onToggleSpell: () => void;
   onUpdateTitle: (title: string) => void;
   onUpdateSections: (sections: DocSection[]) => void;
   onDefineGlossary: (term: string) => void;
   onExit: () => void;
   glossary?: Record<string, GlossaryDefinition>;
+  onOpenGlossaryDrawer?: (initialFilter?: string) => void;
+  highlightsEnabled?: boolean;
+  onToggleHighlights?: () => void;
+  onCustomizeGlobal?: (def: GlossaryDefinition) => void;
+  onShareGlossaryTerm?: (term: string, scope: 'document' | 'group' | 'global') => void;
 }
 
 function ToolbarBtn({ active, title, onClick, children }: {
@@ -65,7 +75,14 @@ function ToolbarBtn({ active, title, onClick, children }: {
     <button
       className={`doc-toolbar-btn ${active ? 'active' : ''}`}
       title={title}
-      onClick={onClick}
+      onMouseDown={(e) => {
+        // Previne perda de foco/seleção no editor ao clicar nos botões de formatação
+        e.preventDefault();
+      }}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
       type="button"
     >
       {children}
@@ -75,6 +92,46 @@ function ToolbarBtn({ active, title, onClick, children }: {
 
 function ToolbarSep() {
   return <div className="doc-toolbar-sep" />;
+}
+
+function parseMarkdownInline(text: string): { type: 'text'; text: string; styles: Record<string, boolean> }[] {
+  const parts: { type: 'text'; text: string; styles: Record<string, boolean> }[] = [];
+  const regex = /(\*\*\*|___)(.*?)\1|(\*\*|__)(.*?)\3|(\*|_)(.*?)\5|(~~)(.*?)\7|(`)(.*?)\9/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', text: text.slice(lastIndex, match.index), styles: {} });
+    }
+    const styles: Record<string, boolean> = {};
+    let content = '';
+    if (match[1]) {
+      styles.bold = true;
+      styles.italic = true;
+      content = match[2];
+    } else if (match[3]) {
+      styles.bold = true;
+      content = match[4];
+    } else if (match[5]) {
+      styles.italic = true;
+      content = match[6];
+    } else if (match[7]) {
+      styles.strike = true;
+      content = match[8];
+    } else if (match[9]) {
+      styles.code = true;
+      content = match[10];
+    }
+    if (content) {
+      parts.push({ type: 'text', text: content, styles });
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push({ type: 'text', text: text.slice(lastIndex), styles: {} });
+  }
+  return parts;
 }
 
 const isWordChar = (ch: string | undefined): boolean => !!ch && /\p{L}\p{N}/u.test(ch);
@@ -114,12 +171,18 @@ function wordAtPos(view: EditorView, left: number, top: number): MappedMatch | n
 export function BlockNoteDocEditor({
   doc,
   spellEnabled,
+  disciplineName,
   onToggleSpell,
   onUpdateTitle,
   onUpdateSections,
   onDefineGlossary,
   onExit,
   glossary,
+  onOpenGlossaryDrawer,
+  highlightsEnabled = true,
+  onToggleHighlights,
+  onCustomizeGlobal,
+  onShareGlossaryTerm,
 }: BlockNoteDocEditorProps) {
   const sections: DocSection[] = doc.sections || [];
   const initialContent: PartialBlocks = sections.length > 0
@@ -154,13 +217,26 @@ export function BlockNoteDocEditor({
   const spellCheckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [spellDebug, setSpellDebug] = useState('');
 
+  // Estados para Ajuste de Texto com IA Groq
+  const [aiSelectedText, setAiSelectedText] = useState('');
+  const [aiSelectionRange, setAiSelectionRange] = useState<{ from: number; to: number } | null>(null);
+  const [aiCurrentAction, setAiCurrentAction] = useState<AiEditAction>('organize');
+  const [aiCustomPrompt, setAiCustomPrompt] = useState('');
+  const [aiSuggestedText, setAiSuggestedText] = useState('');
+  const [aiIsGenerating, setAiIsGenerating] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+
   const glossaryMap = useMemo(() => mergeGlossary(glossary), [glossary]);
   const glossaryMapRef = useRef(glossaryMap);
   const [glossaryTip, setGlossaryTip] = useState<{
     x: number;
     y: number;
+    top: number;
+    bottom: number;
     definition: GlossaryDefinition;
   } | null>(null);
+  const [glossaryPlacement, setGlossaryPlacement] = useState<'above' | 'below'>('above');
   const glossaryTipTermRef = useRef('');
   const glossaryTipRef = useRef<HTMLDivElement | null>(null);
   const [glossaryTipAnchor, setGlossaryTipAnchor] = useState<{ left: number; top: number } | null>(null);
@@ -177,6 +253,11 @@ export function BlockNoteDocEditor({
     const view = editor.prosemirrorView;
     if (view) setGlossaryTerms(view, glossaryMap);
   }, [editor, glossaryMap]);
+
+  useEffect(() => {
+    const view = editor.prosemirrorView;
+    if (view) setGlossaryEnabled(view, highlightsEnabled);
+  }, [editor, highlightsEnabled]);
 
   // Tamanho fixo de imagem: P (35%) / M (55%) / G (100%). Cada imagem
   // recebe um seletor próprio (canto superior direito). Não há arrasto,
@@ -508,7 +589,10 @@ export function BlockNoteDocEditor({
     setSpellPopup(null);
   }, [editor, spellPopup, reportSpellStatus, doc.id]);
 
+  const [pinnedTerm, setPinnedTerm] = useState<GlossaryDefinition | null>(null);
+
   const handleGlossaryPointerMove = useCallback((e: React.MouseEvent) => {
+    if (pinnedTerm) return; // Do not dismiss pinned card on hover
     const under = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
     const span = under?.closest?.('.doc-glossary-term') as HTMLElement | null;
     const term = span?.dataset.glossaryTerm || '';
@@ -528,19 +612,26 @@ export function BlockNoteDocEditor({
       return;
     }
 
+    // Marca termo como visto
+    const view = editor.prosemirrorView;
+    if (view) markGlossaryTermSeen(view, term);
+
     glossaryTipTermRef.current = term;
     const rect = span.getBoundingClientRect();
     setGlossaryTip({
       x: rect.left + rect.width / 2,
       y: rect.top,
+      top: rect.top,
+      bottom: rect.bottom,
       definition,
     });
-  }, [glossaryMap]);
+  }, [glossaryMap, pinnedTerm, editor]);
 
   const handleGlossaryLeave = useCallback(() => {
+    if (pinnedTerm) return;
     glossaryTipTermRef.current = '';
     setGlossaryTip(null);
-  }, []);
+  }, [pinnedTerm]);
 
   const handleGlossaryClick = useCallback((e: React.MouseEvent) => {
     const el = (e.target as HTMLElement).closest?.('.doc-glossary-term') as HTMLElement | null;
@@ -548,35 +639,186 @@ export function BlockNoteDocEditor({
     if (!term) return;
     const sel = window.getSelection();
     if (sel && !sel.isCollapsed) return;
-    glossaryTipTermRef.current = '';
-    setGlossaryTip(null);
-    onDefineGlossary(term);
-  }, [onDefineGlossary]);
+    const def = glossaryMap[term.toLowerCase()];
+    if (def) {
+      const rect = el.getBoundingClientRect();
+      setGlossaryTip({
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+        top: rect.top,
+        bottom: rect.bottom,
+        definition: def,
+      });
+      setPinnedTerm(def);
+      const view = editor.prosemirrorView;
+      if (view) markGlossaryTermSeen(view, term);
+    }
+  }, [glossaryMap, editor]);
 
-  // Posiciona o popover medindo o próprio tamanho: maior, ele pode estourar a
-  // tela se o termo estiver perto das bordas. Vira para baixo do termo quando
-  // não cabe acima e limita a largura visível da viewport.
+  // Posiciona o popover acima ou abaixo do termo dinamicamente, dependendo
+  // do espaço restante na viewport vertical e horizontal.
   const repositionGlossaryTip = useCallback(() => {
     const el = glossaryTipRef.current;
     if (!glossaryTip || !el) return;
-    const w = el.offsetWidth;
-    const h = el.offsetHeight;
-    const margin = 12;
+    const w = el.offsetWidth || 368;
+    const h = el.offsetHeight || 200;
+    const margin = 14;
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+
     const left = Math.min(
       Math.max(glossaryTip.x - w / 2, margin),
-      Math.max(margin, window.innerWidth - w - margin),
+      Math.max(margin, viewportW - w - margin),
     );
-    const termY = glossaryTip.y - 14;
-    const spaceAbove = termY - margin;
-    const spaceBelow = window.innerHeight - termY - margin;
-    const above = spaceAbove >= h || spaceAbove >= spaceBelow;
-    const top = above ? termY - h : termY + 16;
+
+    const termTop = glossaryTip.top ?? glossaryTip.y;
+    const termBottom = glossaryTip.bottom ?? (glossaryTip.y + 24);
+
+    const spaceAbove = termTop - margin;
+    const spaceBelow = viewportH - termBottom - margin;
+
+    // Se houver espaço suficiente em cima (ou se o espaço acima for maior que abaixo),
+    // posiciona acima com espaçamento limpo; caso contrário, posiciona abaixo.
+    const placeAbove = spaceAbove >= h + 10 || spaceAbove >= spaceBelow;
+    const top = placeAbove
+      ? Math.max(margin, termTop - h - 10)
+      : Math.min(viewportH - h - margin, termBottom + 10);
+
+    setGlossaryPlacement(placeAbove ? 'above' : 'below');
     setGlossaryTipAnchor({ left, top });
   }, [glossaryTip]);
 
   useLayoutEffect(() => {
     repositionGlossaryTip();
-  }, [repositionGlossaryTip]);
+  }, [repositionGlossaryTip, glossaryTip]);
+
+  // Execução de ajuste de texto via IA Groq
+  const executeAiEdit = useCallback(async (
+    action: AiEditAction,
+    customPrompt?: string,
+    explicitText?: string,
+    explicitRange?: { from: number; to: number }
+  ) => {
+    const textToProcess = explicitText || aiSelectedText;
+    const rangeToProcess = explicitRange || aiSelectionRange;
+    if (!textToProcess) return;
+
+    setAiCurrentAction(action);
+    setAiCustomPrompt(customPrompt || '');
+    setAiSelectedText(textToProcess);
+    if (rangeToProcess) setAiSelectionRange(rangeToProcess);
+    setAiIsGenerating(true);
+    setAiError(null);
+    setAiSuggestedText('');
+    setIsAiModalOpen(true);
+
+    try {
+      const result = await aiEditSelectedText(
+        textToProcess,
+        action,
+        doc.title,
+        disciplineName || 'estudos gerais',
+        customPrompt
+      );
+
+      if (result && result.trim()) {
+        setAiSuggestedText(result.trim());
+      } else {
+        const fallback = getLocalEditFallback(textToProcess, action, customPrompt);
+        setAiSuggestedText(fallback);
+      }
+    } catch {
+      const fallback = getLocalEditFallback(textToProcess, action, customPrompt);
+      setAiSuggestedText(fallback);
+    } finally {
+      setAiIsGenerating(false);
+    }
+  }, [aiSelectedText, aiSelectionRange, doc.title, disciplineName]);
+
+  // Aplica o texto sugerido pela IA com suporte total à formatação nativa do documento
+  const handleApproveAiEdit = useCallback(() => {
+    const view = editor.prosemirrorView;
+    if (view && aiSelectionRange && aiSuggestedText) {
+      const { from, to } = aiSelectionRange;
+      const safeDocSize = view.state.doc.content.size;
+      const safeFrom = Math.max(0, Math.min(from, safeDocSize));
+      const safeTo = Math.max(safeFrom, Math.min(to, safeDocSize));
+
+      view.focus();
+      view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, safeFrom, safeTo)));
+
+      let applied = false;
+
+      // 1. Tenta converter a formatação markdown para blocos nativos do BlockNote
+      try {
+        const parsedBlocks = editor.tryParseMarkdownToBlocks(aiSuggestedText);
+        if (Array.isArray(parsedBlocks) && parsedBlocks.length > 0) {
+          // Se for parágrafo simples (substituição inline ou texto fluido com negrito/itálico)
+          if (parsedBlocks.length === 1 && parsedBlocks[0].type === 'paragraph' && Array.isArray(parsedBlocks[0].content)) {
+            editor.insertInlineContent(parsedBlocks[0].content as any);
+            applied = true;
+          } else {
+            // Estrutura multibloco (listas com tópicos, títulos, múltiplos parágrafos)
+            const sel = editor.getSelection();
+            if (sel?.blocks && sel.blocks.length > 0) {
+              editor.replaceBlocks(sel.blocks, parsedBlocks as any);
+              applied = true;
+            } else {
+              const currentBlock = editor.getTextCursorPosition()?.block;
+              if (currentBlock) {
+                editor.replaceBlocks([currentBlock], parsedBlocks as any);
+                applied = true;
+              } else {
+                editor.pasteMarkdown(aiSuggestedText);
+                applied = true;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao processar markdown com BlockNote:', err);
+      }
+
+      // 2. Fallback: parser inline manual caso BlockNote não tenha estruturado
+      if (!applied) {
+        try {
+          const inlineItems = parseMarkdownInline(aiSuggestedText);
+          if (inlineItems.length > 0) {
+            editor.insertInlineContent(inlineItems as any);
+            applied = true;
+          }
+        } catch (err) {
+          console.warn('Erro no fallback de formatação inline:', err);
+        }
+      }
+
+      // 3. Fallback final: limpa quaisquer asteriscos residuais antes de inserir
+      if (!applied) {
+        const cleanedText = aiSuggestedText
+          .replace(/\*\*(.*?)\*\*/g, '$1')
+          .replace(/\*(.*?)\*/g, '$1');
+        view.dispatch(view.state.tr.insertText(cleanedText, safeFrom, safeTo));
+      }
+
+      view.focus();
+      handleEditorChange();
+    }
+    setIsAiModalOpen(false);
+    setAiSuggestedText('');
+  }, [editor, aiSelectionRange, aiSuggestedText, handleEditorChange]);
+
+  // Fecha o popup ao pressionar Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && (pinnedTerm || glossaryTip)) {
+        setPinnedTerm(null);
+        glossaryTipTermRef.current = '';
+        setGlossaryTip(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pinnedTerm, glossaryTip]);
 
   useEffect(() => {
     let cancelled = false;
@@ -738,22 +980,81 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
 
   const currentAlignment = (activeBlock?.props?.textAlignment as string) || 'left';
   const fmt = {
-    toggleBold: () => editor.toggleStyles({ bold: true }),
-    toggleItalic: () => editor.toggleStyles({ italic: true }),
-    toggleUnderline: () => editor.toggleStyles({ underline: true }),
-    toggleStrike: () => editor.toggleStyles({ strike: true }),
-    heading1: () => editor.updateBlock(editor.getTextCursorPosition().block, { type: 'heading', props: { level: 1 } }),
-    heading2: () => editor.updateBlock(editor.getTextCursorPosition().block, { type: 'heading', props: { level: 2 } }),
-    heading3: () => editor.updateBlock(editor.getTextCursorPosition().block, { type: 'heading', props: { level: 3 } }),
-    paragraph: () => editor.updateBlock(editor.getTextCursorPosition().block, { type: 'paragraph' }),
-    bulletList: () => editor.updateBlock(editor.getTextCursorPosition().block, { type: 'bulletListItem' }),
-    numberedList: () => editor.updateBlock(editor.getTextCursorPosition().block, { type: 'numberedListItem' }),
-    checkList: () => editor.updateBlock(editor.getTextCursorPosition().block, { type: 'checkListItem' }),
-    inlineCode: () => editor.toggleStyles({ code: true }),
-    alignLeft: () => editor.updateBlock(editor.getTextCursorPosition().block, { props: { textAlignment: 'left' } }),
-    alignCenter: () => editor.updateBlock(editor.getTextCursorPosition().block, { props: { textAlignment: 'center' } }),
-    alignRight: () => editor.updateBlock(editor.getTextCursorPosition().block, { props: { textAlignment: 'right' } }),
-    alignJustify: () => editor.updateBlock(editor.getTextCursorPosition().block, { props: { textAlignment: 'justify' } }),
+    toggleBold: () => {
+      editor.toggleStyles({ bold: true });
+      handleEditorChange();
+    },
+    toggleItalic: () => {
+      editor.toggleStyles({ italic: true });
+      handleEditorChange();
+    },
+    toggleUnderline: () => {
+      editor.toggleStyles({ underline: true });
+      handleEditorChange();
+    },
+    toggleStrike: () => {
+      editor.toggleStyles({ strike: true });
+      handleEditorChange();
+    },
+    heading1: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { type: 'heading', props: { level: 1 } });
+      handleEditorChange();
+    },
+    heading2: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { type: 'heading', props: { level: 2 } });
+      handleEditorChange();
+    },
+    heading3: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { type: 'heading', props: { level: 3 } });
+      handleEditorChange();
+    },
+    paragraph: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { type: 'paragraph' });
+      handleEditorChange();
+    },
+    bulletList: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { type: 'bulletListItem' });
+      handleEditorChange();
+    },
+    numberedList: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { type: 'numberedListItem' });
+      handleEditorChange();
+    },
+    checkList: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { type: 'checkListItem' });
+      handleEditorChange();
+    },
+    inlineCode: () => {
+      editor.toggleStyles({ code: true });
+      handleEditorChange();
+    },
+    alignLeft: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { props: { textAlignment: 'left' } });
+      handleEditorChange();
+    },
+    alignCenter: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { props: { textAlignment: 'center' } });
+      handleEditorChange();
+    },
+    alignRight: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { props: { textAlignment: 'right' } });
+      handleEditorChange();
+    },
+    alignJustify: () => {
+      const block = editor.getTextCursorPosition().block;
+      if (block) editor.updateBlock(block, { props: { textAlignment: 'justify' } });
+      handleEditorChange();
+    },
   };
 
   const wordCount = countWordsOfSections(sections);
@@ -896,6 +1197,28 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
             </ToolbarBtn>
           </div>
 
+          <ToolbarSep />
+
+          <div className="doc-format-group">
+            {onToggleHighlights && (
+              <ToolbarBtn
+                title={highlightsEnabled ? 'Ocultar destaques de termos' : 'Mostrar destaques de termos'}
+                active={highlightsEnabled}
+                onClick={onToggleHighlights}
+              >
+                <Highlighter className="w-4 h-4" />
+              </ToolbarBtn>
+            )}
+            {onOpenGlossaryDrawer && (
+              <ToolbarBtn
+                title="Abrir Glossário Geral"
+                onClick={onOpenGlossaryDrawer}
+              >
+                <BookMarked className="w-4 h-4 text-[#2D5A46] dark:text-[#52B788]" />
+              </ToolbarBtn>
+            )}
+          </div>
+
           {spellDebug ? <span className="doc-spell-debug" title="Diagnóstico do corretor">{spellDebug}</span> : null}
         </div>
       </div>
@@ -972,6 +1295,10 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
               .doc-editor-paper .bn-inline-content {
                 max-width: 100% !important;
               }
+              .bn-formatting-toolbar,
+              .bn-toolbar {
+                display: none !important;
+              }
               .doc-editor-paper .bn-trailing-block {
                 height: 36px !important;
                 min-height: 36px !important;
@@ -1011,13 +1338,12 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
               }
             `}</style>
             <div className="doc-paper-margin" />
-            <div className="doc-paper-holes">
-              <span /><span /><span />
-            </div>
             <div className="doc-paper-lines">
               <BlockNoteView
                 editor={editor}
                 theme="light"
+                formattingToolbar={false}
+                linkToolbar={false}
                 onChange={handleEditorChange}
               />
             </div>
@@ -1026,64 +1352,68 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
       </div>
 
       {glossaryTip ? (
-        <motion.div
-          ref={glossaryTipRef}
-          initial={{ opacity: 0, y: 8, scale: 0.92 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 4, scale: 0.96 }}
-          transition={{ type: 'spring', damping: 26, stiffness: 500, mass: 0.4 }}
-          className="fixed z-[99999] w-[24rem] max-w-[calc(100vw-1.5rem)] p-4 rounded-2xl bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-xl border border-[#CFE1D6]/80 dark:border-[#22392D]/80 shadow-2xl text-left pointer-events-none overflow-y-auto max-h-[70vh]"
-          style={{
-            left: glossaryTipAnchor?.left ?? glossaryTip.x,
-            top: glossaryTipAnchor?.top ?? glossaryTip.y - 14,
-          }}
-        >
-          <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-[#E7E2D9] dark:border-[#2C2C30]">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-[#2D5A46] to-[#224A38] text-white flex items-center justify-center shadow-md shadow-[#2D5A46]/30 shrink-0">
-                <Sparkles className="w-3.5 h-3.5" />
-              </div>
-              <h4 className="font-display font-bold text-sm text-[#1C1917] dark:text-[#FAF9F5] truncate">
-                {glossaryTip.definition.term}
-              </h4>
-            </div>
-            {glossaryTip.definition.category && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EBF3EF] dark:bg-[#15221B]/80 text-[#2D5A46] dark:text-[#52B788] shrink-0">
-                {glossaryTip.definition.category}
-              </span>
-            )}
-          </div>
-
-          {glossaryTip.definition.imageUrl && (
-            <img
-              src={glossaryTip.definition.imageUrl}
-              alt={glossaryTip.definition.term}
-              className="w-full max-h-48 object-contain rounded-xl border border-[#E7E2D9] dark:border-[#3B3B40] shadow-md mb-2.5 bg-[#F5F1EA] dark:bg-[#242426]/70"
-              onLoad={repositionGlossaryTip}
-              onError={(e) => { (e.currentTarget.style.display = 'none'); }}
+        <>
+          {pinnedTerm && (
+            <div
+              className="fixed inset-0 z-[99998] bg-black/10 backdrop-blur-[1px] transition-opacity"
+              onClick={() => {
+                setPinnedTerm(null);
+                glossaryTipTermRef.current = '';
+                setGlossaryTip(null);
+              }}
             />
           )}
-
-          {glossaryTip.definition.definition && (
-            <>
-              <span className="text-[10px] font-bold text-[#A8A29E] dark:text-[#78716C] uppercase tracking-wider block">
-                Significado Acadêmico:
-              </span>
-              <p className="text-xs text-[#44403C] dark:text-[#E7E5E4] leading-relaxed font-normal">
-                {glossaryTip.definition.definition}
-              </p>
-            </>
-          )}
-
-          {glossaryTip.definition.example && (
-            <div className="mt-2.5 pt-2 border-t border-[#E7E2D9] dark:border-[#2C2C30]/80 flex items-start gap-2 text-[11px] text-[#57534E] dark:text-[#D6D3CD] bg-[#EBF3EF]/60 dark:bg-[#15221B]/30 p-2 rounded-xl border border-[#CFE1D6]/50 dark:border-[#22392D]/40">
-              <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-              <p className="italic leading-snug">
-                <strong className="not-italic text-[#1C1917] dark:text-[#FAF9F5] font-semibold">{glossaryTip.definition.example}</strong>
-              </p>
-            </div>
-          )}
-        </motion.div>
+          <motion.div
+            ref={glossaryTipRef}
+            initial={{ opacity: 0, y: glossaryPlacement === 'above' ? 8 : -8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 450, mass: 0.35 }}
+            className={`fixed z-[99999] w-[23rem] max-w-[calc(100vw-2rem)] rounded-2xl filter drop-shadow-xl ${
+              pinnedTerm ? 'pointer-events-auto' : 'pointer-events-none'
+            }`}
+            style={{
+              left: glossaryTipAnchor?.left ?? glossaryTip.x,
+              top: glossaryTipAnchor?.top ?? (glossaryTip.y - 14),
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GlossaryCard
+              definition={glossaryTip.definition}
+              glossaryMap={glossaryMap}
+              isPinned={!!pinnedTerm}
+              onClose={() => {
+                setPinnedTerm(null);
+                glossaryTipTermRef.current = '';
+                setGlossaryTip(null);
+              }}
+              onEdit={(term) => {
+                setPinnedTerm(null);
+                setGlossaryTip(null);
+                onDefineGlossary(term);
+              }}
+              onViewInGlossary={(term) => {
+                setPinnedTerm(null);
+                setGlossaryTip(null);
+                onOpenGlossaryDrawer?.(term);
+              }}
+              onCustomizeGlobal={onCustomizeGlobal ? (def) => {
+                setPinnedTerm(null);
+                setGlossaryTip(null);
+                onCustomizeGlobal(def);
+              } : undefined}
+              onNavigateTerm={(term) => {
+                const def = glossaryMap[term.toLowerCase()];
+                if (def) {
+                  setGlossaryTip((prev) => (prev ? { ...prev, definition: def } : null));
+                  setPinnedTerm(def);
+                  const view = editor.prosemirrorView;
+                  if (view) markGlossaryTermSeen(view, term);
+                }
+              }}
+            />
+          </motion.div>
+        </>
       ) : null}
 
       {spellPopup ? (
@@ -1103,6 +1433,17 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
           onCopy={copyAtPos}
           onPaste={pasteAtPos}
           onIgnore={ignoreWord}
+          onAiAction={(action, customPrompt) => {
+            const from = spellPopup?.from ?? 0;
+            const to = spellPopup?.to ?? 0;
+            const word = spellPopup?.word ?? '';
+            setSpellPopup(null);
+            if (from >= 0 && to > from) {
+              executeAiEdit(action, customPrompt, word, { from, to });
+            } else {
+              executeAiEdit(action, customPrompt, word);
+            }
+          }}
           onDefineGlossary={(word) => {
             setSpellPopup(null);
             onDefineGlossary(word);
@@ -1110,6 +1451,24 @@ const [paperStyleId] = useState('doc-paper-grid-rule');
           onClose={() => setSpellPopup(null)}
         />
       ) : null}
+
+      {/* Modal Futurista de Pré-visualização e Aprovação do Ajuste com IA Groq */}
+      <AiEditPreviewModal
+        isOpen={isAiModalOpen}
+        onClose={() => {
+          setIsAiModalOpen(false);
+        }}
+        originalText={aiSelectedText}
+        suggestedText={aiSuggestedText}
+        action={aiCurrentAction}
+        customPrompt={aiCustomPrompt}
+        isLoading={aiIsGenerating}
+        error={aiError}
+        onApprove={handleApproveAiEdit}
+        onRetry={(action, customPrompt) => {
+          executeAiEdit(action, customPrompt);
+        }}
+      />
 
       <SpecialCharPicker
         open={showCharPicker}

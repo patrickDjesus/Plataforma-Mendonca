@@ -3,7 +3,8 @@ import { ScreenId } from '../types/design';
 import { DISCIPLINES, Discipline, NotebookDoc, DocSection, GlossaryDefinition } from '../data/disciplinesData';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
-import { getUserDocuments, saveDocument, deleteDocument, getPublicDocuments } from '../services/supabase';
+import { useStudyTimer } from '../hooks/useStudyTimer';
+import { getUserDocuments, saveDocument, deleteDocument, getPublicDocuments, isJunkTestDoc } from '../services/supabase';
 import { 
   Calculator,
   PenTool,
@@ -41,11 +42,14 @@ import {
   X,
   Folder,
   FolderPlus,
-  Palette
+  Palette,
+  BookMarked
 } from 'lucide-react';
 import { CreateDocModal } from './CreateDocModal';
 import { AddGlossaryTermModal } from './AddGlossaryTermModal';
 import { BlockNoteDocEditor } from './BlockNoteDocEditor';
+import { GlossaryDrawer } from './GlossaryDrawer';
+import { GlossaryStudyModal } from './GlossaryStudyModal';
 import { DocQuiz } from './DocQuiz';
 import { EmojiQuickPicker } from './EmojiQuickPicker';
 import { countWordsOfSections, sectionsToText } from '../utils/docConverter';
@@ -178,8 +182,12 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
   const [isCreateDocOpen, setIsCreateDocOpen] = useState(false);
   const [docToEdit, setDocToEdit] = useState<NotebookDoc | null>(null);
   const [isAddGlossaryOpen, setIsAddGlossaryOpen] = useState(false);
+  const [isGlossaryDrawerOpen, setIsGlossaryDrawerOpen] = useState(false);
+  const [isGlossaryStudyOpen, setIsGlossaryStudyOpen] = useState(false);
+  const [glossaryHighlightsEnabled, setGlossaryHighlightsEnabled] = useState(true);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [initialGlossaryTerm, setInitialGlossaryTerm] = useState('');
+  const [editingGlossaryDef, setEditingGlossaryDef] = useState<GlossaryDefinition | null>(null);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [spellEnabled, setSpellEnabled] = useState(true);
   const [editorEpoch, setEditorEpoch] = useState(0);
@@ -265,6 +273,9 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     selectedDocRef.current = selectedDoc;
   }, [selectedDoc]);
 
+  // Contador de tempo ativo de estudo com timer de inatividade de 5min
+  useStudyTimer(!!selectedDocId && !isSimulatorDoc, 'Leitura de Documento');
+
   // Close more menu when clicking outside
   useEffect(() => {
     const handleClickOutside = () => setIsMoreMenuOpen(false);
@@ -338,14 +349,34 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
   const simDoc = filteredDocs.find(doc => doc.id === SIMULATOR_DOC_ID);
 
   // Documentos públicos da comunidade filtrados pela disciplina selecionada
-  const disciplinePublicDocs = (selectedDiscipline
-    ? publicDocs.filter(doc => doc.disciplineId === selectedDiscipline.id)
-    : []);
+  const disciplinePublicDocs = useMemo(() => {
+    if (!selectedDiscipline) return [];
+    return publicDocs.filter(doc => doc.disciplineId === selectedDiscipline.id && !isJunkTestDoc(doc));
+  }, [selectedDiscipline, publicDocs]);
+
+  // Glossário compartilhado do grupo de documentos
+  const selectedDocIdStr = selectedDoc?.id;
+  const selectedDocGroup = (selectedDoc?.group || '').trim().toLowerCase();
+
+  const effectiveGlossary = useMemo(() => {
+    if (!selectedDocIdStr || !selectedDiscipline) return {};
+    if (!selectedDocGroup) return selectedDoc?.glossary || {};
+
+    const merged: Record<string, GlossaryDefinition> = {};
+    (selectedDiscipline.documents || [])
+      .filter(doc => (doc.group || '').trim().toLowerCase() === selectedDocGroup)
+      .forEach(doc => {
+        if (doc.glossary) {
+          Object.assign(merged, doc.glossary);
+        }
+      });
+    return merged;
+  }, [selectedDocIdStr, selectedDocGroup, selectedDiscipline, selectedDoc]);
 
   // Públicos também agrupados: grupos aparecem como um card único, com apenas
   // os documentos públicos dentro (o grupo só expõe o que é público).
   const publicGroupedDocs = useMemo(
-    () => groupDocs(publicDocs.filter(doc => doc.disciplineId === selectedDisciplineId)),
+    () => groupDocs(publicDocs.filter(doc => doc.disciplineId === selectedDisciplineId && !isJunkTestDoc(doc))),
     [publicDocs, selectedDisciplineId]
   );
 
@@ -734,23 +765,29 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
     setBulkGroupInput('');
   };
 
-  // Add custom glossary term to current document. Se o documento pertencer a um
-  // grupo, o termo é salvo no glossário de TODOS os documentos do mesmo grupo,
-  // para que o termo fique disponível em qualquer documento do grupo.
-  const handleAddGlossaryTerm = (term: string, definition: GlossaryDefinition) => {
+  // Add custom glossary term to current document with scope support:
+  // - 'document': only the current document
+  // - 'group': all documents in the same group within this discipline
+  // - 'global': all documents across this discipline
+  const handleAddGlossaryTerm = (
+    term: string,
+    definition: GlossaryDefinition,
+    oldTermKey?: string,
+    scope?: 'document' | 'group' | 'global'
+  ) => {
     if (!selectedDisciplineId || !selectedDocId || !selectedDoc) return;
 
+    const actualScope = scope || definition.scope || 'document';
     const group = (selectedDoc.group || '').trim();
 
-    const newGlossary = {
-      ...(selectedDoc.glossary || {}),
-      [term]: definition
+    const updateDocGlossary = (doc: NotebookDoc): NotebookDoc => {
+      const g = { ...(doc.glossary || {}) };
+      if (oldTermKey && oldTermKey !== term) {
+        delete g[oldTermKey];
+      }
+      g[term] = { ...definition, scope: actualScope };
+      return { ...doc, glossary: g };
     };
-
-    const withTerm = (doc: NotebookDoc): NotebookDoc =>
-      doc.id === selectedDocId
-        ? { ...doc, glossary: newGlossary }
-        : { ...doc, glossary: { ...(doc.glossary || {}), [term]: definition } };
 
     setAllDisciplines(prev =>
       prev.map(d => {
@@ -758,9 +795,13 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
         return {
           ...d,
           documents: d.documents.map(doc => {
-            if (!group) return doc.id === selectedDocId ? withTerm(doc) : doc;
-            const sameGroup = (doc.group || '').trim() === group;
-            return sameGroup ? withTerm(doc) : doc;
+            if (actualScope === 'global') {
+              return updateDocGlossary(doc);
+            }
+            if (actualScope === 'group' && group) {
+              return (doc.group || '').trim() === group ? updateDocGlossary(doc) : doc;
+            }
+            return doc.id === selectedDocId ? updateDocGlossary(doc) : doc;
           })
         };
       })
@@ -768,12 +809,54 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
 
     if (userId) {
       const affected = (selectedDiscipline?.documents || []).filter(doc => {
+        if (actualScope === 'global') return true;
+        if (actualScope === 'group' && group) return (doc.group || '').trim() === group;
+        return doc.id === selectedDocId;
+      });
+      affected.forEach(doc => {
+        saveDocument(userId, updateDocGlossary(doc)).catch(err =>
+          console.warn('Erro ao salvar glossário no Supabase:', err)
+        );
+      });
+    }
+  };
+
+  const handleDeleteGlossaryTerm = (term: string, scope?: 'document' | 'group' | 'global') => {
+    if (!selectedDisciplineId || !selectedDocId || !selectedDoc) return;
+    const group = (selectedDoc.group || '').trim();
+
+    const withoutTerm = (doc: NotebookDoc): NotebookDoc => {
+      const g = { ...(doc.glossary || {}) };
+      delete g[term];
+      return { ...doc, glossary: g };
+    };
+
+    setAllDisciplines(prev =>
+      prev.map(d => {
+        if (d.id !== selectedDisciplineId) return d;
+        return {
+          ...d,
+          documents: d.documents.map(doc => {
+            if (scope === 'global') return withoutTerm(doc);
+            if (scope === 'group' && group) return (doc.group || '').trim() === group ? withoutTerm(doc) : doc;
+            if (!group) return doc.id === selectedDocId ? withoutTerm(doc) : doc;
+            const sameGroup = (doc.group || '').trim() === group;
+            return sameGroup ? withoutTerm(doc) : doc;
+          })
+        };
+      })
+    );
+
+    if (userId) {
+      const affected = (selectedDiscipline?.documents || []).filter(doc => {
+        if (scope === 'global') return true;
+        if (scope === 'group' && group) return (doc.group || '').trim() === group;
         if (doc.id === selectedDocId) return true;
         return group && (doc.group || '').trim() === group;
       });
       affected.forEach(doc => {
-        saveDocument(userId, withTerm(doc)).catch(err =>
-          console.warn('Erro ao salvar glossário no Supabase:', err)
+        saveDocument(userId, withoutTerm(doc)).catch(err =>
+          console.warn('Erro ao remover termo do glossário no Supabase:', err)
         );
       });
     }
@@ -1186,29 +1269,6 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
                 />
               </div>
             </div>
-
-            {/* Abas de Categorias com Seleção Robusta */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold">
-              {[
-                { id: 'all', label: 'Todas as Matérias' },
-                { id: 'enem', label: 'ENEM & Vestibulares' },
-                { id: 'faculdade', label: 'Faculdade (Unisul)' },
-                { id: 'pessoal', label: 'Pessoal & Diário' },
-              ].map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id as any)}
-                  className={`px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-colors cursor-pointer ${
-                    selectedCategory === cat.id
-                      ? 'bg-[#2D5A46] text-white font-bold shadow-xs'
-                      : 'bg-[#EFECE6] dark:bg-[#252529] text-[#57534E] dark:text-[#E7E5E4] hover:bg-[#E5DFD5] dark:hover:bg-[#333338]'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
           </div>
           </ScrollFade>
 
@@ -1465,6 +1525,16 @@ export const CadernoWorkspace: React.FC<CadernoWorkspaceProps> = ({ onNavigate: 
               >
                 <MousePointer2 className="w-4 h-4" />
                 <span className="hidden lg:inline">{selectionMode ? 'Sair da Seleção' : 'Selecionar'}</span>
+              </button>
+
+              {/* Botão Glossário da Disciplina na Galeria */}
+              <button
+                onClick={() => setIsGlossaryDrawerOpen(true)}
+                className="px-3 py-2 rounded-2xl bg-[#EBF3EF] dark:bg-[#15221B] border border-[#CFE1D6] dark:border-[#22392D] text-[#2D5A46] dark:text-[#52B788] hover:bg-[#2D5A46] hover:text-white dark:hover:bg-[#2D5A46] dark:hover:text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                title="Abrir Glossário Geral da Disciplina"
+              >
+                <BookMarked className="w-4 h-4" />
+                <span className="hidden sm:inline">Glossário</span>
               </button>
 
               {/* Alternador Grid / Lista */}
@@ -1805,8 +1875,24 @@ background: 'rgba(45, 90, 70, 0.15)',
               )}
             </div>
 
-            {/* Lado Direito: Ações Discretas (Emojis Rápidos + Quiz + Menu Dropdown ...) */}
+            {/* Lado Direito: Ações Discretas (Glossário + Emojis Rápidos + Menu Dropdown ...) */}
             <div className="flex items-center gap-2 relative">
+              {/* Botão de Glossário da Disciplina / Documento */}
+              {!isSimulatorDoc && (
+                <button
+                  onClick={() => setIsGlossaryDrawerOpen(true)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    isGlossaryDrawerOpen
+                      ? 'bg-[#2D5A46] text-white shadow-xs'
+                      : 'bg-[#EBF3EF] dark:bg-[#15221B] text-[#2D5A46] dark:text-[#52B788] hover:bg-[#2D5A46] hover:text-white dark:hover:bg-[#2D5A46] dark:hover:text-white'
+                  }`}
+                  title="Abrir Glossário de Termos e Conceitos"
+                >
+                  <BookMarked className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Glossário</span>
+                </button>
+              )}
+
               {/* Botão de Painel Rápido de Emojis */}
               {!isSimulatorDoc && (
               <div className="relative">
@@ -1914,6 +2000,18 @@ background: 'rgba(45, 90, 70, 0.15)',
                       <span>{copied ? 'Copiado!' : 'Copiar Texto Completo'}</span>
                     </button>
 
+                    {/* Glossário e Termos */}
+                    <button
+                      onClick={() => {
+                        setIsGlossaryDrawerOpen(true);
+                        setIsMoreMenuOpen(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                    >
+                      <BookMarked className="w-4 h-4 text-[#2D5A46]" />
+                      <span>Abrir Glossário</span>
+                    </button>
+
                     {/* Adicionar ao Glossário */}
                     <button
                       onClick={() => {
@@ -1924,6 +2022,18 @@ background: 'rgba(45, 90, 70, 0.15)',
                     >
                       <BookmarkPlus className="w-4 h-4 text-purple-500" />
                       <span>Novo Termo no Glossário</span>
+                    </button>
+
+                    {/* Modo Estudo Flashcards */}
+                    <button
+                      onClick={() => {
+                        setIsGlossaryStudyOpen(true);
+                        setIsMoreMenuOpen(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      <span>Praticar Flashcards</span>
                     </button>
 
                     <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
@@ -1965,15 +2075,31 @@ background: 'rgba(45, 90, 70, 0.15)',
                   key={`${selectedDoc.id}:${editorEpoch}`}
                   doc={selectedDoc}
                   spellEnabled={spellEnabled}
+                  disciplineName={selectedDiscipline.name}
                   onToggleSpell={() => setSpellEnabled(v => !v)}
+                  highlightsEnabled={glossaryHighlightsEnabled}
+                  onToggleHighlights={() => setGlossaryHighlightsEnabled(v => !v)}
+                  onOpenGlossaryDrawer={() => setIsGlossaryDrawerOpen(true)}
+                  onCustomizeGlobal={(def) => {
+                    setInitialGlossaryTerm(def.term);
+                    setEditingGlossaryDef(def);
+                    setIsAddGlossaryOpen(true);
+                  }}
+                  onShareGlossaryTerm={(term, scope) => {
+                    const currentDef = selectedDoc.glossary?.[term] || selectedDoc.glossary?.[term.toLowerCase()];
+                    if (currentDef) {
+                      handleAddGlossaryTerm(term, currentDef, term, scope);
+                    }
+                  }}
                   onUpdateTitle={handleUpdateDocTitle}
                   onUpdateSections={handleUpdateSections}
                   onDefineGlossary={(term) => {
                     setInitialGlossaryTerm(term);
+                    setEditingGlossaryDef(null);
                     setIsAddGlossaryOpen(true);
                   }}
                   onExit={() => setSelectedDocId(null)}
-                  glossary={selectedDoc.glossary}
+                  glossary={effectiveGlossary}
                 />
               </div>
 
@@ -2002,7 +2128,12 @@ background: 'rgba(45, 90, 70, 0.15)',
 
           {/* Botão flutuante "Teste" — gera um mini-questionário com IA sobre o documento */}
           {!isSimulatorDoc && selectedDoc && selectedDiscipline && (
-            <DocQuiz doc={selectedDoc} discipline={selectedDiscipline} />
+            <DocQuiz
+              doc={selectedDoc}
+              discipline={selectedDiscipline}
+              groupDocs={selectedDoc.group ? selectedDiscipline.documents.filter(d => (d.group || '').trim().toLowerCase() === (selectedDoc.group || '').trim().toLowerCase()) : undefined}
+              groupName={selectedDoc.group}
+            />
           )}
 
         </div>
@@ -2029,17 +2160,67 @@ background: 'rgba(45, 90, 70, 0.15)',
           isOpen={isAddGlossaryOpen}
           initialTerm={initialGlossaryTerm}
           initialDefinition={
-            initialGlossaryTerm && selectedDoc.glossary
+            editingGlossaryDef ||
+            (initialGlossaryTerm && selectedDoc.glossary
               ? (Object.entries(selectedDoc.glossary).find(
                   ([key]) => key.trim().toLowerCase() === initialGlossaryTerm.trim().toLowerCase()
                 )?.[1] ?? null)
-              : null
+              : null)
           }
           onClose={() => {
             setIsAddGlossaryOpen(false);
             setInitialGlossaryTerm('');
+            setEditingGlossaryDef(null);
           }}
           onAddTerm={handleAddGlossaryTerm}
+          docContextText={sectionsToText(selectedDoc.sections || []).slice(0, 1500)}
+          existingCategories={Array.from(
+            new Set(
+              Object.values(selectedDoc.glossary || {})
+                .map((d) => d.category)
+                .filter(Boolean) as string[]
+            )
+          )}
+        />
+      )}
+
+      {/* Gaveta Lateral de Glossário (Drawer) */}
+      {selectedDiscipline && (
+        <GlossaryDrawer
+          isOpen={isGlossaryDrawerOpen}
+          onClose={() => setIsGlossaryDrawerOpen(false)}
+          currentDoc={selectedDoc}
+          discipline={selectedDiscipline}
+          glossary={effectiveGlossary}
+          onAddTermClick={(term) => {
+            setInitialGlossaryTerm(term || '');
+            setEditingGlossaryDef(null);
+            setIsAddGlossaryOpen(true);
+          }}
+          onEditTerm={(def) => {
+            setInitialGlossaryTerm(def.term);
+            setEditingGlossaryDef(def);
+            setIsAddGlossaryOpen(true);
+          }}
+          onDeleteTerm={(term) => {
+            handleDeleteGlossaryTerm(term);
+          }}
+          onStartStudy={() => {
+            setIsGlossaryStudyOpen(true);
+          }}
+          highlightsEnabled={glossaryHighlightsEnabled}
+          onToggleHighlights={() => setGlossaryHighlightsEnabled(v => !v)}
+        />
+      )}
+
+      {/* Modal de Estudo com Flashcards do Glossário */}
+      {selectedDiscipline && (
+        <GlossaryStudyModal
+          isOpen={isGlossaryStudyOpen}
+          onClose={() => setIsGlossaryStudyOpen(false)}
+          currentDoc={selectedDoc}
+          discipline={selectedDiscipline}
+          glossary={effectiveGlossary}
         />
       )}
 
