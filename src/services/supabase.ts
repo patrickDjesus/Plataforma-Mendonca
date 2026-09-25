@@ -106,13 +106,31 @@ export const signInAsGuest = async (): Promise<User | null> => {
       // Fallback
     }
   }
-  return {
+  const GUEST_KEY = 'mendonca_local_auth_user';
+  try {
+    const stored = localStorage.getItem(GUEST_KEY);
+    if (stored) {
+      const prev = JSON.parse(stored) as User | null;
+      if (prev && typeof prev.id === 'string' && prev.id.startsWith('guest_')) {
+        return prev;
+      }
+    }
+  } catch {
+    // ignore
+  }
+  const guestUser = {
     id: 'guest_' + Math.random().toString(36).substring(2, 9),
     app_metadata: {},
     user_metadata: { display_name: 'Visitante' },
     aud: 'authenticated',
     created_at: new Date().toISOString(),
   } as unknown as User;
+  try {
+    localStorage.setItem(GUEST_KEY, JSON.stringify(guestUser));
+  } catch {
+    // ignore
+  }
+  return guestUser;
 };
 
 export const getCurrentUser = () => supabase.auth.getUser();
@@ -965,9 +983,7 @@ export const getUserDocuments = async (userId: string): Promise<NotebookDoc[]> =
         .eq('user_id', userId);
 
       if (!error && data && data.length > 0) {
-        return data
-          .filter(row => !isJunkTestDoc(row))
-          .map(row => ({
+        return data.map(row => ({
           id: row.id,
           title: row.title || 'Documento sem título',
           disciplineId: row.discipline_id || '',
@@ -997,7 +1013,7 @@ export const getUserDocuments = async (userId: string): Promise<NotebookDoc[]> =
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEYS.DOCUMENTS}_${userId}`);
     if (saved) {
       const parsed: NotebookDoc[] = JSON.parse(saved);
-      return parsed.filter(d => !isJunkTestDoc(d));
+      return parsed;
     }
   } catch {
     // ignore
@@ -1072,28 +1088,18 @@ export const deleteDocument = async (userId: string, docId: string): Promise<voi
 };
 
 export const isJunkTestDoc = (row: any): boolean => {
-  const t = (row.title || '').toLowerCase().trim();
-  const s = (row.summary || '').toLowerCase().trim();
-  const disc = (row.disciplineId || row.discipline_id || '').toLowerCase().trim();
+  const t = (row.title || '').toLowerCase().trim().replace(/^\p{Extended_Pictographic}\s+/u, '').trim();
   const wordCount = row.wordCount || row.word_count || 0;
   const sections = row.sections || [];
 
   if (
-    t.includes('full cycle') ||
-    t.includes('estilo db') ||
-    t.includes('doc test') ||
-    t.includes('test doc') ||
-    t.includes('teste full') ||
-    t.includes('teste') ||
-    t.includes('test') ||
+    t === 'full cycle' ||
+    t === 'estilo db' ||
+    t === 'doc test' ||
+    t === 'test doc' ||
+    t === 'teste full' ||
     t === 'doc' ||
-    t === 'documento sem título' ||
-    t === 'novo caderno' ||
-    t === 'sem título' ||
-    t === 'caderno teste' ||
-    t === 'matematica' ||
-    t === 'matemática' ||
-    t === 'caderno de matemática'
+    t === 'caderno teste'
   ) {
     return true;
   }
@@ -1114,8 +1120,10 @@ export const isJunkTestDoc = (row: any): boolean => {
   }
 
   // Filter out bugged test public notebooks in matematica
-  if (disc === 'matematica' && (wordCount < 30 || t.length < 5)) {
-    return true;
+  if (t.includes('matematica') || t.includes('matemática')) {
+    if (wordCount < 30 || (t.split(/\s+/).length === 1)) {
+      return true;
+    }
   }
 
   return false;
